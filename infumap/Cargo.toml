@@ -1,0 +1,15 @@
+[package]
+name = "infumap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+uuid = { version = "1.2.1", features = ["v4"] }
+base-62 = "0.1.1"
+totp-rs = { version = "^3.0", features = ["qr", "otpauth"] }
+rocket = { version = "0.5.0-rc.2" }
+lazy_static = { version = "1.4.0" }
+clap = "2.33.3"
+config = "0.11.0"
+log = "0.4"
+pretty_env_logger = "0.4.0"
