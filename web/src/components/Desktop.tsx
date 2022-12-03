@@ -18,7 +18,7 @@
 
 import { Component } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
-
+import { Rectangle } from "./Rectangle";
 
 export const Desktop: Component = () => {
     const c = useItemStore();
@@ -28,6 +28,7 @@ export const Desktop: Component = () => {
             <div>{c.count()}</div>
             <button onClick={() => c.setCount(c.count() + 1)}>+</button>
             <button onClick={() => c.setCount(c.count() - 1)}>-</button>
+            <Rectangle />
         </div>
     );
 }

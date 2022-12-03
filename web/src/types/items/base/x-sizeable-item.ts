@@ -20,5 +20,5 @@ import { Item } from "./item";
 
 
 export interface XSizableItem extends Item {
-    bwForSpatial: number
+  bwForSpatial: number
 }

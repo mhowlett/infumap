@@ -22,16 +22,16 @@ import { uuid } from '../utility';
 
 
 export interface PageItemTransient {
-    children: Array<uuid>;
-    attachments: Array<uuid>;
-    currentBounds: BoundingBox | null;
-    fromParentIdMaybe: uuid | null; // when moving.
+  children: Array<uuid>;
+  attachments: Array<uuid>;
+  currentBounds: BoundingBox | null;
+  fromParentIdMaybe: uuid | null; // when moving.
 }
 
 export interface PageItem extends XSizableItem {
-    transient: PageItemTransient;
+  transient: PageItemTransient;
 
-    innerSpatialIbw: number;
-    naturalAspect: number;
-    bgColor: number;
+  innerSpatialIbw: number;
+  naturalAspect: number;
+  bgColor: number;
 }

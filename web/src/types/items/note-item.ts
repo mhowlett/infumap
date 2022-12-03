@@ -24,16 +24,16 @@ import { uuid } from '../utility';
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
 export interface NoteItemTransient {
-    children: Array<uuid>,
-    attachments: Array<uuid>,
-    currentBounds: BoundingBox | null,
-    fromParentIdMaybe: uuid | null // when moving.
+  children: Array<uuid>,
+  attachments: Array<uuid>,
+  currentBounds: BoundingBox | null,
+  fromParentIdMaybe: uuid | null // when moving.
 }
 
 export interface NoteItem extends XSizableItem {
-    transient: NoteItemTransient,
+  transient: NoteItemTransient,
 
-    text: string,
-    url: string,
-    hasFacIcon: boolean
+  text: string,
+  url: string,
+  hasFacIcon: boolean
 }

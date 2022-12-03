@@ -21,12 +21,12 @@ import { uuid } from '../../utility';
 
 
 export interface Item {
-    id: uuid,
-    parentId: uuid | null,
-    originalCreationDate: number,
-    creationDate: number,
-    lastModifiedDate: number,
-    ordering: Uint8Array,
-    title: string,
-    bxyForSpatial: Vector
+  id: uuid,
+  parentId: uuid | null,
+  originalCreationDate: number,
+  creationDate: number,
+  lastModifiedDate: number,
+  ordering: Uint8Array,
+  title: string,
+  bxyForSpatial: Vector
 }

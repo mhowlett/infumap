@@ -21,12 +21,15 @@ import { Setter } from "solid-js";
 import { JSX } from "solid-js";
 import { createSignal, createContext, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Items } from "../items";
+import { Vector } from "../geometry";
+import { Item, Items } from "../items";
 
 
 export interface ItemStoreContextModel {
   count: Accessor<number>,
-  setCount: Setter<number>
+  setCount: Setter<number>,
+  pos: Accessor<Vector>,
+  setPos: Setter<Vector>
 }
 export interface ItemStoreContextProps {
   children: JSX.Element
@@ -37,7 +40,7 @@ const fetchUser = async () => {
   console.log(r);
   return r;
 }
-  
+
 const ItemStoreContext = createContext<ItemStoreContextModel>();
 
 export function ItemStoreProvider(props: ItemStoreContextProps) {
@@ -52,6 +55,8 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
   const [count, setCount] = createSignal<number>(0);
   const [user] = createResource(fetchUser);
   
+  const [pos, setPos] = createSignal<Vector>({ x: 40, y: 40 });
+
   // const counter = [
   //     count,
   //     {
@@ -65,7 +70,8 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
   //   ];
 
   const value: ItemStoreContextModel = {
-    count, setCount
+    count, setCount,
+    pos, setPos
   };
 
   return (

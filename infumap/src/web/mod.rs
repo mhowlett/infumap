@@ -54,7 +54,7 @@ fn gen() -> String {
 #[get("/test-json")]
 fn json() -> RawJson<&'static str> {
     // TODO: remove. Playing with JSON.
-    RawJson("{ \"hello\": \"world\" }")
+    RawJson("[{ \"test\": \"one\" }, { \"test\": \"two\" }]")
 }
 
 
