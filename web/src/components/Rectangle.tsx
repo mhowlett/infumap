@@ -17,20 +17,29 @@
 */
 
 import { Component } from "solid-js";
+import { produce } from "solid-js/store";
 import { add, clientPosVector, subtract, Vector } from "../geometry";
 import { useItemStore } from "../store/ItemStoreProvider";
+import { uuid } from "../types/utility";
 
 
-export const Rectangle: Component = () => {
+export interface RectangleProps {
+  id: uuid
+}
+
+export const Rectangle: Component<RectangleProps> = (props: RectangleProps) => {
   const c = useItemStore();
 
   let lastPos: Vector | null = null;
-    
+
   let mouseMoveHandler = (pos: MouseEvent) => {
     if (lastPos == null) { return ;}
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
-    c.setPos(add(c.pos(), delta));
+    c.setItems("moving", produce((items) => {
+        items[parseInt(props.id)].bxyForSpatial = add(items[parseInt(props.id)].bxyForSpatial, delta);
+        return items;
+    }));
   };
 
   let mouseDownHandler = (pos: MouseEvent) => {
@@ -47,7 +56,7 @@ export const Rectangle: Component = () => {
 
   return (
     <div class={`absolute border border-black w-[40px] h-[40px]`}
-       style={`left: ${c.pos().x}px; top: ${c.pos().y}px`}
+       style={`left: ${c.items.moving[parseInt(props.id)].bxyForSpatial.x}px; top: ${c.items.moving[parseInt(props.id)].bxyForSpatial.y}px`}
        onMouseDown={mouseDownHandler}>
     </div>
   );

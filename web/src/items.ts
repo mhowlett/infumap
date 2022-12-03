@@ -24,9 +24,6 @@ export type { PageItem } from './types/items/page-item';
 
 export type Items = {
     rootId: Array<string> | null,
-    fixed: {
-      [id: string]: Item
-    },
-    moving: [],
-    color: number,
+    fixed: { [id: string]: Item },
+    moving: Array<Item>
 }

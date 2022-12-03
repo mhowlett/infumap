@@ -17,6 +17,7 @@
 */
 
 import { Vector } from '../../../geometry';
+import { newOrdering } from '../../../ordering';
 import { uuid } from '../../utility';
 
 
@@ -29,4 +30,17 @@ export interface Item {
   ordering: Uint8Array,
   title: string,
   bxyForSpatial: Vector
+}
+
+export function emptyItem() : Item {
+  return {
+    id: "0",
+    parentId: null,
+    originalCreationDate: 0,
+    creationDate: 0,
+    lastModifiedDate: 0,
+    ordering: newOrdering(),
+    title: "",
+    bxyForSpatial: { x: 0, y: 0}
+  };
 }

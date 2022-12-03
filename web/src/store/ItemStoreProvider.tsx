@@ -16,20 +16,17 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Accessor, createResource } from "solid-js";
-import { Setter } from "solid-js";
+import { createResource } from "solid-js";
 import { JSX } from "solid-js";
-import { createSignal, createContext, useContext } from "solid-js";
-import { createStore } from "solid-js/store";
-import { Vector } from "../geometry";
-import { Item, Items } from "../items";
+import { createContext, useContext } from "solid-js";
+import { createStore, SetStoreFunction } from "solid-js/store";
+import { Items } from "../items";
+import { emptyItem } from "../types/items/base/item";
 
 
 export interface ItemStoreContextModel {
-  count: Accessor<number>,
-  setCount: Setter<number>,
-  pos: Accessor<Vector>,
-  setPos: Setter<Vector>
+  items: Items
+  setItems: SetStoreFunction<Items>
 }
 export interface ItemStoreContextProps {
   children: JSX.Element
@@ -44,34 +41,23 @@ const fetchUser = async () => {
 const ItemStoreContext = createContext<ItemStoreContextModel>();
 
 export function ItemStoreProvider(props: ItemStoreContextProps) {
+  let item1 = emptyItem();
+  item1.id = "0";
+  item1.bxyForSpatial = { x: 80, y: 40 };
+  let item2 = emptyItem();
+  item2.id = "1";
+  item2.bxyForSpatial = { x: 140, y: 50 };
 
   const [items, setItems] = createStore<Items>({
     rootId: null,
     fixed: {},
-    moving: [],
-    color: 2,
+    moving: [item1, item2],
   });
   
-  const [count, setCount] = createSignal<number>(0);
   const [user] = createResource(fetchUser);
-  
-  const [pos, setPos] = createSignal<Vector>({ x: 40, y: 40 });
-
-  // const counter = [
-  //     count,
-  //     {
-  //       increment() {
-  //         setCount(c => c + 1);
-  //       },
-  //       decrement() {
-  //         setCount(c => c - 1);
-  //       }
-  //     }
-  //   ];
 
   const value: ItemStoreContextModel = {
-    count, setCount,
-    pos, setPos
+    items, setItems
   };
 
   return (

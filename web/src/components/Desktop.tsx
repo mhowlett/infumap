@@ -16,19 +16,18 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component } from "solid-js";
+import { Component, For } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { Rectangle } from "./Rectangle";
 
-export const Desktop: Component = () => {
-    const c = useItemStore();
 
-    return (
-        <div class="fixed left-[40px] top-0 bottom-0 right-0 select-none outline-none">
-            <div>{c.count()}</div>
-            <button onClick={() => c.setCount(c.count() + 1)}>+</button>
-            <button onClick={() => c.setCount(c.count() - 1)}>-</button>
-            <Rectangle />
-        </div>
-    );
+export const Desktop: Component = () => {
+  const c = useItemStore();
+  return (
+    <div class="fixed left-[40px] top-0 bottom-0 right-0 select-none outline-none">
+      <For each={c.items.moving}>
+        { item => <Rectangle id={item.id} /> }
+      </For>
+    </div>
+  );
 }
