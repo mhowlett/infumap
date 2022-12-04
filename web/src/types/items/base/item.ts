@@ -18,7 +18,7 @@
 
 import { Vector } from '../../../util/geometry';
 import { newOrdering } from '../../../util/ordering';
-import { uuid } from '../../utility';
+import { uuid } from '../../../util/uuid';
 
 
 export interface Item {

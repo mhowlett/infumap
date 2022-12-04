@@ -16,6 +16,8 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+export type uuid = string;
+
 export function createUuidV4() {
   let rs = crypto.getRandomValues(new Uint8Array(32));
   let idx = 0;

@@ -17,8 +17,8 @@
 */
 
 import { Item } from './types/items/base/item';
-import { uuid } from './types/utility';
 import { throwExpression } from './util/lang';
+import { uuid } from './util/uuid';
 
 
 export type { Item } from './types/items/base/item';

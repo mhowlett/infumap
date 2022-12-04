@@ -17,8 +17,8 @@
 */
 
 import { BoundingBox } from '../../util/geometry';
+import { uuid } from '../../util/uuid';
 import { XSizableItem } from './base/x-sizeable-item';
-import { uuid } from '../utility';
 
 
 export interface PageItemTransient {

@@ -20,8 +20,8 @@ import { Component } from "solid-js";
 import { produce } from "solid-js/store";
 import { add, clientPosVector, subtract, Vector } from "../util/geometry";
 import { useItemStore } from "../store/ItemStoreProvider";
-import { uuid } from "../types/utility";
 import { findWithId } from "../items";
+import { uuid } from "../util/uuid";
 
 
 export interface RectangleProps {

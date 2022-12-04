@@ -17,8 +17,8 @@
 */
 
 import { BoundingBox, Vector } from '../../util/geometry';
+import { uuid } from '../../util/uuid';
 import { XSizableItem } from './base/x-sizeable-item';
-import { uuid } from '../utility';
 
 
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
