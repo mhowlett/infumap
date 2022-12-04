@@ -22,6 +22,7 @@ import { createContext, useContext } from "solid-js";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { Items } from "../items";
 import { emptyItem } from "../types/items/base/item";
+import { throwExpression } from "../util/lang";
 import { createUuidV4 } from "../util/uuid";
 
 
@@ -69,7 +70,5 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 }
 
 export function useItemStore() : ItemStoreContextModel {
-  const context = useContext(ItemStoreContext);
-  if (!context) { throw "context undefined"; }
-  return context;
+  return useContext(ItemStoreContext) ?? throwExpression("context undefined");
 }
