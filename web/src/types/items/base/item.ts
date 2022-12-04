@@ -16,8 +16,8 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Vector } from '../../../geometry';
-import { newOrdering } from '../../../ordering';
+import { Vector } from '../../../util/geometry';
+import { newOrdering } from '../../../util/ordering';
 import { uuid } from '../../utility';
 
 

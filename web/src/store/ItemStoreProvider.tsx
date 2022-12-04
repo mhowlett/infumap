@@ -22,6 +22,7 @@ import { createContext, useContext } from "solid-js";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { Items } from "../items";
 import { emptyItem } from "../types/items/base/item";
+import { createUuidV4 } from "../util/uuid";
 
 
 export interface ItemStoreContextModel {
@@ -42,10 +43,10 @@ const ItemStoreContext = createContext<ItemStoreContextModel>();
 
 export function ItemStoreProvider(props: ItemStoreContextProps) {
   let item1 = emptyItem();
-  item1.id = "0";
+  item1.id = createUuidV4();
   item1.bxyForSpatial = { x: 80, y: 40 };
   let item2 = emptyItem();
-  item2.id = "1";
+  item2.id = createUuidV4();
   item2.bxyForSpatial = { x: 140, y: 50 };
 
   const [items, setItems] = createStore<Items>({

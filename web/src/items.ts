@@ -17,6 +17,9 @@
 */
 
 import { Item } from './types/items/base/item';
+import { uuid } from './types/utility';
+import { throwExpression } from './util/lang';
+
 
 export type { Item } from './types/items/base/item';
 export type { NoteItem } from './types/items/note-item';
@@ -26,4 +29,8 @@ export type Items = {
     rootId: Array<string> | null,
     fixed: { [id: string]: Item },
     moving: Array<Item>
+}
+
+export function findWithId(items: Array<Item>, id: uuid) : Item {
+  return items.find(a => a.id == id) ?? throwExpression(`no item with id '${id}' found.`);
 }

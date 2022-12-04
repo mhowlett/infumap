@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoundingBox } from '../../geometry';
+import { BoundingBox } from '../../util/geometry';
 import { XSizableItem } from './base/x-sizeable-item';
 import { uuid } from '../utility';
 

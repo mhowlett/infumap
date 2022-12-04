@@ -16,24 +16,6 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoundingBox, Vector } from '../../util/geometry';
-import { XSizableItem } from './base/x-sizeable-item';
-import { uuid } from '../utility';
-
-
-// TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
-
-export interface NoteItemTransient {
-  children: Array<uuid>,
-  attachments: Array<uuid>,
-  currentBounds: BoundingBox | null,
-  fromParentIdMaybe: uuid | null // when moving.
-}
-
-export interface NoteItem extends XSizableItem {
-  transient: NoteItemTransient,
-
-  text: string,
-  url: string,
-  hasFacIcon: boolean
+export function throwExpression(errorMessage: string): never {
+  throw new Error(errorMessage);
 }
