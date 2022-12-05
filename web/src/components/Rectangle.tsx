@@ -20,7 +20,7 @@ import { Component } from "solid-js";
 import { produce } from "solid-js/store";
 import { add, clientPosVector, subtract, Vector } from "../util/geometry";
 import { useItemStore } from "../store/ItemStoreProvider";
-import { findWithId, Uid } from "../items";
+import { findItemInArray, Uid } from "../items";
 
 
 export interface RectangleProps {
@@ -29,7 +29,7 @@ export interface RectangleProps {
 
 export const Rectangle: Component<RectangleProps> = (props: RectangleProps) => {
   const c = useItemStore();
-  let item = findWithId(c.items.moving, props.id);
+  let item = findItemInArray(c.items.moving, props.id);
 
   let lastPos: Vector | null = null;
 
@@ -44,7 +44,7 @@ export const Rectangle: Component<RectangleProps> = (props: RectangleProps) => {
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
     c.setItems("moving", produce((items) => {
-        let itm = findWithId(items, props.id);
+        let itm = findItemInArray(items, props.id);
         itm.bxyForSpatial = add(itm.bxyForSpatial, delta);
         return items;
     }));

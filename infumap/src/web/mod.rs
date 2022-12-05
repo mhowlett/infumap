@@ -22,7 +22,6 @@ use uuid::{uuid, Uuid};
 use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
 use clap::{App, ArgMatches};
-use super::util::base62;
 
 
 #[get("/gen")]

@@ -17,8 +17,6 @@
 
 // TODO (LOW): improve efficiency.
 
-use uuid::{Uuid, uuid};
-
 const CHARSET: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 
@@ -50,6 +48,7 @@ pub fn encode(bytes: &[u8; 16]) -> String {
 
 /// Enumerates the possible base62 decode errors.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum DecodeError {
   UnsupportedSize,
   InvalidCharacter,
@@ -58,6 +57,7 @@ pub enum DecodeError {
 
 /// Decode a base62 string of length 22 to a byte array of length 16.
 /// Encoding is consistent with the corresponding implementation in the web project.
+#[allow(dead_code)]
 pub fn decode(s: &str) -> Result<[u8; 16], DecodeError> {
   if s.len() != 22 { return Err(DecodeError::UnsupportedSize); }
 
@@ -109,7 +109,7 @@ fn test_encode_decode() {
   assert_eq!(bytes, decoded);
 
   // from web implementation.
-  const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
+  const ID: uuid::Uuid = uuid::uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
   let a = crate::util::base62::encode(&ID.as_bytes());
   assert_eq!("dL0UZCrGigIHrtoVLPKwR2", a);
 

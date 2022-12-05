@@ -34,7 +34,7 @@ export type Items = {
     moving: Array<Item>
 }
 
-export function findWithId(items: Array<Item>, id: Uid): Item {
+export function findItemInArray(items: Array<Item>, id: Uid): Item {
   return items.find(a => a.id == id) ?? throwExpression(`no item with id '${id}' found.`);
 }
 
