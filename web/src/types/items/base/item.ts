@@ -16,14 +16,14 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { Uid, newUid } from '../../../items';
 import { Vector } from '../../../util/geometry';
 import { newOrdering } from '../../../util/ordering';
-import { uuid } from '../../../util/uuid';
 
 
 export interface Item {
-  id: uuid,
-  parentId: uuid | null,
+  id: Uid,
+  parentId: Uid | null,
   originalCreationDate: number,
   creationDate: number,
   lastModifiedDate: number,
@@ -32,15 +32,15 @@ export interface Item {
   bxyForSpatial: Vector
 }
 
-export function emptyItem() : Item {
+export function makeItem() : Item {
   return {
-    id: "0",
+    id: newUid(),
     parentId: null,
     originalCreationDate: 0,
     creationDate: 0,
     lastModifiedDate: 0,
     ordering: newOrdering(),
     title: "",
-    bxyForSpatial: { x: 0, y: 0}
+    bxyForSpatial: { x: 0, y: 0 }
   };
 }

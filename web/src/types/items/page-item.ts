@@ -16,16 +16,16 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { Uid } from '../../items';
 import { BoundingBox } from '../../util/geometry';
-import { uuid } from '../../util/uuid';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
 export interface PageItemTransient {
-  children: Array<uuid>;
-  attachments: Array<uuid>;
+  children: Array<Uid>;
+  attachments: Array<Uid>;
   currentBounds: BoundingBox | null;
-  fromParentIdMaybe: uuid | null; // when moving.
+  fromParentIdMaybe: Uid | null; // when moving.
 }
 
 export interface PageItem extends XSizableItem {

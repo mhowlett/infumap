@@ -139,7 +139,7 @@ function toArray(a: Uint8Array): Array<number> {
     return r;
 }
 
-export function testOrdering() {
+export function testOrdering(): void {
     console.log('### -- Start Ordering tests');
 
     console.log('### -- compare');

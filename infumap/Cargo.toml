@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 uuid = { version = "1.2.1", features = ["v4"] }
-base-62 = "0.1.1"
 totp-rs = { version = "^3.0", features = ["qr", "otpauth"] }
 rocket = { version = "0.5.0-rc.2" }
 lazy_static = { version = "1.4.0" }

@@ -23,9 +23,20 @@ import "tailwindcss/tailwind.css";
 import './index.css';
 import { ItemStoreProvider } from './store/ItemStoreProvider';
 
+// import { testUid } from './items';
+// import { testEncodeDecode } from './util/base62';
+// import { testOrdering } from './util/ordering';
+
 
 render(() => (
   <ItemStoreProvider>
     <App />
   </ItemStoreProvider>
 ), document.getElementById('root') as HTMLElement);
+
+
+if (false) {
+  // testUid();
+  // testEncodeDecode();
+  // testOrdering();
+}

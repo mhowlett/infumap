@@ -17,6 +17,7 @@
 */
 
 import { Item } from './types/items/base/item';
+import { base62 } from './util/base62';
 import { throwExpression } from './util/lang';
 import { uuid } from './util/uuid';
 
@@ -25,12 +26,38 @@ export type { Item } from './types/items/base/item';
 export type { NoteItem } from './types/items/note-item';
 export type { PageItem } from './types/items/page-item';
 
+export type Uid = string;
+
 export type Items = {
-    rootId: Array<string> | null,
-    fixed: { [id: string]: Item },
+    rootId: Array<String> | null,
+    fixed: { [id: Uid]: Item },
     moving: Array<Item>
 }
 
-export function findWithId(items: Array<Item>, id: uuid) : Item {
+export function findWithId(items: Array<Item>, id: Uid): Item {
   return items.find(a => a.id == id) ?? throwExpression(`no item with id '${id}' found.`);
+}
+
+export function newUid(): Uid {
+  return base62.encode(uuid.toBytes(uuid.createV4()));
+}
+
+export function testUid(): void {
+  let uid = "3d14c109-9934-4717-aef0-be64a95a8550";
+  let bytes = uuid.toBytes(uid);
+  let encoded = base62.encode(bytes);
+  let decoded = base62.decode(encoded);
+  let reconstructed = uuid.fromBytes(decoded);
+  console.log(uid);
+  console.log(reconstructed, encoded);
+
+  for (let i=0; i<10; ++i) {
+    let id = uuid.createV4();
+    let bytes = uuid.toBytes(id);
+    let encoded = base62.encode(bytes);
+    let decoded = base62.decode(encoded);
+    let reconstructed = uuid.fromBytes(decoded);
+    console.log(id);
+    console.log(reconstructed, encoded);
+  }
 }

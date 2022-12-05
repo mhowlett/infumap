@@ -18,18 +18,22 @@ mod responders;
 mod dist_handlers;
 
 use rocket::response::content::RawJson;
+use uuid::{uuid, Uuid};
 use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
 use clap::{App, ArgMatches};
+use super::util::base62;
 
 
 #[get("/gen")]
 fn gen() -> String {
-    // TODO: remove. playing with OTP / base62.
+    // TODO: remove. playing with OTP / base62 uuids.
 
+    const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
     // let key_uuid = uuid::Uuid::new_v4();
-    // let a = base_62::base62::encode(key_uuid.as_bytes());
-    // a
+    let b = ID.as_bytes().clone();
+    let a = super::util::base62::encode(&b);
+    println!("{}", a);
 
     // The secret should be randomly generated of N bits length (look it up)
     let totp = TOTP::new(
