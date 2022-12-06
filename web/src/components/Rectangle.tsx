@@ -23,11 +23,7 @@ import { useItemStore } from "../store/ItemStoreProvider";
 import { findItemInArray, Uid } from "../items";
 
 
-export interface RectangleProps {
-  id: Uid
-}
-
-export const Rectangle: Component<RectangleProps> = (props: RectangleProps) => {
+export const Rectangle: Component<{ id: Uid }> = (props: { id: Uid }) => {
   const c = useItemStore();
   let item = findItemInArray(c.items.moving, props.id);
 

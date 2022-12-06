@@ -23,7 +23,7 @@ use clap::App;
 
 #[rocket::main]
 async fn main() {
-    // stops rocket logging working.. why?
+    // TODO (HIGH): stops rocket logging working.. why?
     // pretty_env_logger::init();
 
     let mut config = config::Config::default();

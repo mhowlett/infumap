@@ -18,10 +18,10 @@
 
 
 export default function ToolbarIcon(props: { icon: string; margin: number }) {
-    return (
-        <div class="border rounded w-[29px] h-[28px] inline-block text-center cursor-move ml-[5px] text-[18px]"
-             style={`background-color: rgba(40, 57, 83, 0.47); border-color: rgba(23, 32, 47, 0.47); margin-bottom: ${props.margin}px`}>
-            <i class={`fa fa-${props.icon}`} />
-        </div>
-    );
+  return (
+    <div class="border rounded w-[29px] h-[28px] inline-block text-center cursor-move ml-[5px] text-[18px]"
+         style={`background-color: rgba(40, 57, 83, 0.47); border-color: rgba(23, 32, 47, 0.47); margin-bottom: ${props.margin}px`}>
+      <i class={`fa fa-${props.icon}`} />
+    </div>
+  );
 }

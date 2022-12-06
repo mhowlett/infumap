@@ -20,7 +20,7 @@ import { createResource } from "solid-js";
 import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, SetStoreFunction } from "solid-js/store";
-import { Items, newUid } from "../items";
+import { Items } from "../items";
 import { makeItem } from "../types/items/base/item";
 import { throwExpression } from "../util/lang";
 
@@ -29,6 +29,7 @@ export interface ItemStoreContextModel {
   items: Items
   setItems: SetStoreFunction<Items>
 }
+
 export interface ItemStoreContextProps {
   children: JSX.Element
 }

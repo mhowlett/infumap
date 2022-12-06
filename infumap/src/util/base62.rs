@@ -112,5 +112,4 @@ fn test_encode_decode() {
   const ID: uuid::Uuid = uuid::uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
   let a = crate::util::base62::encode(&ID.as_bytes());
   assert_eq!("dL0UZCrGigIHrtoVLPKwR2", a);
-
 }
