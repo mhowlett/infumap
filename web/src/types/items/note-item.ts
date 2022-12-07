@@ -31,7 +31,7 @@ export interface NoteItemTransient {
 }
 
 export interface NoteItem extends XSizableItem {
-  transient: NoteItemTransient,
+  transient: NoteItemTransient | null,
 
   text: string,
   url: string,

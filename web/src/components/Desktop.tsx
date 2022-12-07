@@ -16,17 +16,31 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, For } from "solid-js";
+import { Component, For, Match, Switch } from "solid-js";
+import { NoteItem, PageItem } from "../items";
 import { useItemStore } from "../store/ItemStoreProvider";
-import { Rectangle } from "./Rectangle";
+import { Note } from "./items/Note";
+import { Page } from "./items/Page";
 
 
 export const Desktop: Component = () => {
   const c = useItemStore();
   return (
     <div class="fixed left-[40px] top-0 bottom-0 right-0 select-none outline-none">
-      <For each={c.items.moving}>
-        { item => <Rectangle id={item.id} /> }
+      <For each={Object.keys(c.items.fixed)}>
+        { key => {
+          let item = c.items.fixed[key];
+          return (
+            <Switch fallback={<div>Not Found</div>}>
+              <Match when={item.type == "page"}>
+                <Page item={item as PageItem} />
+              </Match>
+              <Match when={item.type == "note"}>
+                <Note item={item as NoteItem} />
+              </Match>
+            </Switch>
+          )}
+        }
       </For>
     </div>
   );

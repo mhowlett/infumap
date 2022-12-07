@@ -17,8 +17,11 @@
 */
 
 import { Item } from './types/items/base/item';
+import { NoteItem } from './types/items/note-item';
+import { PageItem } from './types/items/page-item';
 import { base62 } from './util/base62';
-import { throwExpression } from './util/lang';
+import { currentUnixTimeSeconds, throwExpression } from './util/lang';
+import { newOrdering, newOrderingAtEnd } from './util/ordering';
 import { uuid } from './util/uuid';
 
 
@@ -29,9 +32,76 @@ export type { PageItem } from './types/items/page-item';
 export type Uid = string;
 
 export type Items = {
-    rootId: Array<String> | null,
+    rootId: Uid | null,
     fixed: { [id: Uid]: Item },
     moving: Array<Item>
+}
+
+export function constructDummyItemsForTesting(): Items {
+  const rootId = newUid();
+
+  let rootItem: PageItem = {
+    type: "page",
+    transient: null,
+    innerSpatialBw: 80,
+    naturalAspect: 1.4,
+    bgColor: 0,
+    bwForSpatial: NaN,
+    id: rootId,
+    parentId: null,
+    originalCreationDate: currentUnixTimeSeconds(),
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering: newOrdering(),
+    title: 'matt',
+    bxyForSpatial: { x: NaN, y: NaN }
+  };
+
+  let pageItem: PageItem = {
+    type: "page",
+    transient: null,
+    innerSpatialBw: 60,
+    naturalAspect: 1.4,
+    bgColor: 0,
+    bwForSpatial: 4.0,
+    id: newUid(),
+    parentId: rootId,
+    originalCreationDate: currentUnixTimeSeconds(),
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering: newOrdering(),
+    title: 'inside page',
+    bxyForSpatial: { x: 5.0, y: 7.0 }
+  };
+
+  let noteItem: NoteItem = {
+    type: "note",
+    transient: null,
+    text: 'the note text',
+    url: 'https://www.google.com',
+    hasFacIcon: false,
+    bwForSpatial: 8.0,
+    id: newUid(),
+    parentId: rootId,
+    originalCreationDate: currentUnixTimeSeconds(),
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering: newOrderingAtEnd(pageItem.ordering),
+    title: 'google.com',
+    bxyForSpatial: { x: 5.0, y: 12.0 }
+  };
+
+  let result: Items = {
+    rootId: rootId,
+    fixed: {
+      [rootId]: rootItem,
+      [pageItem.id]: pageItem,
+      [noteItem.id]: noteItem
+    },
+    moving: []
+  };
+
+  return result;
 }
 
 export function findItemInArray(items: Array<Item>, id: Uid): Item {

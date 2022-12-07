@@ -18,14 +18,13 @@
 
 import { Component } from "solid-js";
 import { produce } from "solid-js/store";
-import { add, clientPosVector, subtract, Vector } from "../util/geometry";
-import { useItemStore } from "../store/ItemStoreProvider";
-import { findItemInArray, Uid } from "../items";
+import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
+import { useItemStore } from "../../store/ItemStoreProvider";
+import { NoteItem } from "../../items";
 
 
-export const Rectangle: Component<{ id: Uid }> = (props: { id: Uid }) => {
+export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
   const c = useItemStore();
-  let item = findItemInArray(c.items.moving, props.id);
 
   let lastPos: Vector | null = null;
 
@@ -39,8 +38,8 @@ export const Rectangle: Component<{ id: Uid }> = (props: { id: Uid }) => {
     if (lastPos == null) { return ;}
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
-    c.setItems("moving", produce((items) => {
-        let itm = findItemInArray(items, props.id);
+    c.setItems("fixed", produce((items) => {
+        let itm = items[props.item.id];
         itm.bxyForSpatial = add(itm.bxyForSpatial, delta);
         return items;
     }));
@@ -52,10 +51,13 @@ export const Rectangle: Component<{ id: Uid }> = (props: { id: Uid }) => {
     lastPos = null;
   }
 
-  return (
-    <div class={`absolute border border-black w-[40px] h-[40px]`}
-       style={`left: ${item.bxyForSpatial.x}px; top: ${item.bxyForSpatial.y}px`}
-       onMouseDown={mouseDownHandler}>
-    </div>
-  );
+  if (props.item.id != c.items.rootId) {
+    return (
+      <div class={`absolute border border-teal-500 w-[40px] h-[40px]`}
+           style={`left: ${props.item.bxyForSpatial.x}px; top: ${props.item.bxyForSpatial.y}px`}
+           onMouseDown={mouseDownHandler}>
+            {props.item.title} {props.item.text}
+      </div>
+    );
+  }
 }

@@ -20,8 +20,7 @@ import { createResource } from "solid-js";
 import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, SetStoreFunction } from "solid-js/store";
-import { Items } from "../items";
-import { makeItem } from "../types/items/base/item";
+import { constructDummyItemsForTesting, Items } from "../items";
 import { throwExpression } from "../util/lang";
 
 
@@ -43,22 +42,9 @@ const fetchUser = async () => {
 const ItemStoreContext = createContext<ItemStoreContextModel>();
 
 export function ItemStoreProvider(props: ItemStoreContextProps) {
-  let item1 = makeItem();
-  item1.bxyForSpatial = { x: 80, y: 40 };
-  let item2 = makeItem();
-  item2.bxyForSpatial = { x: 140, y: 50 };
-
-  const [items, setItems] = createStore<Items>({
-    rootId: null,
-    fixed: {},
-    moving: [item1, item2],
-  });
-  
-  const [user] = createResource(fetchUser);
-
-  const value: ItemStoreContextModel = {
-    items, setItems
-  };
+  // const [user] = createResource(fetchUser);
+  const [items, setItems] = createStore<Items>(constructDummyItemsForTesting());
+  const value: ItemStoreContextModel = { items, setItems };
 
   return (
     <ItemStoreContext.Provider value={value}>

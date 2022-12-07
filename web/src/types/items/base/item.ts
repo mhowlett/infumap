@@ -18,10 +18,10 @@
 
 import { Uid, newUid } from '../../../items';
 import { Vector } from '../../../util/geometry';
-import { newOrdering } from '../../../util/ordering';
 
 
 export interface Item {
+  type: string,
   id: Uid,
   parentId: Uid | null,
   originalCreationDate: number,
@@ -30,17 +30,4 @@ export interface Item {
   ordering: Uint8Array,
   title: string,
   bxyForSpatial: Vector
-}
-
-export function makeItem() : Item {
-  return {
-    id: newUid(),
-    parentId: null,
-    originalCreationDate: 0,
-    creationDate: 0,
-    lastModifiedDate: 0,
-    ordering: newOrdering(),
-    title: "",
-    bxyForSpatial: { x: 0, y: 0 }
-  };
 }

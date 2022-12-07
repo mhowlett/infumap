@@ -16,6 +16,11 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+
 export function throwExpression(errorMessage: string): never {
   throw new Error(errorMessage);
+}
+
+export function currentUnixTimeSeconds(): number {
+  return Math.floor(new Date().getTime()/1000);
 }

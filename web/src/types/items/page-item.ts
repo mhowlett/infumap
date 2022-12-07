@@ -29,9 +29,9 @@ export interface PageItemTransient {
 }
 
 export interface PageItem extends XSizableItem {
-  transient: PageItemTransient;
+  transient: PageItemTransient | null;
 
-  innerSpatialIbw: number;
+  innerSpatialBw: number;
   naturalAspect: number;
   bgColor: number;
 }
