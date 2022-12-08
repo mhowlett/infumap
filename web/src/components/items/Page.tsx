@@ -35,10 +35,10 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   }
 
   let mouseMoveHandler = (pos: MouseEvent) => {
-    if (lastPos == null) { return ;}
+    if (lastPos == null) { return; }
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
-    c.updateItem(props.item.id, item => { item.bxyForSpatial = add(item.bxyForSpatial, delta); })
+    c.updateItem(props.item.id, item => { item.bxyForSpatial = add(item.bxyForSpatial, delta); });
   };
 
   let mouseUpHandler = () => {
