@@ -19,14 +19,15 @@
 import { createResource } from "solid-js";
 import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
-import { createStore, SetStoreFunction } from "solid-js/store";
-import { constructDummyItemsForTesting, Items } from "../items";
+import { createStore, produce, SetStoreFunction } from "solid-js/store";
+import { constructDummyItemsForTesting, Item, Items, Uid } from "../items";
 import { throwExpression } from "../util/lang";
 
 
 export interface ItemStoreContextModel {
   items: Items
-  setItems: SetStoreFunction<Items>
+  setItems: SetStoreFunction<Items>,
+  updateItem: (id: Uid, f: (item: Item) => void) => void
 }
 
 export interface ItemStoreContextProps {
@@ -44,7 +45,15 @@ const ItemStoreContext = createContext<ItemStoreContextModel>();
 export function ItemStoreProvider(props: ItemStoreContextProps) {
   // const [user] = createResource(fetchUser);
   const [items, setItems] = createStore<Items>(constructDummyItemsForTesting());
-  const value: ItemStoreContextModel = { items, setItems };
+  const updateItem = (id: Uid, f: (item: Item) => void) => {
+    setItems("fixed", produce((items) => {
+      let itm = items[id];
+      f(itm);
+      return items;
+    }));
+  }
+  const value: ItemStoreContextModel = { items, setItems, updateItem };
+
 
   return (
     <ItemStoreContext.Provider value={value}>

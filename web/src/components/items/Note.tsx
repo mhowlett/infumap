@@ -38,11 +38,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     if (lastPos == null) { return ;}
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
-    c.setItems("fixed", produce((items) => {
-        let itm = items[props.item.id];
-        itm.bxyForSpatial = add(itm.bxyForSpatial, delta);
-        return items;
-    }));
+    c.updateItem(props.item.id, item => { item.bxyForSpatial = add(item.bxyForSpatial, delta); });
   };
 
   let mouseUpHandler = () => {
