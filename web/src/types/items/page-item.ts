@@ -16,18 +16,19 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Uid } from '../../store/items';
+import { Item, Uid } from '../../store/items';
 import { BoundingBox } from '../../util/geometry';
+import { panic } from '../../util/lang';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
-export interface PageItemTransient {
+export interface PageItemComputed {
   children: Array<Uid>;
   attachments: Array<Uid>;
   fromParentIdMaybe: Uid | null; // when moving.
 }
 
-export function defaultPageItemTransient(): PageItemTransient {
+export function defaultPageItemComputed(): PageItemComputed {
   return {
     children: [],
     attachments: [],
@@ -36,9 +37,18 @@ export function defaultPageItemTransient(): PageItemTransient {
 }
 
 export interface PageItem extends XSizableItem {
-  transient: PageItemTransient | null;
+  computed: PageItemComputed;
 
   innerSpatialBw: number;
   naturalAspect: number;
   bgColor: number;
+}
+
+export function isPageItem(item: Item): boolean {
+  return item.type == "page";
+}
+
+export function asPageItem(item: Item): PageItem {
+  if (item.type == "page") { return item as PageItem; }
+  panic();
 }

@@ -19,11 +19,10 @@
 import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import { Item, Items, NoteItem, PageItem, Uid } from "./items";
-import { panic } from "../util/lang";
+import { Item, Items, PageItem, Uid } from "./items";
+import { panic, throwExpression } from "../util/lang";
 import { RelationshipToParent } from "../relationship-to-parent";
-import { defaultPageItemTransient } from "../types/items/page-item";
-import { defaultNoteItemTransient } from "../types/items/note-item";
+import { isPageItem } from "../types/items/page-item";
 
 
 export interface ItemStoreContextModel {
@@ -52,8 +51,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 
   const updateItem = (id: Uid, f: (item: Item) => void) => {
     setItems("fixed", produce((items) => {
-      let itm = items[id];
-      f(itm);
+      f(items[id]);
       return items;
     }));
   }
@@ -61,35 +59,24 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
   // Note: the items array contains the container item itself, in addition to the children, if the container is the root.
   const setChildItems = (itms: Array<Item>) => {
     itms.forEach(item => {
-      setItems("fixed", produce((itms) => {
-        if (item.type == "page") { (item as PageItem).transient = defaultPageItemTransient(); }
-        else if (item.type == "note") { (item as NoteItem).transient = defaultNoteItemTransient(); }
-        else { throw new Error(`unknown item type ${item.type}`); }
-        itms[item.id] = item;
-      }));
+      setItems("fixed", produce((items) => { items[item.id] = item; }));
     });
+
     itms.forEach(item => {
       if (item.parentId == null) {
-        if (item.relationshipToParent != RelationshipToParent.NoParent) {
-          throw new Error("Expecting no relationship to parent");
-        }
+        if (item.relationshipToParent != RelationshipToParent.NoParent) { panic(); }
       } else {
-        updateItem(item.parentId, (it) => {
-          if (it.type == "page") {
-            let pageItem = it as PageItem;
-            pageItem.transient?.children.push(item.id);
-          } else {
-            throw new Error("Expecting item type to be page to add child");
-          }
+        updateItem(item.parentId, parentItem => {
+          if (!isPageItem(parentItem)) { panic(); }
+          (parentItem as PageItem).computed.children.push(item.id);
         });
       }
     });
   };
 
   const setAttachmentItems = (items: Array<Item>) => {
-    throw new Error("not implemented yet");
+    throwExpression("not implemented yet");
   }
-
 
   const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem };
 

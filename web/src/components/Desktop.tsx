@@ -20,7 +20,8 @@ import { Component, For, Match, Switch } from "solid-js";
 import { NoteItem, PageItem } from "../store/items";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
-import { panic } from "../util/lang";
+import { asPageItem } from "../types/items/page-item";
+import { throwExpression } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 
@@ -31,11 +32,8 @@ export const Desktop: Component = () => {
 
   let getCurrentPageItems = () => {
     if (ls.layout.currentPage == null) { return []; }
-    let cp = is.items.fixed[ls.layout.currentPage];
-    if (cp.type != "page") { throw new Error("expecting page"); }
-    let page = cp as PageItem;
-    let children = (page.transient ?? panic()).children ?? panic();
-    let r = [page, ...children.map(c => is.items.fixed[c])];
+    let currentPage = asPageItem(is.items.fixed[ls.layout.currentPage]);
+    let r = [currentPage, ...currentPage.computed.children.map(c => is.items.fixed[c])];
     return r;
   };
 

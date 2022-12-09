@@ -18,8 +18,8 @@
 
 import { RelationshipToParent } from '../relationship-to-parent';
 import { Item } from '../types/items/base/item';
-import { NoteItem } from '../types/items/note-item';
-import { PageItem } from '../types/items/page-item';
+import { defaultNoteItemComputed, NoteItem } from '../types/items/note-item';
+import { defaultPageItemComputed, PageItem } from '../types/items/page-item';
 import { base62 } from '../util/base62';
 import { currentUnixTimeSeconds, throwExpression } from '../util/lang';
 import { newOrdering, newOrderingAtEnd } from '../util/ordering';
@@ -48,7 +48,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let rootItem: PageItem = {
     type: "page",
-    transient: null,
+    computed: defaultPageItemComputed(),
     innerSpatialBw: 80,
     naturalAspect: 1.4,
     bgColor: 0,
@@ -66,7 +66,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let pageItem: PageItem = {
     type: "page",
-    transient: null,
+    computed: defaultPageItemComputed(),
     innerSpatialBw: 60,
     naturalAspect: 1.4,
     bgColor: 0,
@@ -84,7 +84,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let noteItem: NoteItem = {
     type: "note",
-    transient: null,
+    computed: defaultNoteItemComputed(),
     text: 'the note text',
     url: 'https://www.google.com',
     hasFacIcon: false,
