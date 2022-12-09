@@ -16,6 +16,9 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+export function panic(): never {
+  throw new Error("logic error");
+}
 
 export function throwExpression(errorMessage: string): never {
   throw new Error(errorMessage);

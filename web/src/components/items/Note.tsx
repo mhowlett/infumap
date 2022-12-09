@@ -17,10 +17,9 @@
 */
 
 import { Component } from "solid-js";
-import { produce } from "solid-js/store";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
-import { NoteItem } from "../../items";
+import { NoteItem } from "../../store/items";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {

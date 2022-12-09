@@ -20,7 +20,6 @@ export enum RelationshipToParent {
     NoParent,
     Child,
     Attachment,
-    InputChain,
     InMove,
     Unknown
 }

@@ -16,18 +16,19 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Item } from './types/items/base/item';
-import { NoteItem } from './types/items/note-item';
-import { PageItem } from './types/items/page-item';
-import { base62 } from './util/base62';
-import { currentUnixTimeSeconds, throwExpression } from './util/lang';
-import { newOrdering, newOrderingAtEnd } from './util/ordering';
-import { uuid } from './util/uuid';
+import { RelationshipToParent } from '../relationship-to-parent';
+import { Item } from '../types/items/base/item';
+import { NoteItem } from '../types/items/note-item';
+import { PageItem } from '../types/items/page-item';
+import { base62 } from '../util/base62';
+import { currentUnixTimeSeconds, throwExpression } from '../util/lang';
+import { newOrdering, newOrderingAtEnd } from '../util/ordering';
+import { uuid } from '../util/uuid';
 
 
-export type { Item } from './types/items/base/item';
-export type { NoteItem } from './types/items/note-item';
-export type { PageItem } from './types/items/page-item';
+export type { Item } from '../types/items/base/item';
+export type { NoteItem } from '../types/items/note-item';
+export type { PageItem } from '../types/items/page-item';
 
 export type Uid = string;
 
@@ -37,8 +38,13 @@ export type Items = {
     moving: Array<Item>
 }
 
-export function constructDummyItemsForTesting(): Items {
-  const rootId = newUid();
+// If id corresponds to a root page, then that page is also returned.
+export const fetchContainerItems: ((id: Uid) => Promise<Array<Item>>) = async (id: Uid) => {
+  await new Promise(r => setTimeout(r, 100));
+  return constructDummyItemsForTesting(id);
+}
+
+export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let rootItem: PageItem = {
     type: "page",
@@ -49,6 +55,7 @@ export function constructDummyItemsForTesting(): Items {
     bwForSpatial: NaN,
     id: rootId,
     parentId: null,
+    relationshipToParent: RelationshipToParent.NoParent,
     originalCreationDate: currentUnixTimeSeconds(),
     creationDate: currentUnixTimeSeconds(),
     lastModifiedDate: currentUnixTimeSeconds(),
@@ -66,6 +73,7 @@ export function constructDummyItemsForTesting(): Items {
     bwForSpatial: 4.0,
     id: newUid(),
     parentId: rootId,
+    relationshipToParent: RelationshipToParent.Child,
     originalCreationDate: currentUnixTimeSeconds(),
     creationDate: currentUnixTimeSeconds(),
     lastModifiedDate: currentUnixTimeSeconds(),
@@ -83,6 +91,7 @@ export function constructDummyItemsForTesting(): Items {
     bwForSpatial: 8.0,
     id: newUid(),
     parentId: rootId,
+    relationshipToParent: RelationshipToParent.Child,
     originalCreationDate: currentUnixTimeSeconds(),
     creationDate: currentUnixTimeSeconds(),
     lastModifiedDate: currentUnixTimeSeconds(),
@@ -91,17 +100,7 @@ export function constructDummyItemsForTesting(): Items {
     bxyForSpatial: { x: 5.0, y: 12.0 }
   };
 
-  let result: Items = {
-    rootId: rootId,
-    fixed: {
-      [rootId]: rootItem,
-      [pageItem.id]: pageItem,
-      [noteItem.id]: noteItem
-    },
-    moving: []
-  };
-
-  return result;
+  return [rootItem, pageItem, noteItem];
 }
 
 export function findItemInArray(items: Array<Item>, id: Uid): Item {

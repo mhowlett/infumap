@@ -17,19 +17,32 @@
 */
 
 import { Component, For, Match, Switch } from "solid-js";
-import { NoteItem, PageItem } from "../items";
+import { NoteItem, PageItem } from "../store/items";
 import { useItemStore } from "../store/ItemStoreProvider";
+import { useLayoutStore } from "../store/LayoutStoreProvider";
+import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 
 
 export const Desktop: Component = () => {
-  const c = useItemStore();
+  const is = useItemStore();
+  const ls = useLayoutStore();
+
+  let getCurrentPageItems = () => {
+    if (ls.layout.currentPage == null) { return []; }
+    let cp = is.items.fixed[ls.layout.currentPage];
+    if (cp.type != "page") { throw new Error("expecting page"); }
+    let page = cp as PageItem;
+    let children = (page.transient ?? panic()).children ?? panic();
+    let r = [page, ...children.map(c => is.items.fixed[c])];
+    return r;
+  };
+
   return (
     <div class="fixed left-[40px] top-0 bottom-0 right-0 select-none outline-none">
-      <For each={Object.keys(c.items.fixed)}>
-        { key => {
-          let item = c.items.fixed[key];
+      <For each={getCurrentPageItems()}>
+        { item => {
           return (
             <Switch fallback={<div>Not Found</div>}>
               <Match when={item.type == "page"}>

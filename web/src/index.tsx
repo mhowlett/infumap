@@ -22,21 +22,26 @@ import App from './components/App';
 import "tailwindcss/tailwind.css";
 import './index.css';
 import { ItemStoreProvider } from './store/ItemStoreProvider';
+import { LayoutStoreProvider } from './store/LayoutStoreProvider';
+import { UserStoreProvider } from './store/UserStoreProvider';
 
 // import { testUid } from './items';
 // import { testEncodeDecode } from './util/base62';
 // import { testOrdering } from './util/ordering';
-
-
-render(() => (
-  <ItemStoreProvider>
-    <App />
-  </ItemStoreProvider>
-), document.getElementById('root') as HTMLElement);
-
 
 if (false) {
   // testUid();
   // testEncodeDecode();
   // testOrdering();
 }
+
+
+render(() => (
+  <ItemStoreProvider>
+    <UserStoreProvider>
+      <LayoutStoreProvider>
+        <App />
+      </LayoutStoreProvider>
+    </UserStoreProvider>
+  </ItemStoreProvider>
+), document.getElementById('root') as HTMLElement);

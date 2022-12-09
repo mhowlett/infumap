@@ -16,35 +16,40 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { createResource } from "solid-js";
 import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
-import { createStore, produce, SetStoreFunction } from "solid-js/store";
-import { constructDummyItemsForTesting, Item, Items, Uid } from "../items";
-import { throwExpression } from "../util/lang";
+import { createStore, produce } from "solid-js/store";
+import { Item, Items, NoteItem, PageItem, Uid } from "./items";
+import { panic } from "../util/lang";
+import { RelationshipToParent } from "../relationship-to-parent";
+import { defaultPageItemTransient } from "../types/items/page-item";
+import { defaultNoteItemTransient } from "../types/items/note-item";
 
 
 export interface ItemStoreContextModel {
   items: Items
-  setItems: SetStoreFunction<Items>,
-  updateItem: (id: Uid, f: (item: Item) => void) => void
+
+  setRoot: (id: Uid) => void,
+  setChildItems: (items: Array<Item>) => void,
+  setAttachmentItems: (items: Array<Item>) => void
+  updateItem: (id: Uid, f: (item: Item) => void) => void,
 }
 
 export interface ItemStoreContextProps {
   children: JSX.Element
 }
 
-const fetchUser = async () => {
-  var r = await (await fetch(`/test-json`)).json();
-  console.log(r);
-  return r;
-}
-
 const ItemStoreContext = createContext<ItemStoreContextModel>();
 
 export function ItemStoreProvider(props: ItemStoreContextProps) {
-  // const [user] = createResource(fetchUser);
-  const [items, setItems] = createStore<Items>(constructDummyItemsForTesting());
+  const [items, setItems] = createStore<Items>({
+    rootId: null,
+    fixed: {},
+    moving: []
+  });
+
+  const setRoot = (id: Uid) => { setItems("rootId", id); };
+
   const updateItem = (id: Uid, f: (item: Item) => void) => {
     setItems("fixed", produce((items) => {
       let itm = items[id];
@@ -52,8 +57,41 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
       return items;
     }));
   }
-  const value: ItemStoreContextModel = { items, setItems, updateItem };
 
+  // Note: the items array contains the container item itself, in addition to the children, if the container is the root.
+  const setChildItems = (itms: Array<Item>) => {
+    itms.forEach(item => {
+      setItems("fixed", produce((itms) => {
+        if (item.type == "page") { (item as PageItem).transient = defaultPageItemTransient(); }
+        else if (item.type == "note") { (item as NoteItem).transient = defaultNoteItemTransient(); }
+        else { throw new Error(`unknown item type ${item.type}`); }
+        itms[item.id] = item;
+      }));
+    });
+    itms.forEach(item => {
+      if (item.parentId == null) {
+        if (item.relationshipToParent != RelationshipToParent.NoParent) {
+          throw new Error("Expecting no relationship to parent");
+        }
+      } else {
+        updateItem(item.parentId, (it) => {
+          if (it.type == "page") {
+            let pageItem = it as PageItem;
+            pageItem.transient?.children.push(item.id);
+          } else {
+            throw new Error("Expecting item type to be page to add child");
+          }
+        });
+      }
+    });
+  };
+
+  const setAttachmentItems = (items: Array<Item>) => {
+    throw new Error("not implemented yet");
+  }
+
+
+  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem };
 
   return (
     <ItemStoreContext.Provider value={value}>
@@ -63,5 +101,5 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 }
 
 export function useItemStore() : ItemStoreContextModel {
-  return useContext(ItemStoreContext) ?? throwExpression("context undefined");
+  return useContext(ItemStoreContext) ?? panic();
 }

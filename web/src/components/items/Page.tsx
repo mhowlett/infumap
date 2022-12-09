@@ -17,10 +17,9 @@
 */
 
 import { Component } from "solid-js";
-import { produce } from "solid-js/store";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
-import { PageItem } from "../../items";
+import { PageItem } from "../../store/items";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {

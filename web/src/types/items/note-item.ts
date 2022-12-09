@@ -16,18 +16,23 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Uid } from '../../items';
-import { BoundingBox, Vector } from '../../util/geometry';
+import { Uid } from '../../store/items';
+import { BoundingBox } from '../../util/geometry';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
 export interface NoteItemTransient {
-  children: Array<Uid>,
   attachments: Array<Uid>,
-  currentBounds: BoundingBox | null,
   fromParentIdMaybe: Uid | null // when moving.
+}
+
+export function defaultNoteItemTransient(): NoteItemTransient {
+  return {
+    attachments: [],
+    fromParentIdMaybe: null
+  };
 }
 
 export interface NoteItem extends XSizableItem {

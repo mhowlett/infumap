@@ -16,20 +16,18 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { RelationshipToParent } from '../../../relationship-to-parent';
-import { Uid, newUid } from '../../../store/items';
-import { Vector } from '../../../util/geometry';
+import { newUid, Uid } from "./items"
 
 
-export interface Item {
-  type: string,
-  id: Uid,
-  parentId: Uid | null,
-  relationshipToParent: RelationshipToParent,
-  originalCreationDate: number,
-  creationDate: number,
-  lastModifiedDate: number,
-  ordering: Uint8Array,
-  title: string,
-  bxyForSpatial: Vector
+export const fetchUser: (() => Promise<User>) = async () => {
+  await new Promise(r => setTimeout(r, 100));
+  return {
+    name: "matt",
+    rootPageId: newUid()
+  };
+}
+
+export type User = {
+  name: string | null,
+  rootPageId: Uid | null
 }

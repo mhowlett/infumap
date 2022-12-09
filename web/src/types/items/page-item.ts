@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Uid } from '../../items';
+import { Uid } from '../../store/items';
 import { BoundingBox } from '../../util/geometry';
 import { XSizableItem } from './base/x-sizeable-item';
 
@@ -24,8 +24,15 @@ import { XSizableItem } from './base/x-sizeable-item';
 export interface PageItemTransient {
   children: Array<Uid>;
   attachments: Array<Uid>;
-  currentBounds: BoundingBox | null;
   fromParentIdMaybe: Uid | null; // when moving.
+}
+
+export function defaultPageItemTransient(): PageItemTransient {
+  return {
+    children: [],
+    attachments: [],
+    fromParentIdMaybe: null
+  };
 }
 
 export interface PageItem extends XSizableItem {

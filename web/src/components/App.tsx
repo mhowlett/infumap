@@ -16,12 +16,32 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type { Component } from 'solid-js';
+import { Component, onMount } from 'solid-js';
+import { fetchContainerItems } from '../store/items';
+import { useItemStore } from '../store/ItemStoreProvider';
+import { useLayoutStore } from '../store/LayoutStoreProvider';
+import { fetchUser } from '../store/User';
+import { useUserStore } from '../store/UserStoreProvider';
+import { panic } from '../util/lang';
 import { Desktop } from './Desktop';
 import { Toolbar } from './Toolbar';
 
 
 const App: Component = () => {
+  let us = useUserStore();
+  let ls = useLayoutStore();
+  let is = useItemStore();
+
+  onMount(async () => {
+    let user = await fetchUser();
+    let rootId = user.rootPageId ?? panic();
+    us.setUser(user);
+    is.setRoot(rootId);
+    let r = await fetchContainerItems(rootId);
+    is.setChildItems(r);
+    ls.setLayout({ currentPage: rootId });
+  });
+
   return (
     <div class="fixed top-0 left-0 right-0 bottom-0 select-none touch-none overflow-hidden">
       <Desktop />

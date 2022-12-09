@@ -16,20 +16,9 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { RelationshipToParent } from '../../../relationship-to-parent';
-import { Uid, newUid } from '../../../store/items';
-import { Vector } from '../../../util/geometry';
+import { Uid } from "./items"
 
 
-export interface Item {
-  type: string,
-  id: Uid,
-  parentId: Uid | null,
-  relationshipToParent: RelationshipToParent,
-  originalCreationDate: number,
-  creationDate: number,
-  lastModifiedDate: number,
-  ordering: Uint8Array,
-  title: string,
-  bxyForSpatial: Vector
+export type Layout = {
+  currentPage: Uid | null
 }
