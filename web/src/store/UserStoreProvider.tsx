@@ -20,7 +20,7 @@ import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { panic } from "../util/lang";
-import { newUid, Uid } from "./ItemStoreProvider";
+import { newUid, Uid } from "../util/uid";
 
 export const fetchUser: (() => Promise<User>) = async () => {
   await new Promise(r => setTimeout(r, 100));

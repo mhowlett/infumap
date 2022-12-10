@@ -21,7 +21,7 @@ import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { Dimensions } from "../util/geometry";
 import { panic } from "../util/lang";
-import { Uid } from "./ItemStoreProvider";
+import { Uid } from "../util/uid";
 
 export type Layout = {
   currentPage: Uid | null,

@@ -25,15 +25,13 @@ import { asPageItem, defaultPageItemComputed, isPageItem, PageItem } from "./ite
 import { Item, setFromParentId } from "./items/base/item";
 import { newOrdering, newOrderingAtEnd } from "../util/ordering";
 import { defaultNoteItemComputed, NoteItem } from "./items/note-item";
-import { base62 } from "../util/base62";
-import { uuid } from "../util/uuid";
+import { newUid, Uid } from "../util/uid";
 
 
 export type { Item } from './items/base/item';
 export type { NoteItem } from './items/note-item';
 export type { PageItem } from './items/page-item';
 
-export type Uid = string;
 
 export type Items = {
     rootId: Uid | null,
@@ -111,31 +109,6 @@ export function findItemInArray(items: Array<Item>, id: Uid): Item {
   return items.find(a => a.id == id) ?? throwExpression(`no item with id '${id}' found.`);
 }
 
-export function newUid(): Uid {
-  return base62.encode(uuid.toBytes(uuid.createV4()));
-}
-
-export function testUid(): void {
-  let uid = "3d14c109-9934-4717-aef0-be64a95a8550";
-  let bytes = uuid.toBytes(uid);
-  let encoded = base62.encode(bytes);
-  let decoded = base62.decode(encoded);
-  let reconstructed = uuid.fromBytes(decoded);
-  console.log(uid);
-  console.log(reconstructed, encoded);
-
-  for (let i=0; i<10; ++i) {
-    let id = uuid.createV4();
-    let bytes = uuid.toBytes(id);
-    let encoded = base62.encode(bytes);
-    let decoded = base62.decode(encoded);
-    let reconstructed = uuid.fromBytes(decoded);
-    console.log(id);
-    console.log(reconstructed, encoded);
-  }
-}
-
-
 export interface ItemStoreContextModel {
   items: Items
 
@@ -182,22 +155,21 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 
   const transitionToMove = (id: Uid): void => {
     setItems(produce(items => {
-      let a = items.fixed[id];
+      let item = items.fixed[id];
       delete items.fixed[id];
-      // TODO (HIGH): make helper method.
-      asPageItem(items.fixed[a.parentId ?? panic()]).computed.children = asPageItem(items.fixed[a.parentId ?? panic()]).computed.children.filter(itm => itm != id);
-      setFromParentId(a, a.parentId ?? panic());
-      items.moving.push(a);
+      asPageItem(items.fixed[item.parentId ?? panic()]).computed.children = asPageItem(items.fixed[item.parentId ?? panic()]).computed.children.filter(itm => itm != id);
+      setFromParentId(item, item.parentId ?? panic());
+      items.moving.push(item);
     }));
   };
 
   const transitionMovingToFixed = (): void => {
     setItems(produce(items => {
-      let a = items.moving;
+      let movingItems = items.moving;
       items.moving = [];
-      a.forEach(b => {
-        items.fixed[b.id] = b;
-        asPageItem(items.fixed[b.parentId ?? panic()]).computed.children.push(b.id);
+      movingItems.forEach(item => {
+        items.fixed[item.id] = item;
+        asPageItem(items.fixed[item.parentId ?? panic()]).computed.children.push(item.id);
       });
     }));
   };
