@@ -17,8 +17,11 @@
 */
 
 import { RelationshipToParent } from '../../../relationship-to-parent';
-import { Uid, newUid } from '../../../store/items';
-import { Vector } from '../../../util/geometry';
+import { Uid } from '../../../store/items';
+import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
+import { throwExpression } from '../../../util/lang';
+import { asNoteItem, cloneNoteItem, isNoteItem } from '../note-item';
+import { asPageItem, clonePageItem, isPageItem } from '../page-item';
 
 
 export interface Item {
@@ -32,4 +35,33 @@ export interface Item {
   ordering: Uint8Array,
   title: string,
   bxyForSpatial: Vector
+}
+
+export function cloneItem(item: Item): Item {
+  if (isPageItem(item)) { return clonePageItem(asPageItem(item)); }
+  if (isNoteItem(item)) { return cloneNoteItem(asNoteItem(item)); }
+  throwExpression(`Unknown item type: ${item.type}`);
+}
+
+export function updateBounds(item: Item, containerBoundsPx: BoundingBox, innerDimensionPcoord: Dimensions): void {
+  const gridSize = 60.0;
+  if (isPageItem(item)) {
+    let pageItem = asPageItem(item);
+    pageItem.computed.boundingBox = {
+      x: (pageItem.bxyForSpatial.x * gridSize / innerDimensionPcoord.w) * containerBoundsPx.w + containerBoundsPx.x,
+      y: (pageItem.bxyForSpatial.y * gridSize / innerDimensionPcoord.h) * containerBoundsPx.h + containerBoundsPx.y,
+      w: (pageItem.bwForSpatial * gridSize / innerDimensionPcoord.w) * containerBoundsPx.w,
+      h: (Math.floor(pageItem.bwForSpatial / pageItem.naturalAspect) * gridSize / innerDimensionPcoord.h) * containerBoundsPx.h
+    }
+  } else if (isNoteItem(item)) {
+    let noteItem = asNoteItem(item);
+    noteItem.computed.boundingBox = {
+      x: (noteItem.bxyForSpatial.x * gridSize / innerDimensionPcoord.w) * containerBoundsPx.w + containerBoundsPx.x,
+      y: (noteItem.bxyForSpatial.y * gridSize / innerDimensionPcoord.h) * containerBoundsPx.h + containerBoundsPx.y,
+      w: (noteItem.bwForSpatial * gridSize / innerDimensionPcoord.w) * containerBoundsPx.w,
+      h: (1.0 * gridSize / innerDimensionPcoord.h) * containerBoundsPx.h
+    }
+  } else {
+    throwExpression(`Unknown item type: ${item.type}`);
+  }
 }

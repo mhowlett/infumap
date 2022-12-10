@@ -87,7 +87,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     computed: defaultNoteItemComputed(),
     text: 'the note text',
     url: 'https://www.google.com',
-    hasFacIcon: false,
+    hasFavIcon: false,
     bwForSpatial: 8.0,
     id: newUid(),
     parentId: rootId,

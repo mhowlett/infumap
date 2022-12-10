@@ -17,7 +17,7 @@
 */
 
 import { Item, Uid } from '../../store/items';
-import { BoundingBox } from '../../util/geometry';
+import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
 import { panic } from '../../util/lang';
 import { XSizableItem } from './base/x-sizeable-item';
 
@@ -26,12 +26,14 @@ import { XSizableItem } from './base/x-sizeable-item';
 
 export interface NoteItemComputed {
   attachments: Array<Uid>,
+  boundingBox: BoundingBox | null,
   fromParentIdMaybe: Uid | null // when moving.
 }
 
 export function defaultNoteItemComputed(): NoteItemComputed {
   return {
     attachments: [],
+    boundingBox: null,
     fromParentIdMaybe: null
   };
 }
@@ -41,7 +43,7 @@ export interface NoteItem extends XSizableItem {
 
   text: string,
   url: string,
-  hasFacIcon: boolean
+  hasFavIcon: boolean
 }
 
 export function isNoteItem(item: Item): boolean {
@@ -51,4 +53,31 @@ export function isNoteItem(item: Item): boolean {
 export function asNoteItem(item: Item): NoteItem {
   if (item.type == "note") { return item as NoteItem; }
   panic();
+}
+
+export function cloneNoteItem(item: NoteItem): NoteItem {
+  return {
+    type: "note",
+    id: item.id,
+    parentId: item.parentId,
+    relationshipToParent: item.relationshipToParent,
+    originalCreationDate: item.originalCreationDate,
+    creationDate: item.creationDate,
+    lastModifiedDate: item.lastModifiedDate,
+    ordering: item.ordering,
+    title: item.title,
+    bxyForSpatial: item.bxyForSpatial,
+
+    bwForSpatial: item.bwForSpatial,
+
+    text: item.text,
+    url: item.url,
+    hasFavIcon: item.hasFavIcon,
+
+    computed: {
+      attachments: [...item.computed.attachments],
+      boundingBox: cloneBoundingBox(item.computed.boundingBox),
+      fromParentIdMaybe: item.computed.fromParentIdMaybe
+    }
+  };
 }

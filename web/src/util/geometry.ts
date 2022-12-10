@@ -23,9 +23,24 @@ export interface BoundingBox {
     h: number;
 }
 
+export function cloneBoundingBox(boundingBox: BoundingBox | null): BoundingBox | null {
+  if (boundingBox == null) { return null; }
+  return {
+    x: boundingBox.x,
+    y: boundingBox.y,
+    w: boundingBox.w,
+    h: boundingBox.h
+  };
+}
+
 export interface Vector {
     x: number;
     y: number;
+}
+
+export interface Dimensions {
+  w: number;
+  h: number;
 }
 
 export function clientPosVector(e: MouseEvent) : Vector {

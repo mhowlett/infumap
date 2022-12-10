@@ -20,36 +20,56 @@ import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { PageItem } from "../../store/items";
+import { useLayoutStore } from "../../store/LayoutStoreProvider";
+import { panic } from "../../util/lang";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
-  const c = useItemStore();
+  const itemStore = useItemStore();
+  const layoutStore = useLayoutStore();
 
-  let lastPos: Vector | null = null;
+  let startPx: Vector | null;
+  let startBl: Vector | null;
 
   let mouseDownHandler = (pos: MouseEvent) => {
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
-    lastPos = clientPosVector(pos);
-  }
+    startPx = clientPosVector(pos);
+    startBl = props.item.bxyForSpatial;
+  };
 
   let mouseMoveHandler = (pos: MouseEvent) => {
-    if (lastPos == null) { return; }
-    const delta = subtract(clientPosVector(pos), lastPos);
-    lastPos = clientPosVector(pos);
-    c.updateItem(props.item.id, item => { item.bxyForSpatial = add(item.bxyForSpatial, delta); });
+    if (startPx == null) { return; }
+
+    let deltaPx = subtract(clientPosVector(pos), startPx);
+
+    let wPx = props.item.computed.boundingBox?.w ?? panic();
+    let wCo = props.item.bwForSpatial * 60.0;
+    deltaPx.x *= (wCo / 60.0) / wPx;
+
+    let hPx = props.item.computed.boundingBox?.h ?? panic();
+    let hCo = Math.floor(props.item.bwForSpatial / props.item.naturalAspect) * 60.0;
+    deltaPx.y *= (hCo / 60.0) / hPx;
+
+    let np = add(startBl ?? panic(), deltaPx);
+    np.x = Math.round(np.x * 2.0) / 2.0;
+    np.y = Math.round(np.y * 2.0) / 2.0;
+
+    itemStore.updateItem(props.item.id, item => { item.bxyForSpatial = np; });
   };
 
   let mouseUpHandler = () => {
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
-    lastPos = null;
-  }
+    startPx = null;
+    startBl = null;
+  };
 
-  if (props.item.id != c.items.rootId) {
+  if (props.item.id != layoutStore.layout.currentPage) {
     return (
-      <div class={`absolute border border-rose-500 w-[40px] h-[40px]`}
-           style={`left: ${props.item.bxyForSpatial.x}px; top: ${props.item.bxyForSpatial.y}px`}
+      <div class={`absolute border border-rose-500`}
+           style={`left: ${props.item.computed.boundingBox?.x}px; top: ${props.item.computed.boundingBox?.y}px; ` +
+                  `width: ${props.item.computed.boundingBox?.w}px; height: ${props.item.computed.boundingBox?.h}px;`}
            onMouseDown={mouseDownHandler}>
       </div>
     );

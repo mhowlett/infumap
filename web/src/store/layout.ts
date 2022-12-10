@@ -16,9 +16,11 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { Dimensions } from "../util/geometry"
 import { Uid } from "./items"
 
 
 export type Layout = {
-  currentPage: Uid | null
+  currentPage: Uid | null,
+  desktopSize: Dimensions
 }

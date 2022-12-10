@@ -17,7 +17,7 @@
 */
 
 import { Item, Uid } from '../../store/items';
-import { BoundingBox } from '../../util/geometry';
+import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
 import { panic } from '../../util/lang';
 import { XSizableItem } from './base/x-sizeable-item';
 
@@ -25,6 +25,7 @@ import { XSizableItem } from './base/x-sizeable-item';
 export interface PageItemComputed {
   children: Array<Uid>;
   attachments: Array<Uid>;
+  boundingBox: BoundingBox | null,
   fromParentIdMaybe: Uid | null; // when moving.
 }
 
@@ -32,6 +33,7 @@ export function defaultPageItemComputed(): PageItemComputed {
   return {
     children: [],
     attachments: [],
+    boundingBox: null,
     fromParentIdMaybe: null
   };
 }
@@ -51,4 +53,32 @@ export function isPageItem(item: Item): boolean {
 export function asPageItem(item: Item): PageItem {
   if (item.type == "page") { return item as PageItem; }
   panic();
+}
+
+export function clonePageItem(item: PageItem): PageItem {
+  return {
+    type: "page",
+    id: item.id,
+    parentId: item.parentId,
+    relationshipToParent: item.relationshipToParent,
+    originalCreationDate: item.originalCreationDate,
+    creationDate: item.creationDate,
+    lastModifiedDate: item.lastModifiedDate,
+    ordering: item.ordering,
+    title: item.title,
+    bxyForSpatial: item.bxyForSpatial,
+
+    bwForSpatial: item.bwForSpatial,
+
+    innerSpatialBw: item.innerSpatialBw,
+    naturalAspect: item.naturalAspect,
+    bgColor: item.bgColor,
+
+    computed: {
+      children: [...item.computed.children],
+      attachments: [...item.computed.attachments],
+      boundingBox: cloneBoundingBox(item.computed.boundingBox),
+      fromParentIdMaybe: item.computed.fromParentIdMaybe
+    }
+  };
 }

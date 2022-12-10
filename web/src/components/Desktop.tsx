@@ -20,20 +20,30 @@ import { Component, For, Match, Switch } from "solid-js";
 import { NoteItem, PageItem } from "../store/items";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
-import { asPageItem } from "../types/items/page-item";
-import { throwExpression } from "../util/lang";
+import { cloneItem, Item, updateBounds } from "../types/items/base/item";
+import { isNoteItem } from "../types/items/note-item";
+import { asPageItem, isPageItem } from "../types/items/page-item";
+import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 
 
 export const Desktop: Component = () => {
-  const is = useItemStore();
-  const ls = useLayoutStore();
+  const itemStore = useItemStore();
+  const layoutStore = useLayoutStore();
 
   let getCurrentPageItems = () => {
-    if (ls.layout.currentPage == null) { return []; }
-    let currentPage = asPageItem(is.items.fixed[ls.layout.currentPage]);
-    let r = [currentPage, ...currentPage.computed.children.map(c => is.items.fixed[c])];
+    if (layoutStore.layout.currentPage == null) { return []; }
+    let ds = layoutStore.layout.desktopSize;
+    let currentPage = asPageItem(cloneItem(itemStore.items.fixed[layoutStore.layout.currentPage]));
+    currentPage.computed.boundingBox = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
+    let bW = currentPage.innerSpatialBw;
+    let bH = Math.floor(bW / currentPage.naturalAspect);
+    let r = [currentPage as Item];
+    currentPage.computed.children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
+      updateBounds(child, currentPage.computed.boundingBox ?? panic(), { w: bW * 60.0, h: bH * 60.0 });
+      r.push(child);
+    });
     return r;
   };
 
@@ -43,10 +53,10 @@ export const Desktop: Component = () => {
         { item => {
           return (
             <Switch fallback={<div>Not Found</div>}>
-              <Match when={item.type == "page"}>
+              <Match when={isPageItem(item)}>
                 <Page item={item as PageItem} />
               </Match>
-              <Match when={item.type == "note"}>
+              <Match when={isNoteItem(item)}>
                 <Note item={item as NoteItem} />
               </Match>
             </Switch>

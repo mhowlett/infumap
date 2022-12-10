@@ -19,9 +19,14 @@
 import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
+import { Dimensions } from "../util/geometry";
 import { panic } from "../util/lang";
 import { Layout } from "./layout";
 
+export function currentDesktopSize(): Dimensions {
+  let rootElement = document.getElementById("root") ?? panic();
+  return { w: rootElement.clientWidth - 40.0, h: rootElement.clientHeight };
+}
 
 export interface LayoutStoreContextModel {
   layout: Layout,
@@ -35,7 +40,7 @@ export interface LayoutStoreContextProps {
 const LayoutStoreContext = createContext<LayoutStoreContextModel>();
 
 export function LayoutStoreProvider(props: LayoutStoreContextProps) {
-  const [layout, setLayout] = createStore<Layout>({ currentPage: null });
+  const [layout, setLayout] = createStore<Layout>({ currentPage: null, desktopSize: currentDesktopSize() });
   const value: LayoutStoreContextModel = { layout, setLayout };
   return (
     <LayoutStoreContext.Provider value={value}>

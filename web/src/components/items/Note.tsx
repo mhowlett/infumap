@@ -49,7 +49,8 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
   if (props.item.id != c.items.rootId) {
     return (
       <div class={`absolute border border-teal-500 w-[40px] h-[40px]`}
-           style={`left: ${props.item.bxyForSpatial.x}px; top: ${props.item.bxyForSpatial.y}px`}
+           style={`left: ${props.item.computed.boundingBox?.x}px; top: ${props.item.computed.boundingBox?.y}px; ` +
+                  `width: ${props.item.computed.boundingBox?.w}px; height: ${props.item.computed.boundingBox?.h}px;`}
            onMouseDown={mouseDownHandler}>
             {props.item.title} {props.item.text}
       </div>

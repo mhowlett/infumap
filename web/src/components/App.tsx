@@ -28,18 +28,18 @@ import { Toolbar } from './Toolbar';
 
 
 const App: Component = () => {
-  let us = useUserStore();
-  let ls = useLayoutStore();
-  let is = useItemStore();
+  let userStore = useUserStore();
+  let layoutStore = useLayoutStore();
+  let itemStore = useItemStore();
 
   onMount(async () => {
     let user = await fetchUser();
     let rootId = user.rootPageId ?? panic();
-    us.setUser(user);
-    is.setRoot(rootId);
+    userStore.setUser(user);
+    itemStore.setRoot(rootId);
     let r = await fetchContainerItems(rootId);
-    is.setChildItems(r);
-    ls.setLayout({ currentPage: rootId });
+    itemStore.setChildItems(r);
+    layoutStore.setLayout({ currentPage: rootId });
   });
 
   return (
