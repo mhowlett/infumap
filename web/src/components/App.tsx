@@ -17,11 +17,9 @@
 */
 
 import { Component, onMount } from 'solid-js';
-import { fetchContainerItems } from '../store/items';
-import { useItemStore } from '../store/ItemStoreProvider';
+import { fetchContainerItems, useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
-import { fetchUser } from '../store/User';
-import { useUserStore } from '../store/UserStoreProvider';
+import { fetchUser, useUserStore } from '../store/UserStoreProvider';
 import { panic } from '../util/lang';
 import { Desktop } from './Desktop';
 import { Toolbar } from './Toolbar';

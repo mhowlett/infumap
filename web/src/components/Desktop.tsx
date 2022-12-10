@@ -17,12 +17,11 @@
 */
 
 import { Component, For, Match, Switch } from "solid-js";
-import { NoteItem, PageItem } from "../store/items";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
 import { cloneItem, Item, updateBounds } from "../types/items/base/item";
-import { isNoteItem } from "../types/items/note-item";
-import { asPageItem, isPageItem } from "../types/items/page-item";
+import { isNoteItem, NoteItem } from "../types/items/note-item";
+import { asPageItem, isPageItem, PageItem } from "../types/items/page-item";
 import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";

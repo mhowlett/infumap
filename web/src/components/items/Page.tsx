@@ -18,8 +18,7 @@
 
 import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
-import { useItemStore } from "../../store/ItemStoreProvider";
-import { PageItem } from "../../store/items";
+import { PageItem, useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { panic } from "../../util/lang";
 

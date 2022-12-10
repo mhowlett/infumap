@@ -21,7 +21,12 @@ import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { Dimensions } from "../util/geometry";
 import { panic } from "../util/lang";
-import { Layout } from "./layout";
+import { Uid } from "./ItemStoreProvider";
+
+export type Layout = {
+  currentPage: Uid | null,
+  desktopPx: Dimensions
+}
 
 export function currentDesktopSize(): Dimensions {
   let rootElement = document.getElementById("root") ?? panic();

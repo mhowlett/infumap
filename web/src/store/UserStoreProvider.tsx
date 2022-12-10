@@ -20,8 +20,20 @@ import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { panic } from "../util/lang";
-import { User } from "./User";
+import { newUid, Uid } from "./ItemStoreProvider";
 
+export const fetchUser: (() => Promise<User>) = async () => {
+  await new Promise(r => setTimeout(r, 100));
+  return {
+    name: "matt",
+    rootPageId: newUid()
+  };
+}
+
+export type User = {
+  name: string | null,
+  rootPageId: Uid | null
+}
 
 export interface UserStoreContextModel {
   user: User,
