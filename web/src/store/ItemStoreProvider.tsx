@@ -21,17 +21,17 @@ import { createContext, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { currentUnixTimeSeconds, panic, throwExpression } from "../util/lang";
 import { RelationshipToParent } from "../relationship-to-parent";
-import { asPageItem, defaultPageItemComputed, isPageItem, PageItem } from "../types/items/page-item";
-import { Item, setFromParentId } from "../types/items/base/item";
+import { asPageItem, defaultPageItemComputed, isPageItem, PageItem } from "./items/page-item";
+import { Item, setFromParentId } from "./items/base/item";
 import { newOrdering, newOrderingAtEnd } from "../util/ordering";
-import { defaultNoteItemComputed, NoteItem } from "../types/items/note-item";
+import { defaultNoteItemComputed, NoteItem } from "./items/note-item";
 import { base62 } from "../util/base62";
 import { uuid } from "../util/uuid";
 
 
-export type { Item } from '../types/items/base/item';
-export type { NoteItem } from '../types/items/note-item';
-export type { PageItem } from '../types/items/page-item';
+export type { Item } from './items/base/item';
+export type { NoteItem } from './items/note-item';
+export type { PageItem } from './items/page-item';
 
 export type Uid = string;
 

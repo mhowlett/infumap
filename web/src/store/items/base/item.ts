@@ -17,7 +17,7 @@
 */
 
 import { RelationshipToParent } from '../../../relationship-to-parent';
-import { Uid } from '../../../store/ItemStoreProvider';
+import { Uid } from '../../ItemStoreProvider';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { asNoteItem, cloneNoteItem, isNoteItem } from '../note-item';

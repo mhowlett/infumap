@@ -16,48 +16,48 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Item, Uid } from '../../store/ItemStoreProvider';
+import { Item, Uid } from '../ItemStoreProvider';
 import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
 import { panic } from '../../util/lang';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
-// TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
-
-export interface NoteItemComputed {
-  attachments: Array<Uid>,
+export interface PageItemComputed {
+  children: Array<Uid>;
+  attachments: Array<Uid>;
   boundsPx: BoundingBox | null,
-  fromParentIdMaybe: Uid | null // when moving.
+  fromParentIdMaybe: Uid | null; // when moving.
 }
 
-export function defaultNoteItemComputed(): NoteItemComputed {
+export function defaultPageItemComputed(): PageItemComputed {
   return {
+    children: [],
     attachments: [],
     boundsPx: null,
     fromParentIdMaybe: null
   };
 }
 
-export interface NoteItem extends XSizableItem {
-  computed: NoteItemComputed,
+export interface PageItem extends XSizableItem {
+  computed: PageItemComputed;
 
-  text: string,
-  url: string,
-  hasFavIcon: boolean
+  innerSpatialWidthBl: number;
+  naturalAspect: number;
+  bgColor: number;
 }
 
-export function isNoteItem(item: Item): boolean {
-  return item.type == "note";
+export function isPageItem(item: Item): boolean {
+  return item.type == "page";
 }
 
-export function asNoteItem(item: Item): NoteItem {
-  if (item.type == "note") { return item as NoteItem; }
+export function asPageItem(item: Item): PageItem {
+  if (item.type == "page") { return item as PageItem; }
   panic();
 }
 
-export function cloneNoteItem(item: NoteItem): NoteItem {
+export function clonePageItem(item: PageItem): PageItem {
   return {
-    type: "note",
+    type: "page",
     id: item.id,
     parentId: item.parentId,
     relationshipToParent: item.relationshipToParent,
@@ -70,11 +70,12 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
 
     spatialWidthBl: item.spatialWidthBl,
 
-    text: item.text,
-    url: item.url,
-    hasFavIcon: item.hasFavIcon,
+    innerSpatialWidthBl: item.innerSpatialWidthBl,
+    naturalAspect: item.naturalAspect,
+    bgColor: item.bgColor,
 
     computed: {
+      children: [...item.computed.children],
       attachments: [...item.computed.attachments],
       boundsPx: cloneBoundingBox(item.computed.boundsPx),
       fromParentIdMaybe: item.computed.fromParentIdMaybe
