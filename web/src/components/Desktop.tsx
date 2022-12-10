@@ -44,6 +44,13 @@ export const Desktop: Component = () => {
       updateBounds(child, currentPage.computed.boundsPx ?? panic(), { w: wBl * 60.0, h: hBl * 60.0 });
       r.push(child);
     });
+    itemStore.items.moving.forEach(itm => {
+      if (itm.parentId == currentPage.id) {
+        let cloned = cloneItem(itm);
+        updateBounds(cloned, currentPage.computed.boundsPx ?? panic(), { w: wBl * 60.0, h: hBl * 60.0 });
+        r.push(cloned);
+      }
+    })
     return r;
   };
 

@@ -43,6 +43,8 @@ export function cloneItem(item: Item): Item {
   throwExpression(`Unknown item type: ${item.type}`);
 }
 
+// TODO (HIGH): movable interface type to remove need for some of these cases.
+
 export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {
   const gridSize = 60.0;
   if (isPageItem(item)) {
@@ -63,5 +65,17 @@ export function updateBounds(item: Item, containerBoundsPx: BoundingBox, contain
     }
   } else {
     throwExpression(`Unknown item type: ${item.type}`);
+  }
+}
+
+export function setFromParentId(item: Item, fromParentId: Uid): void {
+  if (isPageItem(item)) {
+    let pageItem = asPageItem(item);
+    pageItem.computed.fromParentIdMaybe = fromParentId;
+  } else if (isNoteItem(item)) {
+    let noteItem = asNoteItem(item);
+    noteItem.computed.fromParentIdMaybe = fromParentId;
+  } else {
+    throwExpression(`unnown item type: ${item.type}`);
   }
 }

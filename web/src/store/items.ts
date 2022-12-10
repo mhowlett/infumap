@@ -36,6 +36,7 @@ export type Items = {
     rootId: Uid | null,
     fixed: { [id: Uid]: Item },
     moving: Array<Item>
+    // need some way to keep track of parent pages that haven't been loaded yet.
 }
 
 // If id corresponds to a root page, then that page is also returned.

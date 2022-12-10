@@ -36,6 +36,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.addEventListener('mouseup', mouseUpHandler);
     startPx = clientPosVector(pos);
     startBl = props.item.spatialPositionBl;
+    itemStore.transitionToMove(props.item.id);
   };
 
   let mouseMoveHandler = (pos: MouseEvent) => {
@@ -63,6 +64,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.removeEventListener('mouseup', mouseUpHandler);
     startPx = null;
     startBl = null;
+    itemStore.transitionMovingToFixed();
   };
 
   if (props.item.id != layoutStore.layout.currentPage) {

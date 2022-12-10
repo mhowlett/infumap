@@ -22,7 +22,8 @@ import { createStore, produce } from "solid-js/store";
 import { Item, Items, PageItem, Uid } from "./items";
 import { panic, throwExpression } from "../util/lang";
 import { RelationshipToParent } from "../relationship-to-parent";
-import { isPageItem } from "../types/items/page-item";
+import { asPageItem, isPageItem } from "../types/items/page-item";
+import { setFromParentId } from "../types/items/base/item";
 
 
 export interface ItemStoreContextModel {
@@ -32,6 +33,8 @@ export interface ItemStoreContextModel {
   setChildItems: (items: Array<Item>) => void,
   setAttachmentItems: (items: Array<Item>) => void
   updateItem: (id: Uid, f: (item: Item) => void) => void,
+  transitionToMove: (id: Uid) => void,
+  transitionMovingToFixed: () => void
 }
 
 export interface ItemStoreContextProps {
@@ -47,19 +50,52 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     moving: []
   });
 
-  const setRoot = (id: Uid) => { setItems("rootId", id); };
+  const setRoot = (id: Uid): void => { setItems("rootId", id); };
 
-  const updateItem = (id: Uid, f: (item: Item) => void) => {
-    setItems("fixed", produce((items) => {
-      f(items[id]);
-      return items;
-    }));
+  const updateItem = (id: Uid, f: (item: Item) => void): void => {
+    if (items.fixed.hasOwnProperty(id)) {
+      setItems("fixed", produce(items => {
+        f(items[id]);
+        return items;
+      }));
+    } else {
+      setItems("moving", produce(items => {
+        for (let i=0; i<items.length; ++i) {
+          if (items[i].id == id) {
+            f(items[i]);
+            break;
+          }
+        }
+      }));
+    }
   }
 
+  const transitionToMove = (id: Uid): void => {
+    setItems(produce(items => {
+      let a = items.fixed[id];
+      delete items.fixed[id];
+      // TODO (HIGH): make helper method.
+      asPageItem(items.fixed[a.parentId ?? panic()]).computed.children = asPageItem(items.fixed[a.parentId ?? panic()]).computed.children.filter(itm => itm != id);
+      setFromParentId(a, a.parentId ?? panic());
+      items.moving.push(a);
+    }));
+  };
+
+  const transitionMovingToFixed = (): void => {
+    setItems(produce(items => {
+      let a = items.moving;
+      items.moving = [];
+      a.forEach(b => {
+        items.fixed[b.id] = b;
+        asPageItem(items.fixed[b.parentId ?? panic()]).computed.children.push(b.id);
+      });
+    }));
+  };
+
   // Note: the items array contains the container item itself, in addition to the children, if the container is the root.
-  const setChildItems = (itms: Array<Item>) => {
+  const setChildItems = (itms: Array<Item>): void => {
     itms.forEach(item => {
-      setItems("fixed", produce((items) => { items[item.id] = item; }));
+      setItems("fixed", produce(items => { items[item.id] = item; }));
     });
 
     itms.forEach(item => {
@@ -74,11 +110,11 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     });
   };
 
-  const setAttachmentItems = (items: Array<Item>) => {
+  const setAttachmentItems = (items: Array<Item>): void => {
     throwExpression("not implemented yet");
   }
 
-  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem };
+  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, transitionToMove, transitionMovingToFixed };
 
   return (
     <ItemStoreContext.Provider value={value}>
