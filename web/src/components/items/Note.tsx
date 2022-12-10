@@ -37,7 +37,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     if (lastPos == null) { return; }
     const delta = subtract(clientPosVector(pos), lastPos);
     lastPos = clientPosVector(pos);
-    c.updateItem(props.item.id, item => { item.bxyForSpatial = add(item.bxyForSpatial, delta); });
+    c.updateItem(props.item.id, item => { item.spatialPositionBl = add(item.spatialPositionBl, delta); });
   };
 
   let mouseUpHandler = () => {
@@ -49,8 +49,8 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
   if (props.item.id != c.items.rootId) {
     return (
       <div class={`absolute border border-teal-500 w-[40px] h-[40px]`}
-           style={`left: ${props.item.computed.boundingBox?.x}px; top: ${props.item.computed.boundingBox?.y}px; ` +
-                  `width: ${props.item.computed.boundingBox?.w}px; height: ${props.item.computed.boundingBox?.h}px;`}
+           style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
+                  `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
             {props.item.title} {props.item.text}
       </div>

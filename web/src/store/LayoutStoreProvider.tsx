@@ -40,7 +40,7 @@ export interface LayoutStoreContextProps {
 const LayoutStoreContext = createContext<LayoutStoreContextModel>();
 
 export function LayoutStoreProvider(props: LayoutStoreContextProps) {
-  const [layout, setLayout] = createStore<Layout>({ currentPage: null, desktopSize: currentDesktopSize() });
+  const [layout, setLayout] = createStore<Layout>({ currentPage: null, desktopPx: currentDesktopSize() });
   const value: LayoutStoreContextModel = { layout, setLayout };
   return (
     <LayoutStoreContext.Provider value={value}>

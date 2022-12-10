@@ -25,7 +25,7 @@ import { XSizableItem } from './base/x-sizeable-item';
 export interface PageItemComputed {
   children: Array<Uid>;
   attachments: Array<Uid>;
-  boundingBox: BoundingBox | null,
+  boundsPx: BoundingBox | null,
   fromParentIdMaybe: Uid | null; // when moving.
 }
 
@@ -33,7 +33,7 @@ export function defaultPageItemComputed(): PageItemComputed {
   return {
     children: [],
     attachments: [],
-    boundingBox: null,
+    boundsPx: null,
     fromParentIdMaybe: null
   };
 }
@@ -41,7 +41,7 @@ export function defaultPageItemComputed(): PageItemComputed {
 export interface PageItem extends XSizableItem {
   computed: PageItemComputed;
 
-  innerSpatialBw: number;
+  innerSpatialWidthBl: number;
   naturalAspect: number;
   bgColor: number;
 }
@@ -66,18 +66,18 @@ export function clonePageItem(item: PageItem): PageItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    bxyForSpatial: item.bxyForSpatial,
+    spatialPositionBl: item.spatialPositionBl,
 
-    bwForSpatial: item.bwForSpatial,
+    spatialWidthBl: item.spatialWidthBl,
 
-    innerSpatialBw: item.innerSpatialBw,
+    innerSpatialWidthBl: item.innerSpatialWidthBl,
     naturalAspect: item.naturalAspect,
     bgColor: item.bgColor,
 
     computed: {
       children: [...item.computed.children],
       attachments: [...item.computed.attachments],
-      boundingBox: cloneBoundingBox(item.computed.boundingBox),
+      boundsPx: cloneBoundingBox(item.computed.boundsPx),
       fromParentIdMaybe: item.computed.fromParentIdMaybe
     }
   };

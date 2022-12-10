@@ -22,5 +22,5 @@ import { Uid } from "./items"
 
 export type Layout = {
   currentPage: Uid | null,
-  desktopSize: Dimensions
+  desktopPx: Dimensions
 }

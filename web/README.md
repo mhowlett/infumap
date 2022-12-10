@@ -37,3 +37,9 @@ Can be used with Authy.
 https://pythonhosted.org/otpauth/
 beginners guide on OTP. good, tells me what i need to know:
 https://medium.com/@nicola88/two-factor-authentication-with-totp-ccc5f828b6df
+
+## Coordinate Systems
+
+Px -> pixels.
+Bl -> block.
+Co -> page coordinates.

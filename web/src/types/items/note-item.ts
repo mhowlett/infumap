@@ -26,14 +26,14 @@ import { XSizableItem } from './base/x-sizeable-item';
 
 export interface NoteItemComputed {
   attachments: Array<Uid>,
-  boundingBox: BoundingBox | null,
+  boundsPx: BoundingBox | null,
   fromParentIdMaybe: Uid | null // when moving.
 }
 
 export function defaultNoteItemComputed(): NoteItemComputed {
   return {
     attachments: [],
-    boundingBox: null,
+    boundsPx: null,
     fromParentIdMaybe: null
   };
 }
@@ -66,9 +66,9 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    bxyForSpatial: item.bxyForSpatial,
+    spatialPositionBl: item.spatialPositionBl,
 
-    bwForSpatial: item.bwForSpatial,
+    spatialWidthBl: item.spatialWidthBl,
 
     text: item.text,
     url: item.url,
@@ -76,7 +76,7 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
 
     computed: {
       attachments: [...item.computed.attachments],
-      boundingBox: cloneBoundingBox(item.computed.boundingBox),
+      boundsPx: cloneBoundingBox(item.computed.boundsPx),
       fromParentIdMaybe: item.computed.fromParentIdMaybe
     }
   };

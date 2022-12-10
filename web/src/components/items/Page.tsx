@@ -35,7 +35,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
     startPx = clientPosVector(pos);
-    startBl = props.item.bxyForSpatial;
+    startBl = props.item.spatialPositionBl;
   };
 
   let mouseMoveHandler = (pos: MouseEvent) => {
@@ -43,19 +43,19 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
 
     let deltaPx = subtract(clientPosVector(pos), startPx);
 
-    let wPx = props.item.computed.boundingBox?.w ?? panic();
-    let wCo = props.item.bwForSpatial * 60.0;
+    let wPx = props.item.computed.boundsPx?.w ?? panic();
+    let wCo = props.item.spatialWidthBl * 60.0;
     deltaPx.x *= (wCo / 60.0) / wPx;
 
-    let hPx = props.item.computed.boundingBox?.h ?? panic();
-    let hCo = Math.floor(props.item.bwForSpatial / props.item.naturalAspect) * 60.0;
+    let hPx = props.item.computed.boundsPx?.h ?? panic();
+    let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * 60.0;
     deltaPx.y *= (hCo / 60.0) / hPx;
 
     let np = add(startBl ?? panic(), deltaPx);
     np.x = Math.round(np.x * 2.0) / 2.0;
     np.y = Math.round(np.y * 2.0) / 2.0;
 
-    itemStore.updateItem(props.item.id, item => { item.bxyForSpatial = np; });
+    itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = np; });
   };
 
   let mouseUpHandler = () => {
@@ -68,8 +68,8 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   if (props.item.id != layoutStore.layout.currentPage) {
     return (
       <div class={`absolute border border-rose-500`}
-           style={`left: ${props.item.computed.boundingBox?.x}px; top: ${props.item.computed.boundingBox?.y}px; ` +
-                  `width: ${props.item.computed.boundingBox?.w}px; height: ${props.item.computed.boundingBox?.h}px;`}
+           style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
+                  `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
       </div>
     );

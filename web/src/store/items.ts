@@ -49,10 +49,10 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
   let rootItem: PageItem = {
     type: "page",
     computed: defaultPageItemComputed(),
-    innerSpatialBw: 80,
+    innerSpatialWidthBl: 80,
     naturalAspect: 1.4,
     bgColor: 0,
-    bwForSpatial: NaN,
+    spatialWidthBl: NaN,
     id: rootId,
     parentId: null,
     relationshipToParent: RelationshipToParent.NoParent,
@@ -61,16 +61,16 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering: newOrdering(),
     title: 'matt',
-    bxyForSpatial: { x: NaN, y: NaN }
+    spatialPositionBl: { x: NaN, y: NaN }
   };
 
   let pageItem: PageItem = {
     type: "page",
     computed: defaultPageItemComputed(),
-    innerSpatialBw: 60,
+    innerSpatialWidthBl: 60,
     naturalAspect: 1.4,
     bgColor: 0,
-    bwForSpatial: 4.0,
+    spatialWidthBl: 4.0,
     id: newUid(),
     parentId: rootId,
     relationshipToParent: RelationshipToParent.Child,
@@ -79,7 +79,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering: newOrdering(),
     title: 'inside page',
-    bxyForSpatial: { x: 5.0, y: 7.0 }
+    spatialPositionBl: { x: 5.0, y: 7.0 }
   };
 
   let noteItem: NoteItem = {
@@ -88,7 +88,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     text: 'the note text',
     url: 'https://www.google.com',
     hasFavIcon: false,
-    bwForSpatial: 8.0,
+    spatialWidthBl: 8.0,
     id: newUid(),
     parentId: rootId,
     relationshipToParent: RelationshipToParent.Child,
@@ -97,7 +97,7 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering: newOrderingAtEnd(pageItem.ordering),
     title: 'google.com',
-    bxyForSpatial: { x: 5.0, y: 12.0 }
+    spatialPositionBl: { x: 5.0, y: 12.0 }
   };
 
   return [rootItem, pageItem, noteItem];

@@ -34,14 +34,14 @@ export const Desktop: Component = () => {
 
   let getCurrentPageItems = () => {
     if (layoutStore.layout.currentPage == null) { return []; }
-    let ds = layoutStore.layout.desktopSize;
+    let ds = layoutStore.layout.desktopPx;
     let currentPage = asPageItem(cloneItem(itemStore.items.fixed[layoutStore.layout.currentPage]));
-    currentPage.computed.boundingBox = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
-    let bW = currentPage.innerSpatialBw;
-    let bH = Math.floor(bW / currentPage.naturalAspect);
+    currentPage.computed.boundsPx = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
+    let wBl = currentPage.innerSpatialWidthBl;
+    let hBl = Math.floor(wBl / currentPage.naturalAspect);
     let r = [currentPage as Item];
     currentPage.computed.children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
-      updateBounds(child, currentPage.computed.boundingBox ?? panic(), { w: bW * 60.0, h: bH * 60.0 });
+      updateBounds(child, currentPage.computed.boundsPx ?? panic(), { w: wBl * 60.0, h: hBl * 60.0 });
       r.push(child);
     });
     return r;
