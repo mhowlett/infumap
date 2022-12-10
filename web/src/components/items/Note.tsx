@@ -20,39 +20,60 @@ import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { NoteItem } from "../../store/items";
+import { useLayoutStore } from "../../store/LayoutStoreProvider";
+import { panic } from "../../util/lang";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
-  const c = useItemStore();
+  const itemStore = useItemStore();
+  const layoutStore = useLayoutStore();
 
-  let lastPos: Vector | null = null;
+  let startPx: Vector | null;
+  let startBl: Vector | null;
 
   let mouseDownHandler = (pos: MouseEvent) => {
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
-    lastPos = clientPosVector(pos);
-  }
+    startPx = clientPosVector(pos);
+    startBl = props.item.spatialPositionBl;
+    itemStore.transitionToMove(props.item.id);
+  };
 
   let mouseMoveHandler = (pos: MouseEvent) => {
-    if (lastPos == null) { return; }
-    const delta = subtract(clientPosVector(pos), lastPos);
-    lastPos = clientPosVector(pos);
-    c.updateItem(props.item.id, item => { item.spatialPositionBl = add(item.spatialPositionBl, delta); });
+    if (startPx == null) { return; }
+
+    let deltaPx = subtract(clientPosVector(pos), startPx);
+
+    let wPx = props.item.computed.boundsPx?.w ?? panic();
+    let wCo = props.item.spatialWidthBl * 60.0;
+    deltaPx.x *= (wCo / 60.0) / wPx;
+
+    let hPx = props.item.computed.boundsPx?.h ?? panic();
+    let hCo = 60.0;
+    deltaPx.y *= (hCo / 60.0) / hPx;
+
+    let np = add(startBl ?? panic(), deltaPx);
+    np.x = Math.round(np.x * 2.0) / 2.0;
+    np.y = Math.round(np.y * 2.0) / 2.0;
+
+    itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = np; });
   };
 
   let mouseUpHandler = () => {
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
-    lastPos = null;
-  }
+    startPx = null;
+    startBl = null;
+    itemStore.transitionMovingToFixed();
+  };
 
-  if (props.item.id != c.items.rootId) {
+  if (props.item.id != layoutStore.layout.currentPage) {
     return (
-      <div class={`absolute border border-teal-500 w-[40px] h-[40px]`}
+      <div class={`absolute border border-teal-500`}
            style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
                   `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
-            {props.item.title} {props.item.text}
+        {props.item.title} {props.item.text}
       </div>
     );
   }
