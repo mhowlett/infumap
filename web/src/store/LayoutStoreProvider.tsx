@@ -19,6 +19,7 @@
 import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
+import { TOOLBAR_WIDTH } from "../constants";
 import { Dimensions } from "../util/geometry";
 import { panic } from "../util/lang";
 import { Uid } from "../util/uid";
@@ -30,7 +31,7 @@ export type Layout = {
 
 export function currentDesktopSize(): Dimensions {
   let rootElement = document.getElementById("root") ?? panic();
-  return { w: rootElement.clientWidth - 40.0, h: rootElement.clientHeight };
+  return { w: rootElement.clientWidth - TOOLBAR_WIDTH, h: rootElement.clientHeight };
 }
 
 export interface LayoutStoreContextModel {

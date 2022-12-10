@@ -19,12 +19,13 @@
 import { Component } from "solid-js";
 import ToolbarIcon from "./ToolbarIcon";
 import imgUrl from '../assets/circle.png'
+import { TOOLBAR_WIDTH } from "../constants";
 
 
 export const Toolbar: Component = () => {
   return (
-    <div class="fixed left-0 top-0 bottom-0 w-[40px] border-r border-gray-800 text-gray-100"
-         style="background-image: linear-gradient(270deg, rgba(40, 57, 83, 0.706), rgba(40, 57, 83, 0.784))">
+    <div class="fixed left-0 top-0 bottom-0 border-r border-gray-800 text-gray-100"
+         style={`background-image: linear-gradient(270deg, rgba(40, 57, 83, 0.706), rgba(40, 57, 83, 0.784)); width: ${TOOLBAR_WIDTH}px`}>
       <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
       <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
         matt

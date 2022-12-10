@@ -25,6 +25,7 @@ import { asPageItem, isPageItem, PageItem } from "../store/items/page-item";
 import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
+import { GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 
 
 export const Desktop: Component = () => {
@@ -40,13 +41,13 @@ export const Desktop: Component = () => {
     let hBl = Math.floor(wBl / currentPage.naturalAspect);
     let r = [currentPage as Item];
     currentPage.computed.children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
-      updateBounds(child, currentPage.computed.boundsPx ?? panic(), { w: wBl * 60.0, h: hBl * 60.0 });
+      updateBounds(child, currentPage.computed.boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
       r.push(child);
     });
     itemStore.items.moving.forEach(itm => {
       if (itm.parentId == currentPage.id) {
         let cloned = cloneItem(itm);
-        updateBounds(cloned, currentPage.computed.boundsPx ?? panic(), { w: wBl * 60.0, h: hBl * 60.0 });
+        updateBounds(cloned, currentPage.computed.boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
         r.push(cloned);
       }
     })
@@ -54,7 +55,8 @@ export const Desktop: Component = () => {
   };
 
   return (
-    <div class="fixed left-[40px] top-0 bottom-0 right-0 select-none outline-none">
+    <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
+         style={`left: ${TOOLBAR_WIDTH}px`}>
       <For each={getCurrentPageItems()}>
         { item => {
           return (

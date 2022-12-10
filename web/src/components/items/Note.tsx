@@ -18,9 +18,11 @@
 
 import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
-import { NoteItem, useItemStore } from "../../store/ItemStoreProvider";
+import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { panic } from "../../util/lang";
+import { NoteItem } from "../../store/items/note-item";
+import { GRID_SIZE } from "../../constants";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
@@ -44,12 +46,12 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     let deltaPx = subtract(clientPosVector(pos), startPx);
 
     let wPx = props.item.computed.boundsPx?.w ?? panic();
-    let wCo = props.item.spatialWidthBl * 60.0;
-    deltaPx.x *= (wCo / 60.0) / wPx;
+    let wCo = props.item.spatialWidthBl * GRID_SIZE;
+    deltaPx.x *= (wCo / GRID_SIZE) / wPx;
 
     let hPx = props.item.computed.boundsPx?.h ?? panic();
-    let hCo = 60.0;
-    deltaPx.y *= (hCo / 60.0) / hPx;
+    let hCo = GRID_SIZE;
+    deltaPx.y *= (hCo / GRID_SIZE) / hPx;
 
     let np = add(startBl ?? panic(), deltaPx);
     np.x = Math.round(np.x * 2.0) / 2.0;

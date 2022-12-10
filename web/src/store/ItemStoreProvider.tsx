@@ -28,16 +28,11 @@ import { defaultNoteItemComputed, NoteItem } from "./items/note-item";
 import { newUid, Uid } from "../util/uid";
 
 
-export type { Item } from './items/base/item';
-export type { NoteItem } from './items/note-item';
-export type { PageItem } from './items/page-item';
-
-
 export type Items = {
     rootId: Uid | null,
     fixed: { [id: Uid]: Item },
     moving: Array<Item>
-    // need some way to keep track of parent pages that haven't been loaded yet.
+    // Also need some way to keep track of parent pages that haven't been loaded yet.
 }
 
 // If id corresponds to a root page, then that page is also returned.

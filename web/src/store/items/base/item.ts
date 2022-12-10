@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { GRID_SIZE } from '../../../constants';
 import { RelationshipToParent } from '../../../relationship-to-parent';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
@@ -46,22 +47,21 @@ export function cloneItem(item: Item): Item {
 // TODO (HIGH): movable interface type to remove need for some of these cases.
 
 export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {
-  const gridSize = 60.0;
   if (isPageItem(item)) {
     let pageItem = asPageItem(item);
     pageItem.computed.boundsPx = {
-      x: (pageItem.spatialPositionBl.x * gridSize / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-      y: (pageItem.spatialPositionBl.y * gridSize / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-      w: (pageItem.spatialWidthBl * gridSize / containerInnerSizeCo.w) * containerBoundsPx.w,
-      h: (Math.floor(pageItem.spatialWidthBl / pageItem.naturalAspect) * gridSize / containerInnerSizeCo.h) * containerBoundsPx.h
+      x: (pageItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+      y: (pageItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+      w: (pageItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
+      h: (Math.floor(pageItem.spatialWidthBl / pageItem.naturalAspect) * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h
     }
   } else if (isNoteItem(item)) {
     let noteItem = asNoteItem(item);
     noteItem.computed.boundsPx = {
-      x: (noteItem.spatialPositionBl.x * gridSize / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-      y: (noteItem.spatialPositionBl.y * gridSize / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-      w: (noteItem.spatialWidthBl * gridSize / containerInnerSizeCo.w) * containerBoundsPx.w,
-      h: (1.0 * gridSize / containerInnerSizeCo.h) * containerBoundsPx.h
+      x: (noteItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+      y: (noteItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+      w: (noteItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
+      h: (1.0 * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h
     }
   } else {
     throwExpression(`Unknown item type: ${item.type}`);

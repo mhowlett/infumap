@@ -18,9 +18,11 @@
 
 import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
-import { PageItem, useItemStore } from "../../store/ItemStoreProvider";
+import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { panic } from "../../util/lang";
+import { PageItem } from "../../store/items/page-item";
+import { GRID_SIZE } from "../../constants";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
@@ -44,12 +46,12 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     let deltaPx = subtract(clientPosVector(pos), startPx);
 
     let wPx = props.item.computed.boundsPx?.w ?? panic();
-    let wCo = props.item.spatialWidthBl * 60.0;
-    deltaPx.x *= (wCo / 60.0) / wPx;
+    let wCo = props.item.spatialWidthBl * GRID_SIZE;
+    deltaPx.x *= (wCo / GRID_SIZE) / wPx;
 
     let hPx = props.item.computed.boundsPx?.h ?? panic();
-    let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * 60.0;
-    deltaPx.y *= (hCo / 60.0) / hPx;
+    let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * GRID_SIZE;
+    deltaPx.y *= (hCo / GRID_SIZE) / hPx;
 
     let np = add(startBl ?? panic(), deltaPx);
     np.x = Math.round(np.x * 2.0) / 2.0;
