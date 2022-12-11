@@ -40,7 +40,7 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   let contextMenuDiv: HTMLDivElement | undefined;
 
-  const newPageIn = () => {
+  const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
       itemStore.addItem(
         newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
@@ -48,7 +48,7 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
     }
   };
 
-  const newNoteIn = () => {
+  const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
       itemStore.addItem(
         newNoteItem(props.contextItem?.id!, RelationshipToParent.Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
@@ -56,17 +56,18 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
     }
   }
 
-  let moveListener = (ev: MouseEvent) => ev.stopPropagation();
-  onMount(() => contextMenuDiv?.addEventListener('mousedown', moveListener));
-  onCleanup(() => contextMenuDiv?.removeEventListener('mousedown', moveListener));
+  // Prevent mouse down events bubbling up, which would trigger the handler that hides the context menu.
+  let mouseDownListener = (ev: MouseEvent) => ev.stopPropagation();
+  onMount(() => contextMenuDiv?.addEventListener('mousedown', mouseDownListener));
+  onCleanup(() => contextMenuDiv?.removeEventListener('mousedown', mouseDownListener));
 
   return (
     <div ref={contextMenuDiv}
-         class="absolute border rounded w-[200px] h-[150px] bg-slate-50"
+         class="absolute border rounded w-[250px] h-[180px] bg-slate-50"
          style={`left: ${props.clickPosPx.x}px; top: ${props.clickPosPx.y}px`}>
       {`${props.contextItem?.id}`}
-      <ToolbarIcon icon="folder" margin={18} clickHandler={newPageIn} />
-      <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteIn} />
+      <ToolbarIcon icon="folder" margin={18} clickHandler={newPageInContext} />
+      <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteInContext} />
     </div>
   );
 }
