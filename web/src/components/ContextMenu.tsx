@@ -21,6 +21,7 @@ import { produce } from "solid-js/store";
 import { RelationshipToParent } from "../relationship-to-parent";
 import { newOrderingAtEndOfChildren } from "../store/items";
 import { Item } from "../store/items/base/item";
+import { newNoteItem } from "../store/items/note-item";
 import { isPageItem, newPageItem } from "../store/items/page-item";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
@@ -29,8 +30,8 @@ import ToolbarIcon from "./ToolbarIcon";
 
 
 export type ContexMenuProps = {
-  posPx: Vector,
-  item: Item | null
+  clickPosPx: Vector,
+  contextItem: Item | null
 };
 
 export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) => {
@@ -40,15 +41,17 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
   let contextMenuDiv: HTMLDivElement | undefined;
 
   const newPageIn = () => {
-    if (isPageItem(props.item)) {
-      let newPage = newPageItem(props.item?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.item?.id!));
-      itemStore.addItem(newPage);
+    if (isPageItem(props.contextItem)) {
+      itemStore.addItem(
+        newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
       layoutStore.hideContextMenu();
     }
   };
 
   const newNoteIn = () => {
-    if (isPageItem(props.item)) {
+    if (isPageItem(props.contextItem)) {
+      itemStore.addItem(
+        newNoteItem(props.contextItem?.id!, RelationshipToParent.Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
       layoutStore.hideContextMenu();
     }
   }
@@ -60,8 +63,8 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
   return (
     <div ref={contextMenuDiv}
          class="absolute border rounded w-[200px] h-[150px] bg-slate-50"
-         style={`left: ${props.posPx.x}px; top: ${props.posPx.y}px`}>
-      {`${props.item?.id}`}
+         style={`left: ${props.clickPosPx.x}px; top: ${props.clickPosPx.y}px`}>
+      {`${props.contextItem?.id}`}
       <ToolbarIcon icon="folder" margin={18} clickHandler={newPageIn} />
       <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteIn} />
     </div>

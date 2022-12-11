@@ -75,7 +75,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
            style={`left: ${props.item.computed_boundsPx?.x}px; top: ${props.item.computed_boundsPx?.y}px; ` +
                   `width: ${props.item.computed_boundsPx?.w}px; height: ${props.item.computed_boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
-        {props.item.title} {props.item.text}
+        {props.item.title} {props.item.url}
       </div>
     );
   }

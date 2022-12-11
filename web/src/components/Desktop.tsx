@@ -107,7 +107,7 @@ export const Desktop: Component = () => {
         </Switch>
       }</For>
       <Show when={layoutStore.layout.contextMenuPosPx != null}>
-        <ContextMenu posPx={layoutStore.layout.contextMenuPosPx!} item={layoutStore.layout.contexMenuItem} />
+        <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem} />
       </Show>
     </div>
   );

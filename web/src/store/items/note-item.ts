@@ -16,9 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { RelationshipToParent } from '../../relationship-to-parent';
 import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
-import { panic } from '../../util/lang';
-import { Uid } from '../../util/uid';
+import { currentUnixTimeSeconds, panic } from '../../util/lang';
+import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
@@ -26,7 +27,6 @@ import { XSizableItem } from './base/x-sizeable-item';
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
 export interface NoteItem extends XSizableItem {
-  text: string,
   url: string,
   hasFavIcon: boolean,
 
@@ -60,12 +60,35 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
 
     spatialWidthBl: item.spatialWidthBl,
 
-    text: item.text,
     url: item.url,
     hasFavIcon: item.hasFavIcon,
 
     computed_attachments: [...item.computed_attachments],
     computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
     computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
+  };
+}
+
+export function newNoteItem(parentId: Uid, relationshipToParent: RelationshipToParent, title: string, ordering: Uint8Array): NoteItem {
+  return {
+    type: "note",
+    id: newUid(),
+    parentId,
+    relationshipToParent,
+    originalCreationDate: currentUnixTimeSeconds(),
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering,
+    title,
+    spatialPositionBl: { x: 0.0, y: 0.0 },
+
+    spatialWidthBl: 4.0,
+
+    url: "",
+    hasFavIcon: false,
+
+    computed_attachments: [],
+    computed_boundsPx: null,
+    computed_fromParentIdMaybe: null,
   };
 }
