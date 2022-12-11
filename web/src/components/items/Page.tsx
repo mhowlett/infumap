@@ -20,60 +20,86 @@ import { Component } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
-import { panic } from "../../util/lang";
-import { PageItem } from "../../store/items/page-item";
-import { GRID_SIZE } from "../../constants";
+import { asPageItem, PageItem } from "../../store/items/page-item";
+import { GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
 
+  let outerDiv: HTMLDivElement | undefined;
+
   let startPx: Vector | null;
-  let startBl: Vector | null;
+  let startPosBl: Vector | null;
+  let startWidthBl: number | null;
+
+  let moving = () => { return startPosBl != null; }
 
   let mouseDownHandler = (pos: MouseEvent) => {
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
+    let rect = outerDiv?.getBoundingClientRect();
     startPx = clientPosVector(pos);
-    startBl = props.item.spatialPositionBl;
-    itemStore.transitionToMove(props.item.id);
+    if (rect?.right! - startPx.x < RESIZE_BOX_SIZE && rect?.bottom! - startPx.y < RESIZE_BOX_SIZE) {
+      startPosBl = null;
+      startWidthBl = props.item.spatialWidthBl;
+    } else {
+      startWidthBl = null;
+      startPosBl = props.item.spatialPositionBl;
+      itemStore.transitionToMove(props.item.id);
+    }
   };
 
   let mouseMoveHandler = (pos: MouseEvent) => {
     if (startPx == null) { return; }
 
     let deltaPx = subtract(clientPosVector(pos), startPx);
+    let deltaBl = { x: NaN, y: NaN };
 
-    let wPx = props.item.computed.boundsPx?.w ?? panic();
+    let wPx = props.item.computed.boundsPx?.w!;
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
-    deltaPx.x *= (wCo / GRID_SIZE) / wPx;
+    deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
 
-    let hPx = props.item.computed.boundsPx?.h ?? panic();
+    let hPx = props.item.computed.boundsPx?.h!;
     let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * GRID_SIZE;
-    deltaPx.y *= (hCo / GRID_SIZE) / hPx;
+    deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
 
-    let np = add(startBl ?? panic(), deltaPx);
-    np.x = Math.round(np.x * 2.0) / 2.0;
-    np.y = Math.round(np.y * 2.0) / 2.0;
-
-    itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = np; });
+    if (moving()) {
+      let newPosBl = add(startPosBl!, deltaBl);
+      newPosBl.x = Math.round(newPosBl.x * 2.0) / 2.0;
+      newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
+      itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
+    } else {
+      let newWidthBl = startWidthBl! + deltaBl.x;
+      newWidthBl = Math.round(newWidthBl);
+      itemStore.updateItem(props.item.id, item => { asPageItem(item).spatialWidthBl = newWidthBl; });
+    }
   };
 
   let mouseUpHandler = () => {
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
+    if (moving()) {
+      itemStore.transitionMovingToFixed();
+    }
     startPx = null;
-    startBl = null;
-    itemStore.transitionMovingToFixed();
+    startPosBl = null;
+    startWidthBl = null;
   };
 
   if (props.item.id != layoutStore.layout.currentPage) {
+    let lPx = props.item.computed.boundsPx!.x!;
+    let tPx = props.item.computed.boundsPx!.y!;
+    let wPx = props.item.computed.boundsPx!.w!;
+    let hPx = props.item.computed.boundsPx!.h!;
     return (
-      <div class={`absolute border border-rose-500`}
-           style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
-                  `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
+      <div ref={outerDiv}
+           class={`absolute border border-rose-500`}
+           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
            onMouseDown={mouseDownHandler}>
+        <div class={`absolute opacity-0 cursor-nwse-resize`}
+             style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
       </div>
     );
   }

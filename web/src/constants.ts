@@ -19,3 +19,5 @@
 export const GRID_SIZE = 60.0;
 
 export const TOOLBAR_WIDTH = 40;
+
+export const RESIZE_BOX_SIZE = 8;

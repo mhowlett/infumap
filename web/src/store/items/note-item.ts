@@ -16,9 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Item, Uid } from '../ItemStoreProvider';
 import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
 import { panic } from '../../util/lang';
+import { Uid } from '../../util/uid';
+import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
