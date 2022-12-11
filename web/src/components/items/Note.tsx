@@ -70,7 +70,8 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
 
   if (props.item.id != layoutStore.layout.currentPage) {
     return (
-      <div class={`absolute border border-teal-500`}
+      <div id={props.item.id}
+           class={`absolute border border-teal-500`}
            style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
                   `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>

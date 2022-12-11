@@ -37,6 +37,10 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   let moving = () => { return startPosBl != null; }
 
   let mouseDownHandler = (pos: MouseEvent) => {
+
+    // Can't move or adjust top level page.
+    if (props.item.id == layoutStore.layout.currentPage) { return; }
+
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
     let rect = outerDiv?.getBoundingClientRect();
@@ -88,19 +92,18 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     startWidthBl = null;
   };
 
-  if (props.item.id != layoutStore.layout.currentPage) {
-    let lPx = props.item.computed.boundsPx!.x!;
-    let tPx = props.item.computed.boundsPx!.y!;
-    let wPx = props.item.computed.boundsPx!.w!;
-    let hPx = props.item.computed.boundsPx!.h!;
-    return (
-      <div ref={outerDiv}
-           class={`absolute border border-rose-500`}
-           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
-           onMouseDown={mouseDownHandler}>
-        <div class={`absolute opacity-0 cursor-nwse-resize`}
-             style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
-      </div>
-    );
-  }
+  let lPx = props.item.computed.boundsPx!.x!;
+  let tPx = props.item.computed.boundsPx!.y!;
+  let wPx = props.item.computed.boundsPx!.w!;
+  let hPx = props.item.computed.boundsPx!.h!;
+  return (
+    <div ref={outerDiv}
+          id={props.item.id}
+          class={`absolute border border-rose-500`}
+          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
+          onMouseDown={mouseDownHandler}>
+      <div class={`absolute opacity-0 cursor-nwse-resize`}
+            style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+    </div>
+  );
 }

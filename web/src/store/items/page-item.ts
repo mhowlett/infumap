@@ -16,9 +16,11 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { RelationshipToParent } from '../../relationship-to-parent';
 import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
-import { panic } from '../../util/lang';
-import { Uid } from '../../util/uid';
+import { currentUnixTimeSeconds, panic } from '../../util/lang';
+import { newOrderingAfter } from '../../util/ordering';
+import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
@@ -47,7 +49,8 @@ export interface PageItem extends XSizableItem {
   bgColor: number;
 }
 
-export function isPageItem(item: Item): boolean {
+export function isPageItem(item: Item | null): boolean {
+  if (item == null) { return false; }
   return item.type == "page";
 }
 
@@ -81,5 +84,28 @@ export function clonePageItem(item: PageItem): PageItem {
       boundsPx: cloneBoundingBox(item.computed.boundsPx),
       fromParentIdMaybe: item.computed.fromParentIdMaybe
     }
+  };
+}
+
+export function newPageItem(parentId: Uid, relationshipToParent: RelationshipToParent, title: string, ordering: Uint8Array): PageItem {
+  return {
+    type: "page",
+    id: newUid(),
+    parentId,
+    relationshipToParent,
+    originalCreationDate: currentUnixTimeSeconds(),
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering,
+    title,
+    spatialPositionBl: { x: 0.0, y: 0.0 },
+
+    spatialWidthBl: 4.0,
+
+    innerSpatialWidthBl: 60.0,
+    naturalAspect: 1.6,
+    bgColor: 0,
+
+    computed: defaultPageItemComputed()
   };
 }

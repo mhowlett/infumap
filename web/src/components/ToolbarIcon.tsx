@@ -16,10 +16,17 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { onCleanup, onMount } from "solid-js";
 
-export default function ToolbarIcon(props: { icon: string; margin: number }) {
+export default function ToolbarIcon(props: { icon: string; margin: number; clickHandler: () => void }) {
+  let outerDivElement : HTMLDivElement | undefined;
+
+  onMount(() => { outerDivElement?.addEventListener('click', props.clickHandler); });
+  onCleanup(() => { outerDivElement?.removeEventListener('click', props.clickHandler); });
+
   return (
-    <div class="border rounded w-[29px] h-[28px] inline-block text-center cursor-move ml-[5px] text-[18px]"
+    <div ref={outerDivElement}
+         class="border rounded w-[29px] h-[28px] inline-block text-center cursor-move ml-[5px] text-[18px]"
          style={`background-color: rgba(40, 57, 83, 0.47); border-color: rgba(23, 32, 47, 0.47); margin-bottom: ${props.margin}px`}>
       <i class={`fa fa-${props.icon}`} />
     </div>

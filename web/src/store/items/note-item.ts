@@ -47,7 +47,8 @@ export interface NoteItem extends XSizableItem {
   hasFavIcon: boolean
 }
 
-export function isNoteItem(item: Item): boolean {
+export function isNoteItem(item: Item | null): boolean {
+  if (item == null) { return false; }
   return item.type == "note";
 }
 

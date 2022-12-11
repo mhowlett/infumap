@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import ToolbarIcon from "./ToolbarIcon";
+// import ToolbarIcon from "./ToolbarIcon";
 import imgUrl from '../assets/circle.png'
 import { TOOLBAR_WIDTH } from "../constants";
 
@@ -31,6 +31,15 @@ export const Toolbar: Component = () => {
         matt
       </div>
       <div class="absolute bottom-0">
+        <div class="ml-[12px] mb-[12px]">
+          <i class="fa fa-user" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*
         <ToolbarIcon icon="ruler-horizontal" margin={4} />
         <ToolbarIcon icon="star" margin={4} />
         <ToolbarIcon icon="chart-area" margin={4} />
@@ -41,10 +50,4 @@ export const Toolbar: Component = () => {
         <ToolbarIcon icon="table" margin={4} />
         <ToolbarIcon icon="list-alt" margin={4} />
         <ToolbarIcon icon="folder" margin={18} />
-        <div class="ml-[12px] mb-[12px]">
-          <i class="fa fa-user" />
-        </div>
-      </div>
-    </div>
-  );
-}
+*/

@@ -20,13 +20,16 @@ import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { TOOLBAR_WIDTH } from "../constants";
-import { Dimensions } from "../util/geometry";
+import { Dimensions, Vector } from "../util/geometry";
 import { panic } from "../util/lang";
 import { Uid } from "../util/uid";
+import { Item } from "./items/base/item";
 
 export type Layout = {
   currentPage: Uid | null,
-  desktopPx: Dimensions
+  desktopPx: Dimensions,
+  contextMenuPosPx: Vector | null,
+  contexMenuItem: Item | null
 }
 
 export function currentDesktopSize(): Dimensions {
@@ -46,7 +49,12 @@ export interface LayoutStoreContextProps {
 const LayoutStoreContext = createContext<LayoutStoreContextModel>();
 
 export function LayoutStoreProvider(props: LayoutStoreContextProps) {
-  const [layout, setLayout] = createStore<Layout>({ currentPage: null, desktopPx: currentDesktopSize() });
+  const [layout, setLayout] = createStore<Layout>({
+    currentPage: null,
+    desktopPx: currentDesktopSize(),
+    contextMenuPosPx: null,
+    contexMenuItem: null
+  });
   const value: LayoutStoreContextModel = { layout, setLayout };
   return (
     <LayoutStoreContext.Provider value={value}>
