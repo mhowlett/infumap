@@ -43,21 +43,21 @@ export const Desktop: Component = () => {
 
     let ds = layoutStore.layout.desktopPx;
     let currentPage = asPageItem(cloneItem(itemStore.items.fixed[layoutStore.layout.currentPage]));
-    currentPage.computed.boundsPx = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
+    currentPage.computed_boundsPx = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
     let wBl = currentPage.innerSpatialWidthBl;
     let hBl = Math.floor(wBl / currentPage.naturalAspect);
 
     let r = [currentPage as Item];
 
-    currentPage.computed.children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
-      updateBounds(child, currentPage.computed.boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
+    currentPage.computed_children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
+      updateBounds(child, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
       r.push(child);
     });
 
     itemStore.items.moving.forEach(itm => {
       if (itm.parentId == currentPage.id) {
         let cloned = cloneItem(itm);
-        updateBounds(cloned, currentPage.computed.boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
+        updateBounds(cloned, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
         r.push(cloned);
       }
     })
@@ -75,12 +75,7 @@ export const Desktop: Component = () => {
     }));
   };
 
-  const mouseDownHandler = (ev: MouseEvent) => {
-    layoutStore.setLayout(produce(state => {
-      state.contextMenuPosPx = null;
-      state.contexMenuItem = null;
-    }));
-  }
+  const mouseDownHandler = (_ev: MouseEvent) => { layoutStore.hideContextMenu(); }
 
   const mouseMoveListener = (ev: MouseEvent) => { lastMouseMoveEvent = ev; }
 

@@ -18,7 +18,7 @@
 
 import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
-import { createStore, SetStoreFunction } from "solid-js/store";
+import { createStore, produce, SetStoreFunction } from "solid-js/store";
 import { TOOLBAR_WIDTH } from "../constants";
 import { Dimensions, Vector } from "../util/geometry";
 import { panic } from "../util/lang";
@@ -32,7 +32,7 @@ export type Layout = {
   contexMenuItem: Item | null
 }
 
-export function currentDesktopSize(): Dimensions {
+function currentDesktopSize(): Dimensions {
   let rootElement = document.getElementById("root") ?? panic();
   return { w: rootElement.clientWidth - TOOLBAR_WIDTH, h: rootElement.clientHeight };
 }
@@ -40,6 +40,7 @@ export function currentDesktopSize(): Dimensions {
 export interface LayoutStoreContextModel {
   layout: Layout,
   setLayout: SetStoreFunction<Layout>,
+  hideContextMenu: () => void
 }
 
 export interface LayoutStoreContextProps {
@@ -55,7 +56,13 @@ export function LayoutStoreProvider(props: LayoutStoreContextProps) {
     contextMenuPosPx: null,
     contexMenuItem: null
   });
-  const value: LayoutStoreContextModel = { layout, setLayout };
+
+  const hideContextMenu = () => {
+    setLayout(produce(state => { state.contexMenuItem = null; state.contextMenuPosPx = null; }));
+  };
+
+  const value: LayoutStoreContextModel = { layout, setLayout, hideContextMenu };
+
   return (
     <LayoutStoreContext.Provider value={value}>
       {props.children}

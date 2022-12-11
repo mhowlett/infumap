@@ -49,7 +49,7 @@ export function cloneItem(item: Item): Item {
 export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {
   if (isPageItem(item)) {
     let pageItem = asPageItem(item);
-    pageItem.computed.boundsPx = {
+    pageItem.computed_boundsPx = {
       x: (pageItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
       y: (pageItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
       w: (pageItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
@@ -57,7 +57,7 @@ export function updateBounds(item: Item, containerBoundsPx: BoundingBox, contain
     }
   } else if (isNoteItem(item)) {
     let noteItem = asNoteItem(item);
-    noteItem.computed.boundsPx = {
+    noteItem.computed_boundsPx = {
       x: (noteItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
       y: (noteItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
       w: (noteItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
@@ -71,10 +71,10 @@ export function updateBounds(item: Item, containerBoundsPx: BoundingBox, contain
 export function setFromParentId(item: Item, fromParentId: Uid): void {
   if (isPageItem(item)) {
     let pageItem = asPageItem(item);
-    pageItem.computed.fromParentIdMaybe = fromParentId;
+    pageItem.computed_fromParentIdMaybe = fromParentId;
   } else if (isNoteItem(item)) {
     let noteItem = asNoteItem(item);
-    noteItem.computed.fromParentIdMaybe = fromParentId;
+    noteItem.computed_fromParentIdMaybe = fromParentId;
   } else {
     throwExpression(`unnown item type: ${item.type}`);
   }

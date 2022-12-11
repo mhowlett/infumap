@@ -39,16 +39,18 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   let contextMenuDiv: HTMLDivElement | undefined;
 
-  const newPage = () => {
+  const newPageIn = () => {
     if (isPageItem(props.item)) {
       let newPage = newPageItem(props.item?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.item?.id!));
       itemStore.addItem(newPage);
-      layoutStore.setLayout(produce(state => { state.contextMenuPosPx = null; state.contexMenuItem = null; }));
+      layoutStore.hideContextMenu();
     }
   };
 
-  const newNote = () => {
-
+  const newNoteIn = () => {
+    if (isPageItem(props.item)) {
+      layoutStore.hideContextMenu();
+    }
   }
 
   let moveListener = (ev: MouseEvent) => ev.stopPropagation();
@@ -60,8 +62,8 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
          class="absolute border rounded w-[200px] h-[150px] bg-slate-50"
          style={`left: ${props.posPx.x}px; top: ${props.posPx.y}px`}>
       {`${props.item?.id}`}
-      <ToolbarIcon icon="folder" margin={18} clickHandler={newPage} />
-      <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNote} />
+      <ToolbarIcon icon="folder" margin={18} clickHandler={newPageIn} />
+      <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteIn} />
     </div>
   );
 }

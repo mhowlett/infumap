@@ -45,11 +45,11 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
 
     let deltaPx = subtract(clientPosVector(pos), startPx);
 
-    let wPx = props.item.computed.boundsPx?.w ?? panic();
+    let wPx = props.item.computed_boundsPx?.w ?? panic();
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
     deltaPx.x *= (wCo / GRID_SIZE) / wPx;
 
-    let hPx = props.item.computed.boundsPx?.h ?? panic();
+    let hPx = props.item.computed_boundsPx?.h ?? panic();
     let hCo = GRID_SIZE;
     deltaPx.y *= (hCo / GRID_SIZE) / hPx;
 
@@ -72,8 +72,8 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     return (
       <div id={props.item.id}
            class={`absolute border border-teal-500`}
-           style={`left: ${props.item.computed.boundsPx?.x}px; top: ${props.item.computed.boundsPx?.y}px; ` +
-                  `width: ${props.item.computed.boundsPx?.w}px; height: ${props.item.computed.boundsPx?.h}px;`}
+           style={`left: ${props.item.computed_boundsPx?.x}px; top: ${props.item.computed_boundsPx?.y}px; ` +
+                  `width: ${props.item.computed_boundsPx?.w}px; height: ${props.item.computed_boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
         {props.item.title} {props.item.text}
       </div>

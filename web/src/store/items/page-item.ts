@@ -19,34 +19,20 @@
 import { RelationshipToParent } from '../../relationship-to-parent';
 import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
-import { newOrderingAfter } from '../../util/ordering';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
-export interface PageItemComputed {
-  children: Array<Uid>;
-  attachments: Array<Uid>;
-  boundsPx: BoundingBox | null,
-  fromParentIdMaybe: Uid | null; // when moving.
-}
-
-export function defaultPageItemComputed(): PageItemComputed {
-  return {
-    children: [],
-    attachments: [],
-    boundsPx: null,
-    fromParentIdMaybe: null
-  };
-}
-
 export interface PageItem extends XSizableItem {
-  computed: PageItemComputed;
-
   innerSpatialWidthBl: number;
   naturalAspect: number;
   bgColor: number;
+
+  computed_children: Array<Uid>;
+  computed_attachments: Array<Uid>;
+  computed_boundsPx: BoundingBox | null,
+  computed_fromParentIdMaybe: Uid | null; // when moving.
 }
 
 export function isPageItem(item: Item | null): boolean {
@@ -78,12 +64,10 @@ export function clonePageItem(item: PageItem): PageItem {
     naturalAspect: item.naturalAspect,
     bgColor: item.bgColor,
 
-    computed: {
-      children: [...item.computed.children],
-      attachments: [...item.computed.attachments],
-      boundsPx: cloneBoundingBox(item.computed.boundsPx),
-      fromParentIdMaybe: item.computed.fromParentIdMaybe
-    }
+    computed_children: [...item.computed_children],
+    computed_attachments: [...item.computed_attachments],
+    computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
+    computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
   };
 }
 
@@ -106,6 +90,9 @@ export function newPageItem(parentId: Uid, relationshipToParent: RelationshipToP
     naturalAspect: 1.6,
     bgColor: 0,
 
-    computed: defaultPageItemComputed()
+    computed_children: [],
+    computed_attachments: [],
+    computed_boundsPx: null,
+    computed_fromParentIdMaybe: null,
   };
 }

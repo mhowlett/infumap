@@ -25,26 +25,14 @@ import { XSizableItem } from './base/x-sizeable-item';
 
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
-export interface NoteItemComputed {
-  attachments: Array<Uid>,
-  boundsPx: BoundingBox | null,
-  fromParentIdMaybe: Uid | null // when moving.
-}
-
-export function defaultNoteItemComputed(): NoteItemComputed {
-  return {
-    attachments: [],
-    boundsPx: null,
-    fromParentIdMaybe: null
-  };
-}
-
 export interface NoteItem extends XSizableItem {
-  computed: NoteItemComputed,
-
   text: string,
   url: string,
-  hasFavIcon: boolean
+  hasFavIcon: boolean,
+
+  computed_attachments: Array<Uid>,
+  computed_boundsPx: BoundingBox | null,
+  computed_fromParentIdMaybe: Uid | null // when moving.
 }
 
 export function isNoteItem(item: Item | null): boolean {
@@ -76,10 +64,8 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     url: item.url,
     hasFavIcon: item.hasFavIcon,
 
-    computed: {
-      attachments: [...item.computed.attachments],
-      boundsPx: cloneBoundingBox(item.computed.boundsPx),
-      fromParentIdMaybe: item.computed.fromParentIdMaybe
-    }
+    computed_attachments: [...item.computed_attachments],
+    computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
+    computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
   };
 }

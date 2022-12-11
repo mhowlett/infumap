@@ -21,8 +21,8 @@ import { currentUnixTimeSeconds, throwExpression } from "../util/lang";
 import { newOrdering, newOrderingAfter, newOrderingAtEnd } from "../util/ordering";
 import { newUid, Uid } from "../util/uid";
 import { Item } from "./items/base/item";
-import { defaultNoteItemComputed, NoteItem } from "./items/note-item";
-import { asPageItem, defaultPageItemComputed, PageItem } from "./items/page-item";
+import { NoteItem } from "./items/note-item";
+import { asPageItem, PageItem } from "./items/page-item";
 
 
 export type Items = {
@@ -34,7 +34,7 @@ export type Items = {
 
 export function newOrderingAtEndOfChildren(items: Items, parentId: Uid): Uint8Array {
   let parent = asPageItem(items.fixed[parentId]);
-  let children = parent.computed.children.map(c => items.fixed[c].ordering);
+  let children = parent.computed_children.map(c => items.fixed[c].ordering);
   return newOrderingAtEnd(children);
 }
 
@@ -47,7 +47,10 @@ export const fetchContainerItems: ((id: Uid) => Promise<Array<Item>>) = async (i
 export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
   let rootItem: PageItem = {
     type: "page",
-    computed: defaultPageItemComputed(),
+    computed_children: [],
+    computed_attachments: [],
+    computed_boundsPx: null,
+    computed_fromParentIdMaybe: null,
     innerSpatialWidthBl: 80,
     naturalAspect: 1.4,
     bgColor: 0,
@@ -65,7 +68,10 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let pageItem: PageItem = {
     type: "page",
-    computed: defaultPageItemComputed(),
+    computed_children: [],
+    computed_attachments: [],
+    computed_boundsPx: null,
+    computed_fromParentIdMaybe: null,
     innerSpatialWidthBl: 60,
     naturalAspect: 1.4,
     bgColor: 0,
@@ -83,7 +89,9 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
 
   let noteItem: NoteItem = {
     type: "note",
-    computed: defaultNoteItemComputed(),
+    computed_attachments: [],
+    computed_boundsPx: null,
+    computed_fromParentIdMaybe: null,
     text: 'the note text',
     url: 'https://www.google.com',
     hasFavIcon: false,

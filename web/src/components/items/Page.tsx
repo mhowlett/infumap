@@ -61,11 +61,11 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     let deltaPx = subtract(clientPosVector(pos), startPx);
     let deltaBl = { x: NaN, y: NaN };
 
-    let wPx = props.item.computed.boundsPx?.w!;
+    let wPx = props.item.computed_boundsPx?.w!;
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
     deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
 
-    let hPx = props.item.computed.boundsPx?.h!;
+    let hPx = props.item.computed_boundsPx?.h!;
     let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * GRID_SIZE;
     deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
 
@@ -92,10 +92,10 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     startWidthBl = null;
   };
 
-  let lPx = props.item.computed.boundsPx!.x!;
-  let tPx = props.item.computed.boundsPx!.y!;
-  let wPx = props.item.computed.boundsPx!.w!;
-  let hPx = props.item.computed.boundsPx!.h!;
+  let lPx = props.item.computed_boundsPx!.x!;
+  let tPx = props.item.computed_boundsPx!.y!;
+  let wPx = props.item.computed_boundsPx!.w!;
+  let hPx = props.item.computed_boundsPx!.h!;
   return (
     <div ref={outerDiv}
           id={props.item.id}

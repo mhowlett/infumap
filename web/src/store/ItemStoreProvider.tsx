@@ -76,7 +76,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     setItems(produce(items => {
       let item = items.fixed[id];
       delete items.fixed[id];
-      asPageItem(items.fixed[item.parentId ?? panic()]).computed.children = asPageItem(items.fixed[item.parentId ?? panic()]).computed.children.filter(itm => itm != id);
+      asPageItem(items.fixed[item.parentId ?? panic()]).computed_children = asPageItem(items.fixed[item.parentId ?? panic()]).computed_children.filter(itm => itm != id);
       setFromParentId(item, item.parentId ?? panic());
       items.moving.push(item);
     }));
@@ -88,7 +88,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
       items.moving = [];
       movingItems.forEach(item => {
         items.fixed[item.id] = item;
-        asPageItem(items.fixed[item.parentId ?? panic()]).computed.children.push(item.id);
+        asPageItem(items.fixed[item.parentId ?? panic()]).computed_children.push(item.id);
       });
     }));
   };
@@ -105,7 +105,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
       } else {
         updateItem(item.parentId, parentItem => {
           if (!isPageItem(parentItem)) { panic(); }
-          (parentItem as PageItem).computed.children.push(item.id);
+          (parentItem as PageItem).computed_children.push(item.id);
         });
       }
     });
@@ -120,7 +120,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     if (item.relationshipToParent == RelationshipToParent.Child) {
       updateItem(item.parentId!, parentItem => {
         if (!isPageItem(parentItem)) { panic(); }
-        (parentItem as PageItem).computed.children.push(item.id);
+        (parentItem as PageItem).computed_children.push(item.id);
       })
     } else {
       throwExpression("only support child relationships currently");
