@@ -17,7 +17,6 @@
 */
 
 import { Component, onCleanup, onMount } from "solid-js";
-import { produce } from "solid-js/store";
 import { RelationshipToParent } from "../relationship-to-parent";
 import { newOrderingAtEndOfChildren } from "../store/items";
 import { Item } from "../store/items/base/item";

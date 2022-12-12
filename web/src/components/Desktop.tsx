@@ -18,7 +18,7 @@
 
 import { Component, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
-import { useLayoutStore } from "../store/LayoutStoreProvider";
+import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
 import { cloneItem, Item, updateBounds } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, isPageItem, PageItem } from "../store/items/page-item";
@@ -35,7 +35,6 @@ export const Desktop: Component = () => {
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
 
-  let desktopDiv: HTMLDivElement | undefined;
   let lastMouseMoveEvent: MouseEvent | undefined;
 
   let getCurrentPageItems = (): Array<Item> => {
@@ -83,22 +82,25 @@ export const Desktop: Component = () => {
 
   const mouseMoveListener = (ev: MouseEvent) => { lastMouseMoveEvent = ev; }
 
+  const windowResizeListener = () => { layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize())); }
+
   onMount(() => {
     // TODO (MEDIUM): attach to desktopDiv?. need tab index.
     document.addEventListener('mousemove', mouseMoveListener);
     document.addEventListener('mousedown', mouseDownHandler);
     document.addEventListener('keypress', keyListener);
+    window.addEventListener('resize', windowResizeListener);
   });
 
   onCleanup(() => {
     document.removeEventListener('mousemove', mouseMoveListener);
     document.removeEventListener('mousedown', mouseDownHandler);
     document.removeEventListener('keypress', keyListener);
+    window.removeEventListener('resize', windowResizeListener);
   });
 
   return (
-    <div ref={desktopDiv}
-         class="fixed top-0 bottom-0 right-0 select-none outline-none"
+    <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
       <For each={getCurrentPageItems()}>{item =>
         <Switch fallback={<div>Not Found</div>}>

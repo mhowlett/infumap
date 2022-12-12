@@ -32,7 +32,7 @@ export type Layout = {
   contexMenuItem: Item | null
 }
 
-function currentDesktopSize(): Dimensions {
+export function currentDesktopSize(): Dimensions {
   let rootElement = document.getElementById("root") ?? panic();
   return { w: rootElement.clientWidth - TOOLBAR_WIDTH, h: rootElement.clientHeight };
 }

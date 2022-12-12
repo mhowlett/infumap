@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onMount } from 'solid-js';
+import { Component, onCleanup, onMount } from 'solid-js';
 import { fetchContainerItems } from '../store/items';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
