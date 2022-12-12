@@ -34,6 +34,7 @@ export interface ItemStoreContextModel {
   setChildItems: (items: Array<Item>) => void,
   setAttachmentItems: (items: Array<Item>) => void
   updateItem: (id: Uid, f: (item: Item) => void) => void,
+  getItem: (id: Uid) => Item | null,
   transitionToMove: (id: Uid) => void,
   transitionMovingToFixed: () => void,
   addItem: (item: Item) => void,
@@ -70,7 +71,20 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
         }
       }));
     }
-  }
+  };
+
+  const getItem = (id: Uid): Item | null => {
+    if (items.fixed.hasOwnProperty(id)) {
+      return items.fixed[id];
+    } else {
+      for (let i=0; i<items.moving.length; ++i) {
+        if (items.moving[i].id == id) {
+          return items.moving[i];
+        }
+      }
+    }
+    return null;
+  };
 
   const transitionToMove = (id: Uid): void => {
     setItems(produce(items => {
@@ -127,7 +141,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     }
   }
 
-  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, transitionToMove, transitionMovingToFixed, addItem };
+  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, getItem, transitionToMove, transitionMovingToFixed, addItem };
 
   return (
     <ItemStoreContext.Provider value={value}>

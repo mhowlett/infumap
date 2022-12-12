@@ -28,7 +28,7 @@ import { Page } from "./items/Page";
 import { GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./ContextMenu";
 import { produce } from "solid-js/store";
-import { add, clientPosVector, subtract } from "../util/geometry";
+import { clientPosVector, subtract } from "../util/geometry";
 
 
 export const Desktop: Component = () => {
@@ -38,34 +38,38 @@ export const Desktop: Component = () => {
   let desktopDiv: HTMLDivElement | undefined;
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  let getCurrentPageItems = () => {
+  let getCurrentPageItems = (): Array<Item> => {
     if (layoutStore.layout.currentPage == null) { return []; }
 
-    let ds = layoutStore.layout.desktopPx;
-    let currentPage = asPageItem(cloneItem(itemStore.items.fixed[layoutStore.layout.currentPage]));
-    currentPage.computed_boundsPx = { x: 0.0, y: 0.0, w: ds.w, h: ds.h };
+    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage]);
+    itemStore.updateItem(currentPage.id, item => {
+      asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+    });
     let wBl = currentPage.innerSpatialWidthBl;
     let hBl = Math.floor(wBl / currentPage.naturalAspect);
 
-    let r = [currentPage as Item];
+    let r = [currentPage.id];
 
-    currentPage.computed_children.map(c => cloneItem(itemStore.items.fixed[c])).forEach(child => {
-      updateBounds(child, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
-      r.push(child);
+    currentPage.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
+      itemStore.updateItem(child.id, item => {
+        updateBounds(item, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
+      });
+      r.push(child.id);
     });
 
     itemStore.items.moving.forEach(itm => {
       if (itm.parentId == currentPage.id) {
-        let cloned = cloneItem(itm);
-        updateBounds(cloned, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
-        r.push(cloned);
+        itemStore.updateItem(itm.id, item => {
+          updateBounds(item, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
+        });
+        r.push(itm.id);
       }
-    })
+    });
 
-    return r;
+    return r.map(a => cloneItem(itemStore.getItem(a)!));
   };
 
-  const keyListener = (ev: KeyboardEvent) => {
+  const keyListener = (_ev: KeyboardEvent) => {
     layoutStore.setLayout(produce(state => {
       let lastPos = clientPosVector(lastMouseMoveEvent!);
       state.contextMenuPosPx = subtract(lastPos, { x: TOOLBAR_WIDTH, y: 0 });

@@ -22,7 +22,7 @@ import { RelationshipToParent } from "../relationship-to-parent";
 import { newOrderingAtEndOfChildren } from "../store/items";
 import { Item } from "../store/items/base/item";
 import { newNoteItem } from "../store/items/note-item";
-import { isPageItem, newPageItem } from "../store/items/page-item";
+import { asPageItem, isPageItem, newPageItem, PageItem } from "../store/items/page-item";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
 import { Vector } from "../util/geometry";
@@ -40,10 +40,24 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   let contextMenuDiv: HTMLDivElement | undefined;
 
+  const calcBlockPosition = (page: PageItem, clickPosXPx: number, clickPosYPs: number): Vector => {
+    let propX = (clickPosXPx - page.computed_boundsPx?.x!) / page.computed_boundsPx?.w!;
+    let propY = (clickPosYPs - page.computed_boundsPx?.y!) / page.computed_boundsPx?.h!;
+    return {
+      x: Math.floor(page.innerSpatialWidthBl * propX * 2.0) / 2.0,
+      y: Math.floor(page.innerSpatialWidthBl / page.naturalAspect * propY * 2.0) / 2.0
+    };
+  }
+
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
-      itemStore.addItem(
-        newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
+      let parentPage = asPageItem(props.contextItem!);
+      let clickXPx = props.clickPosPx.x;
+      let clickYPx = props.clickPosPx.y;
+      let posBl = calcBlockPosition(parentPage, clickXPx, clickYPx);
+      let newPage = newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
+      newPage.spatialPositionBl = posBl;
+      itemStore.addItem(newPage);
       layoutStore.hideContextMenu();
     }
   };
