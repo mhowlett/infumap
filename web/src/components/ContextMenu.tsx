@@ -51,12 +51,8 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let parentPage = asPageItem(props.contextItem!);
-      let clickXPx = props.clickPosPx.x;
-      let clickYPx = props.clickPosPx.y;
-      let posBl = calcBlockPosition(parentPage, clickXPx, clickYPx);
       let newPage = newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
-      newPage.spatialPositionBl = posBl;
+      newPage.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newPage);
       layoutStore.hideContextMenu();
     }
@@ -64,8 +60,9 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
-      itemStore.addItem(
-        newNoteItem(props.contextItem?.id!, RelationshipToParent.Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!)));
+      let newNote = newNoteItem(props.contextItem?.id!, RelationshipToParent.Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
+      newNote.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+      itemStore.addItem(newNote);
       layoutStore.hideContextMenu();
     }
   }
