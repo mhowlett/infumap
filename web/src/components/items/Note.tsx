@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
@@ -75,7 +75,10 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
            style={`left: ${props.item.computed_boundsPx?.x}px; top: ${props.item.computed_boundsPx?.y}px; ` +
                   `width: ${props.item.computed_boundsPx?.w}px; height: ${props.item.computed_boundsPx?.h}px;`}
            onMouseDown={mouseDownHandler}>
-        {props.item.title} {props.item.url}
+        <Show when={props.item.url != null}
+              fallback={<span>{props.item.title}</span>}>
+          <a href={props.item.url}>{props.item.title}</a>
+        </Show>
       </div>
     );
   }

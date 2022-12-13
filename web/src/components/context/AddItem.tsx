@@ -16,28 +16,20 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onCleanup, onMount } from "solid-js";
-import { RelationshipToParent } from "../relationship-to-parent";
-import { newOrderingAtEndOfChildren } from "../store/items";
-import { Item } from "../store/items/base/item";
-import { newNoteItem } from "../store/items/note-item";
-import { asPageItem, isPageItem, newPageItem, PageItem } from "../store/items/page-item";
-import { useItemStore } from "../store/ItemStoreProvider";
-import { useLayoutStore } from "../store/LayoutStoreProvider";
-import { Vector } from "../util/geometry";
-import ToolbarIcon from "./ToolbarIcon";
+import { Component } from "solid-js";
+import { RelationshipToParent } from "../../relationship-to-parent";
+import { newOrderingAtEndOfChildren } from "../../store/items";
+import { newNoteItem } from "../../store/items/note-item";
+import { asPageItem, isPageItem, newPageItem, PageItem } from "../../store/items/page-item";
+import { useItemStore } from "../../store/ItemStoreProvider";
+import { useLayoutStore } from "../../store/LayoutStoreProvider";
+import { Vector } from "../../util/geometry";
+import ToolbarIcon from "../ToolbarIcon";
+import { ContexMenuProps } from "./ContextMenu";
 
-
-export type ContexMenuProps = {
-  clickPosPx: Vector,
-  contextItem: Item | null
-};
-
-export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) => {
+export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
-
-  let contextMenuDiv: HTMLDivElement | undefined;
 
   const calcBlockPosition = (page: PageItem, clickPosXPx: number, clickPosYPs: number): Vector => {
     let propX = (clickPosXPx - page.computed_boundsPx?.x!) / page.computed_boundsPx?.w!;
@@ -66,16 +58,9 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
     }
   }
 
-  // Prevent mouse down events bubbling up, which would trigger the handler that hides the context menu.
-  let mouseDownListener = (ev: MouseEvent) => ev.stopPropagation();
-  onMount(() => contextMenuDiv?.addEventListener('mousedown', mouseDownListener));
-  onCleanup(() => contextMenuDiv?.removeEventListener('mousedown', mouseDownListener));
-
   return (
-    <div ref={contextMenuDiv}
-         class="absolute border rounded w-[250px] h-[180px] bg-slate-50"
-         style={`left: ${props.clickPosPx.x}px; top: ${props.clickPosPx.y}px`}>
-      {`${props.contextItem?.id}`}
+    <div class="border rounded w-[250px] h-[55px] bg-slate-50 mb-1">
+      <div class="text-slate-800 text-sm ml-1">Add new item here</div>
       <ToolbarIcon icon="folder" margin={18} clickHandler={newPageInContext} />
       <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteInContext} />
     </div>

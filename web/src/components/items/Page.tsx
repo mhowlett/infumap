@@ -102,6 +102,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
           class={`absolute border border-rose-500`}
           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
           onMouseDown={mouseDownHandler}>
+      <div class="text-xs">{props.item.title}</div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
             style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
     </div>

@@ -16,19 +16,26 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
 // import ToolbarIcon from "./ToolbarIcon";
 import imgUrl from '../assets/circle.png'
 import { TOOLBAR_WIDTH } from "../constants";
+import { useItemStore } from "../store/ItemStoreProvider";
+import { useLayoutStore } from "../store/LayoutStoreProvider";
 
 
 export const Toolbar: Component = () => {
+  let layoutStore = useLayoutStore();
+  let itemStore = useItemStore();
+
   return (
     <div class="fixed left-0 top-0 bottom-0 border-r border-gray-800 text-gray-100"
          style={`background-image: linear-gradient(270deg, rgba(40, 57, 83, 0.706), rgba(40, 57, 83, 0.784)); width: ${TOOLBAR_WIDTH}px`}>
       <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
       <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
-        matt
+        <Show when={layoutStore.layout.currentPage != null}>
+          {itemStore.items.fixed[layoutStore.layout.currentPage!].title}
+        </Show>
       </div>
       <div class="absolute bottom-0">
         <div class="ml-[12px] mb-[12px]">
@@ -38,16 +45,3 @@ export const Toolbar: Component = () => {
     </div>
   );
 }
-
-/*
-        <ToolbarIcon icon="ruler-horizontal" margin={4} />
-        <ToolbarIcon icon="star" margin={4} />
-        <ToolbarIcon icon="chart-area" margin={4} />
-        <ToolbarIcon icon="money-check" margin={4} />
-        <ToolbarIcon icon="font" margin={4} />
-        <ToolbarIcon icon="sticky-note" margin={4} />
-        <ToolbarIcon icon="file-upload" margin={18} />
-        <ToolbarIcon icon="table" margin={4} />
-        <ToolbarIcon icon="list-alt" margin={4} />
-        <ToolbarIcon icon="folder" margin={18} />
-*/

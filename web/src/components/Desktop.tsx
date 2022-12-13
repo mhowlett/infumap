@@ -26,7 +26,7 @@ import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 import { GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
-import { ContextMenu } from "./ContextMenu";
+import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
 import { clientPosVector, subtract } from "../util/geometry";
 
@@ -68,11 +68,15 @@ export const Desktop: Component = () => {
     return r.map(a => cloneItem(itemStore.getItem(a)!));
   };
 
-  const keyListener = (_ev: KeyboardEvent) => {
+  const keyListener = (ev: KeyboardEvent) => {
+    // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.
+    if (ev.code != "Slash") { return; }
+
     layoutStore.setLayout(produce(state => {
       let lastPos = clientPosVector(lastMouseMoveEvent!);
       state.contextMenuPosPx = subtract(lastPos, { x: TOOLBAR_WIDTH, y: 0 });
-      let el = document.elementFromPoint(lastPos.x, lastPos.y)!;
+      let el = document.elementsFromPoint(lastPos.x, lastPos.y)!.find(e => e.id != null && e.id != "");
+      if (el == null) { return; }
       let item = itemStore.items.fixed[el.id];
       state.contexMenuItem = item;
     }));
