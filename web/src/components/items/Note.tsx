@@ -95,10 +95,10 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
   let hPx = props.item.computed_boundsPx!.h!;
   return (
     <div ref={outerDiv}
-          id={props.item.id}
-          class={`absolute border border-teal-500`}
-          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
-          onMouseDown={mouseDownHandler}>
+         id={props.item.id}
+         class={`absolute border border-teal-500`}
+         style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
+         onMouseDown={mouseDownHandler}>
       <Show when={props.item.url != null}
             fallback={<span>{props.item.title}</span>}>
         <a href={props.item.url}>{props.item.title}</a>

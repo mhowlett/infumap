@@ -16,27 +16,36 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component } from "solid-js";
+import { Component, onCleanup } from "solid-js";
 import { Item } from "../../store/items/base/item";
+import { asPageItem } from "../../store/items/page-item";
+import { useItemStore } from "../../store/ItemStoreProvider";
 import { Colors } from "../../style";
 
-const ColorButton: Component<{ col: number }> = (props: { col: number }) => {
+const ColorButton: Component<{ col: number, onClick: (col: number) => void }> = (props: { col: number, onClick: (col: number) => void }) => {
+  let mouseDownHandler = (_ev: MouseEvent) => { props.onClick(props.col); }
   return (
-    <div class="border rounded w-[29px] h-[28px] inline-block text-center cursor-move ml-[5px] text-[18px]" style={`background-color: ${Colors[props.col]};`}></div>
+    <div onClick={mouseDownHandler}
+         class="border rounded w-[29px] h-[28px] inline-block text-center cursor-pointer ml-[5px] text-[18px]"
+         style={`background-color: ${Colors[props.col]};`}></div>
   );
 }
 
 export const ColorSelector: Component<{ item: Item }> = (props: {item: Item }) => {
+  let itemStore = useItemStore();
+
+  const handleClick = (col: number) => { itemStore.updateItem(props.item.id, item => asPageItem(item).bgColorIdx = col); }
+
   return (
     <div>
-      <ColorButton col={0} />
-      <ColorButton col={1} />
-      <ColorButton col={2} />
-      <ColorButton col={3} />
-      <ColorButton col={4} />
-      <ColorButton col={5} />
-      <ColorButton col={6} />
-      <ColorButton col={7} />
+      <ColorButton col={0} onClick={handleClick} />
+      <ColorButton col={1} onClick={handleClick} />
+      <ColorButton col={2} onClick={handleClick} />
+      <ColorButton col={3} onClick={handleClick} />
+      <ColorButton col={4} onClick={handleClick} />
+      <ColorButton col={5} onClick={handleClick} />
+      <ColorButton col={6} onClick={handleClick} />
+      <ColorButton col={7} onClick={handleClick} />
     </div>
   );
 }

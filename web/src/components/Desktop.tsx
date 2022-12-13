@@ -116,8 +116,8 @@ export const Desktop: Component = () => {
           </Match>
         </Switch>
       }</For>
-      <Show when={layoutStore.layout.contextMenuPosPx != null}>
-        <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem} />
+      <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
+        <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
       </Show>
     </div>
   );

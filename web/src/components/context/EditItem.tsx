@@ -17,23 +17,21 @@
 */
 
 import { Component, Match, Switch } from "solid-js";
-import { ContexMenuProps } from "./ContextMenu";
+import { Item } from "../../store/items/base/item";
 import { EditNote } from "./EditNote";
 import { EditPage } from "./EditPage";
 
-export const EditItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
-  let typename = props.contextItem?.type;
-
+export const EditItem: Component<{item: Item}> = (props: {item: Item}) => {
   return (
-    <div class="border rounded w-[300px] h-[100px] bg-slate-50">
-      <div class="text-slate-800 text-sm ml-1">Edit {typename} <span class="ml-4 font-mono text-slate-400">{`${props.contextItem?.id}`}</span></div>
+    <div class="border rounded w-[300px] h-[150px] bg-slate-50">
+      <div class="text-slate-800 text-sm ml-1">Edit {props.item.type} <span class="ml-4 font-mono text-slate-400">{`${props.item.id}`}</span> <i class={`fa fa-copy text-slate-400`} /></div>
       <Switch fallback={<div>Not Found</div>}>
-        <Match when={typename == "page"}>
-          <EditPage clickPosPx={props.clickPosPx} contextItem={props.contextItem} />
+        <Match when={props.item.type == "page"}>
+          <EditPage item={props.item} />
         </Match>
-        <Match when={typename == "note"}>
-          <EditNote clickPosPx={props.clickPosPx} contextItem={props.contextItem} />
+        <Match when={props.item.type == "note"}>
+          <EditNote item={props.item} />
         </Match>
       </Switch>
     </div>

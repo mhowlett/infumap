@@ -17,19 +17,20 @@
 */
 
 import { Component } from "solid-js";
+import { Item } from "../../store/items/base/item";
 import { asNoteItem } from "../../store/items/note-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { TextInput } from "../TextInput";
-import { ContexMenuProps } from "./ContextMenu";
 
 
-export const EditNote: Component<ContexMenuProps> = (props: ContexMenuProps) => {
+export const EditNote: Component<{item: Item}> = (props: {item: Item}) => {
   const itemStore = useItemStore();
 
-  let noteItem = asNoteItem(props.contextItem!);
+  let noteId = props.item.id;
+  let noteItem = asNoteItem(props.item);
 
-  const handleTextChange = (v: string) => { itemStore.updateItem(props.contextItem!.id, i => i.title = v); };
-  const handleUrlChange = (v: string) => { itemStore.updateItem(props.contextItem!.id, i => asNoteItem(i).url = v); };
+  const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => item.title = v); };
+  const handleUrlChange = (v: string) => { itemStore.updateItem(noteId, item => asNoteItem(item).url = v); };
 
   return (
     <div class="m-1">

@@ -17,28 +17,29 @@
 */
 
 import { Component } from "solid-js";
+import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { TextInput } from "../TextInput";
 import { ColorSelector } from "./ColorSelector";
-import { ContexMenuProps } from "./ContextMenu";
 
 
-export const EditPage: Component<ContexMenuProps> = (props: ContexMenuProps) => {
+export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
   const itemStore = useItemStore();
 
-  let pg = asPageItem(props.contextItem!);
+  let pageId = props.item.id;
+  let pageItem = asPageItem(props.item);
 
-  const handleBlockWidthChange = (v: string) => { itemStore.updateItem(props.contextItem?.id!, item => asPageItem(item).innerSpatialWidthBl = parseInt(v)); };
-  const handleNaturalAspectChange = (v: string) => { itemStore.updateItem(props.contextItem?.id!, item => asPageItem(item).naturalAspect = parseFloat(v)); };
-  const handleTitleChange = (v: string) => { itemStore.updateItem(props.contextItem!.id, i => i.title = v); };
+  const handleBlockWidthChange = (v: string) => { itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthBl = parseInt(v)); };
+  const handleNaturalAspectChange = (v: string) => { itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v)); };
+  const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => item.title = v); };
 
   return (
     <div class="m-1">
-      <div class="text-slate-800 text-sm">Title <TextInput value={pg.title} onIncrementalChange={handleTitleChange} onChange={null} /></div>
-      <div class="text-slate-800 text-sm">Inner block width <TextInput value={pg.innerSpatialWidthBl.toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
-      <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pg.naturalAspect.toString()} onIncrementalChange={null} onChange={handleNaturalAspectChange} /></div>
-      <ColorSelector item={props.contextItem!} />
+      <div class="text-slate-800 text-sm">Title <TextInput value={pageItem.title} onIncrementalChange={handleTitleChange} onChange={null} /></div>
+      <div class="text-slate-800 text-sm">Inner block width <TextInput value={pageItem.innerSpatialWidthBl.toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
+      <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pageItem.naturalAspect.toString()} onIncrementalChange={null} onChange={handleNaturalAspectChange} /></div>
+      <ColorSelector item={props.item} />
     </div>
   );
 }

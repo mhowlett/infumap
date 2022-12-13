@@ -17,11 +17,13 @@
 */
 
 import { Component, Show } from "solid-js";
-// import ToolbarIcon from "./ToolbarIcon";
 import imgUrl from '../assets/circle.png'
 import { TOOLBAR_WIDTH } from "../constants";
+import { asPageItem } from "../store/items/page-item";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
+import { Colors } from "../style";
+import { hexToRGBA } from "../util/color";
 
 
 export const Toolbar: Component = () => {
@@ -29,19 +31,21 @@ export const Toolbar: Component = () => {
   let itemStore = useItemStore();
 
   return (
-    <div class="fixed left-0 top-0 bottom-0 border-r border-gray-800 text-gray-100"
-         style={`background-image: linear-gradient(270deg, rgba(40, 57, 83, 0.706), rgba(40, 57, 83, 0.784)); width: ${TOOLBAR_WIDTH}px`}>
-      <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
-      <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
-        <Show when={layoutStore.layout.currentPage != null}>
-          {itemStore.items.fixed[layoutStore.layout.currentPage!].title}
-        </Show>
-      </div>
-      <div class="absolute bottom-0">
-        <div class="ml-[12px] mb-[12px]">
-          <i class="fa fa-user" />
+    <Show when={layoutStore.layout.currentPage != null}>
+      <div class="fixed left-0 top-0 bottom-0 border-r border-gray-800 text-gray-100"
+          style={`background-image: linear-gradient(270deg, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage!]).bgColorIdx], 0.786)}, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage!]).bgColorIdx], 0.864)}); width: ${TOOLBAR_WIDTH}px`}>
+        <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
+        <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
+          <Show when={layoutStore.layout.currentPage != null}>
+            {itemStore.items.fixed[layoutStore.layout.currentPage!].title}
+          </Show>
+        </div>
+        <div class="absolute bottom-0">
+          <div class="ml-[12px] mb-[12px]">
+            <i class="fa fa-user" />
+          </div>
         </div>
       </div>
-    </div>
+    </Show>
   );
 }

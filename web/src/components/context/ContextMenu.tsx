@@ -16,23 +16,16 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onCleanup, onMount } from "solid-js";
-import { RelationshipToParent } from "../../relationship-to-parent";
-import { newOrderingAtEndOfChildren } from "../../store/items";
+import { Component, onCleanup, onMount, Show } from "solid-js";
 import { Item } from "../../store/items/base/item";
-import { newNoteItem } from "../../store/items/note-item";
-import { asPageItem, isPageItem, newPageItem, PageItem } from "../../store/items/page-item";
-import { useItemStore } from "../../store/ItemStoreProvider";
-import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { Vector } from "../../util/geometry";
-import ToolbarIcon from "../ToolbarIcon";
 import { AddItem } from "./AddItem";
 import { EditItem } from "./EditItem";
 
 
 export type ContexMenuProps = {
   clickPosPx: Vector,
-  contextItem: Item | null
+  contextItem: Item
 };
 
 export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) => {
@@ -41,15 +34,15 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
 
   // Prevent mouse down events bubbling up, which would trigger the handler that hides the context menu.
   let mouseDownListener = (ev: MouseEvent) => ev.stopPropagation();
-  onMount(() => contextMenuDiv?.addEventListener('mousedown', mouseDownListener));
-  onCleanup(() => contextMenuDiv?.removeEventListener('mousedown', mouseDownListener));
+  onMount(() => contextMenuDiv!.addEventListener('mousedown', mouseDownListener));
+  onCleanup(() => contextMenuDiv!.removeEventListener('mousedown', mouseDownListener));
 
   return (
     <div ref={contextMenuDiv}
          class="absolute"
          style={`left: ${props.clickPosPx.x}px; top: ${props.clickPosPx.y}px`}>
       <AddItem clickPosPx={props.clickPosPx} contextItem={props.contextItem} />
-      <EditItem clickPosPx={props.clickPosPx} contextItem={props.contextItem} />
+      <EditItem item={props.contextItem!} />
     </div>
   );
 }
