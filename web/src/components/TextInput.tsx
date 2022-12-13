@@ -18,22 +18,32 @@
 
 import { Component } from "solid-js";
 
+
 export type TextInputProps = {
   value: string,
-  onChange: (v: string) => void
+  onIncrementalChange: ((v: string) => void) | null,
+  onChange: ((v: string) => void) | null
 };
 
 export const TextInput: Component<TextInputProps> = (props: TextInputProps) => {
   let textInput: HTMLInputElement | undefined;
 
-  // TODO (HIGH): handle copy/paste (onchange i think)
-  let keyDownHandler = (ev: KeyboardEvent) => {
-    setTimeout(() => {
-      props.onChange(textInput?.value!)
-    }, 10);
+  const keyDownHandler = (_ev: Event) => {
+    // The input element value does not change immediately on key down, so wait a bit.
+    // This also gives desired behavior for ctrl-v. For paste otherwise, also just reuse this method.
+    if (props.onIncrementalChange != null) { setTimeout(() => { props.onIncrementalChange!(textInput!.value) }, 10); }
+  }
+
+  const changeHandler = (_ev: Event) => {
+    if (props.onChange != null) { props.onChange(textInput!.value); }
   }
 
   return (
-    <input ref={textInput} class="border" value={props.value} onKeyDown={keyDownHandler} />
+    <input ref={textInput}
+           class="border"
+           value={props.value}
+           onPaste={keyDownHandler}
+           onKeyDown={keyDownHandler}
+           onChange={changeHandler} />
   );
 }

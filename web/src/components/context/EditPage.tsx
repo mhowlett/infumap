@@ -23,6 +23,7 @@ import { TextInput } from "../TextInput";
 import { ColorSelector } from "./ColorSelector";
 import { ContexMenuProps } from "./ContextMenu";
 
+
 export const EditPage: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const itemStore = useItemStore();
 
@@ -34,9 +35,9 @@ export const EditPage: Component<ContexMenuProps> = (props: ContexMenuProps) => 
 
   return (
     <div class="m-1">
-      <div class="text-slate-800 text-sm">Title <TextInput value={pg.title} onChange={handleTitleChange} /></div>
-      <div class="text-slate-800 text-sm">Inner block width <TextInput value={pg.innerSpatialWidthBl.toString()} onChange={handleBlockWidthChange} /></div>
-      <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pg.naturalAspect.toString()} onChange={handleNaturalAspectChange} /></div>
+      <div class="text-slate-800 text-sm">Title <TextInput value={pg.title} onIncrementalChange={handleTitleChange} onChange={null} /></div>
+      <div class="text-slate-800 text-sm">Inner block width <TextInput value={pg.innerSpatialWidthBl.toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
+      <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pg.naturalAspect.toString()} onIncrementalChange={null} onChange={handleNaturalAspectChange} /></div>
       <ColorSelector item={props.contextItem!} />
     </div>
   );

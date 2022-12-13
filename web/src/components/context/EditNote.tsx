@@ -22,6 +22,7 @@ import { useItemStore } from "../../store/ItemStoreProvider";
 import { TextInput } from "../TextInput";
 import { ContexMenuProps } from "./ContextMenu";
 
+
 export const EditNote: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const itemStore = useItemStore();
 
@@ -32,8 +33,8 @@ export const EditNote: Component<ContexMenuProps> = (props: ContexMenuProps) => 
 
   return (
     <div class="m-1">
-      <div class="text-slate-800 text-sm">Text <TextInput value={noteItem.title} onChange={handleTextChange} /></div>
-      <div class="text-slate-800 text-sm">Text <TextInput value={noteItem.url} onChange={handleUrlChange} /></div>
+      <div class="text-slate-800 text-sm">Text <TextInput value={noteItem.title} onIncrementalChange={handleTextChange} onChange={null} /></div>
+      <div class="text-slate-800 text-sm">Url <TextInput value={noteItem.url} onIncrementalChange={null} onChange={handleUrlChange} /></div>
     </div>
   );
 }
