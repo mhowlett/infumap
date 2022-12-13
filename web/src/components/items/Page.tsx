@@ -37,7 +37,6 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   let moving = () => { return startPosBl != null; }
 
   let mouseDownHandler = (pos: MouseEvent) => {
-
     // Can't move or adjust top level page.
     if (props.item.id == layoutStore.layout.currentPage) { return; }
 
