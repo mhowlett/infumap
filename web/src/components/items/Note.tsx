@@ -19,15 +19,13 @@
 import { Component, Show } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
-import { useLayoutStore } from "../../store/LayoutStoreProvider";
-import { NoteItem } from "../../store/items/note-item";
-import { GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
+import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
+import { GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE } from "../../constants";
 import { asNoteItem } from "../../store/items/note-item";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
   const itemStore = useItemStore();
-  const layoutStore = useLayoutStore();
 
   let outerDiv: HTMLDivElement | undefined;
 
@@ -37,12 +35,12 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
 
   let moving = () => { return startPosBl != null; }
 
-  let mouseDownHandler = (pos: MouseEvent) => {
+  let mouseDownHandler = (ev: MouseEvent) => {
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
-    let rect = outerDiv?.getBoundingClientRect();
-    startPx = clientPosVector(pos);
-    if (rect?.right! - startPx.x < RESIZE_BOX_SIZE && rect?.bottom! - startPx.y < RESIZE_BOX_SIZE) {
+    let rect = outerDiv!.getBoundingClientRect();
+    startPx = clientPosVector(ev);
+    if (rect.right - startPx.x < RESIZE_BOX_SIZE && rect.bottom - startPx.y < RESIZE_BOX_SIZE) {
       startPosBl = null;
       startWidthBl = props.item.spatialWidthBl;
     } else {
@@ -52,18 +50,18 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     }
   };
 
-  let mouseMoveHandler = (pos: MouseEvent) => {
+  let mouseMoveHandler = (ev: MouseEvent) => {
     if (startPx == null) { return; }
 
-    let deltaPx = subtract(clientPosVector(pos), startPx);
+    let deltaPx = subtract(clientPosVector(ev), startPx);
     let deltaBl = { x: NaN, y: NaN };
 
-    let wPx = props.item.computed_boundsPx?.w!;
+    let wPx = props.item.computed_boundsPx!.w;
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
     deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
 
-    let hPx = props.item.computed_boundsPx?.h!;
-    let hCo = 1.0 * GRID_SIZE;
+    let hPx = props.item.computed_boundsPx!.h;
+    let hCo = calcNoteSizeForSpatialBl(props.item).h * GRID_SIZE;
     deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
 
     if (moving()) {
@@ -75,7 +73,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
       itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
     } else {
       let newWidthBl = startWidthBl! + deltaBl.x;
-      newWidthBl = Math.round(newWidthBl);
+      newWidthBl = Math.round(newWidthBl * 2.0) / 2.0;
       if (newWidthBl < 1) { newWidthBl = 1.0; }
       itemStore.updateItem(props.item.id, item => { asNoteItem(item).spatialWidthBl = newWidthBl; });
     }
@@ -92,20 +90,32 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     startWidthBl = null;
   };
 
-  let lPx = props.item.computed_boundsPx!.x!;
-  let tPx = props.item.computed_boundsPx!.y!;
-  let wPx = props.item.computed_boundsPx!.w!;
-  let hPx = props.item.computed_boundsPx!.h!;
+  let lPx = props.item.computed_boundsPx!.x;
+  let tPx = props.item.computed_boundsPx!.y;
+  let wPx = props.item.computed_boundsPx!.w;
+  let hPx = props.item.computed_boundsPx!.h;
+
+  let naturalWidthPx = props.item.spatialWidthBl * LINE_HEIGHT_PX;
+  let widthScale = wPx / naturalWidthPx;
+
+  let naturalHeightPx = calcNoteSizeForSpatialBl(props.item).h * LINE_HEIGHT_PX;
+  let heightScale = hPx / naturalHeightPx
+
+  let scale = Math.min(heightScale, widthScale);
+
   return (
     <div ref={outerDiv}
          id={props.item.id}
-         class={`absolute border border-teal-500`}
+         class={`absolute border border-slate-700 rounded-sm shadow-lg`}
          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
          onMouseDown={mouseDownHandler}>
-      <Show when={props.item.url != null}
-            fallback={<span>{props.item.title}</span>}>
-        <a href={props.item.url} draggable={false} target="_blank">{props.item.title}</a>
-      </Show>
+      <div style={`left: ${lPx}px; top: ${tPx}px; width: ${naturalWidthPx}px; line-height: 24px; transform: scale(${scale}); ` +
+                  `transform-origin: top left; overflow-wrap: break-word; padding: 3px;`}>
+        <Show when={props.item.url != null}
+              fallback={<span>{props.item.title}</span>}>
+          <a href={props.item.url} draggable={false} target="_blank">{props.item.title}</a>
+        </Show>
+      </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
           style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
     </div>

@@ -22,7 +22,6 @@ import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider
 import { cloneItem, Item, updateBounds } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, isPageItem, PageItem } from "../store/items/page-item";
-import { panic } from "../util/lang";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 import { GRID_SIZE, TOOLBAR_WIDTH } from "../constants";

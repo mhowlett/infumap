@@ -16,8 +16,9 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { LINE_HEIGHT_PX } from '../../constants';
 import { RelationshipToParent } from '../../relationship-to-parent';
-import { BoundingBox, cloneBoundingBox, Dimensions } from '../../util/geometry';
+import { cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -33,8 +34,20 @@ export interface NoteItem extends XSizableItem {
   computed_attachments: Array<Uid>,
 }
 
+function measureText(s: string, widthBl: number): number {
+  const div = document.createElement("div");
+  div.setAttribute("style", `line-height: ${LINE_HEIGHT_PX}px; width: ${widthBl*LINE_HEIGHT_PX}px; overflow-wrap: break-word; padding: 3px;`);
+  const txt = document.createTextNode(s);
+  div.appendChild(txt);
+  document.body.appendChild(div);
+  let lineCount = div.offsetHeight / LINE_HEIGHT_PX;
+  document.body.removeChild(div);
+  return lineCount;
+}
+
 export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
-  return { w: item.spatialWidthBl, h: 1.0 };
+  let lineCount = measureText(item.title, item.spatialWidthBl);
+  return { w: item.spatialWidthBl, h: lineCount };
 }
 
 export function isNoteItem(item: Item | null): boolean {

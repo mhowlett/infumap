@@ -17,10 +17,10 @@
 */
 
 import { Component } from "solid-js";
-import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
+import { add, clientPosVector as clientPxFromMouseEvent, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
-import { asPageItem, PageItem } from "../../store/items/page-item";
+import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/items/page-item";
 import { GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
@@ -38,11 +38,11 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
 
   let moving = () => { return startPosBl != null; }
 
-  let mouseDownHandler = (pos: MouseEvent) => {
+  let mouseDownHandler = (ev: MouseEvent) => {
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
     let rect = outerDiv!.getBoundingClientRect();
-    startPx = clientPosVector(pos);
+    startPx = clientPxFromMouseEvent(ev);
     if (rect.right - startPx.x < RESIZE_BOX_SIZE && rect.bottom - startPx.y < RESIZE_BOX_SIZE) {
       startPosBl = null;
       startWidthBl = props.item.spatialWidthBl;
@@ -53,18 +53,18 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     }
   };
 
-  let mouseMoveHandler = (pos: MouseEvent) => {
+  let mouseMoveHandler = (ev: MouseEvent) => {
     if (startPx == null) { return; }
 
-    let deltaPx = subtract(clientPosVector(pos), startPx);
+    let deltaPx = subtract(clientPxFromMouseEvent(ev), startPx);
     let deltaBl = { x: NaN, y: NaN };
 
-    let wPx = props.item.computed_boundsPx?.w!;
+    let wPx = props.item.computed_boundsPx!.w;
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
     deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
 
-    let hPx = props.item.computed_boundsPx?.h!;
-    let hCo = Math.floor(props.item.spatialWidthBl / props.item.naturalAspect) * GRID_SIZE;
+    let hPx = props.item.computed_boundsPx!.h;
+    let hCo = calcPageSizeForSpatialBl(props.item).h * GRID_SIZE;
     deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
 
     if (moving()) {
@@ -114,7 +114,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     return (
       <div ref={outerDiv}
            id={props.item.id}
-           class={`absolute border border-slate-700 rounded-sm`}
+           class={`absolute border border-slate-700 rounded-sm shadow-lg`}
            style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
                   `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.986)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 1.0)});`}
            onMouseDown={mouseDownHandler}>
@@ -133,7 +133,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   return (
     <div ref={outerDiv}
          id={props.item.id}
-         class={`absolute border border-slate-700`}
+         class={`absolute border border-slate-700 rounded-sm shadow-lg`}
          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
                 `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.386)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.364)});`}
          onMouseDown={mouseDownHandler}>
