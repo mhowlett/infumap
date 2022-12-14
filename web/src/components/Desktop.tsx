@@ -38,29 +38,28 @@ export const Desktop: Component = () => {
   let lastMouseMoveEvent: MouseEvent | undefined;
 
   let getCurrentPageItems = (): Array<Item> => {
-    if (layoutStore.layout.currentPage == null) { return []; }
+    if (layoutStore.layout.currentPageId == null) { return []; }
 
-    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage]);
+    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
     itemStore.updateItem(currentPage.id, item => {
       asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
     });
-    let wBl = currentPage.innerSpatialWidthBl;
-    let hBl = Math.floor(wBl / currentPage.naturalAspect);
+
+    let innerDimensionsCo = {
+      w: currentPage.innerSpatialWidthBl * GRID_SIZE,
+      h: Math.floor(currentPage.innerSpatialWidthBl / currentPage.naturalAspect) * GRID_SIZE
+    };
 
     let r = [currentPage.id];
 
     currentPage.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
-      itemStore.updateItem(child.id, item => {
-        updateBounds(item, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
-      });
+      itemStore.updateItem(child.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
       r.push(child.id);
     });
 
     itemStore.items.moving.forEach(itm => {
       if (itm.parentId == currentPage.id) {
-        itemStore.updateItem(itm.id, item => {
-          updateBounds(item, currentPage.computed_boundsPx ?? panic(), { w: wBl * GRID_SIZE, h: hBl * GRID_SIZE });
-        });
+        itemStore.updateItem(itm.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
         r.push(itm.id);
       }
     });

@@ -38,7 +38,7 @@ const App: Component = () => {
     itemStore.setRoot(rootId);
     let r = await fetchContainerItems(rootId);
     itemStore.setChildItems(r);
-    layoutStore.setLayout({ currentPage: rootId });
+    layoutStore.setLayout({ currentPageId: rootId });
   });
 
   return (

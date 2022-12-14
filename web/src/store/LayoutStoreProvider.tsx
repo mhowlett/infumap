@@ -26,7 +26,7 @@ import { Uid } from "../util/uid";
 import { Item } from "./items/base/item";
 
 export type Layout = {
-  currentPage: Uid | null,
+  currentPageId: Uid | null,
   desktopPx: Dimensions,
   contextMenuPosPx: Vector | null,
   contexMenuItem: Item | null
@@ -51,7 +51,7 @@ const LayoutStoreContext = createContext<LayoutStoreContextModel>();
 
 export function LayoutStoreProvider(props: LayoutStoreContextProps) {
   const [layout, setLayout] = createStore<Layout>({
-    currentPage: null,
+    currentPageId: null,
     desktopPx: currentDesktopSize(),
     contextMenuPosPx: null,
     contexMenuItem: null

@@ -31,13 +31,13 @@ export const Toolbar: Component = () => {
   let itemStore = useItemStore();
 
   return (
-    <Show when={layoutStore.layout.currentPage != null}>
+    <Show when={layoutStore.layout.currentPageId != null}>
       <div class="fixed left-0 top-0 bottom-0 border-r border-gray-800 text-gray-100"
-          style={`background-image: linear-gradient(270deg, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage!]).bgColorIdx], 0.786)}, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPage!]).bgColorIdx], 0.864)}); width: ${TOOLBAR_WIDTH}px`}>
+          style={`background-image: linear-gradient(270deg, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId!]).bgColorIdx], 0.786)}, ${hexToRGBA(Colors[asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId!]).bgColorIdx], 0.864)}); width: ${TOOLBAR_WIDTH}px`}>
         <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
         <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
-          <Show when={layoutStore.layout.currentPage != null}>
-            {itemStore.items.fixed[layoutStore.layout.currentPage!].title}
+          <Show when={layoutStore.layout.currentPageId != null}>
+            {itemStore.items.fixed[layoutStore.layout.currentPageId!].title}
           </Show>
         </div>
         <div class="absolute bottom-0">

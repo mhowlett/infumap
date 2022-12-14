@@ -17,7 +17,7 @@
 */
 
 import { RelationshipToParent } from '../../relationship-to-parent';
-import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
+import { BoundingBox, cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -31,8 +31,10 @@ export interface NoteItem extends XSizableItem {
   hasFavIcon: boolean,
 
   computed_attachments: Array<Uid>,
-  computed_boundsPx: BoundingBox | null,
-  computed_fromParentIdMaybe: Uid | null // when moving.
+}
+
+export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
+  return { w: item.spatialWidthBl, h: 1.0 };
 }
 
 export function isNoteItem(item: Item | null): boolean {
@@ -92,3 +94,4 @@ export function newNoteItem(parentId: Uid, relationshipToParent: RelationshipToP
     computed_fromParentIdMaybe: null,
   };
 }
+

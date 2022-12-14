@@ -17,7 +17,7 @@
 */
 
 import { RelationshipToParent } from '../../relationship-to-parent';
-import { BoundingBox, cloneBoundingBox } from '../../util/geometry';
+import { BoundingBox, cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -31,8 +31,11 @@ export interface PageItem extends XSizableItem {
 
   computed_children: Array<Uid>;
   computed_attachments: Array<Uid>;
-  computed_boundsPx: BoundingBox | null,
-  computed_fromParentIdMaybe: Uid | null; // when moving.
+}
+
+export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {
+  let bh = Math.round(item.spatialWidthBl / item.naturalAspect * 2.0) / 2.0;
+  return { w: item.spatialWidthBl, h: bh < 0.5 ? 0.5 : bh };
 }
 
 export function isPageItem(item: Item | null): boolean {

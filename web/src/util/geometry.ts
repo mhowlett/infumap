@@ -43,14 +43,14 @@ export interface Dimensions {
   h: number;
 }
 
-export function clientPosVector(e: MouseEvent) : Vector {
-  return { x: e.clientX, y: e.clientY}
+export function clientPosVector(e: MouseEvent): Vector {
+  return { x: e.clientX, y: e.clientY };
 }
 
-export function subtract(a: Vector, b: Vector) : Vector {
+export function subtract(a: Vector, b: Vector): Vector {
   return { x: a.x - b.x, y: a.y - b.y };
 }
 
-export function add(a: Vector, b: Vector) : Vector {
+export function add(a: Vector, b: Vector): Vector {
   return { x: a.x + b.x, y: a.y + b.y };
 }

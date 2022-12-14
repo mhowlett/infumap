@@ -21,8 +21,8 @@ import { RelationshipToParent } from '../../../relationship-to-parent';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
-import { asNoteItem, cloneNoteItem, isNoteItem } from '../note-item';
-import { asPageItem, clonePageItem, isPageItem } from '../page-item';
+import { asNoteItem, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
+import { asPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
 
 
 export interface Item {
@@ -35,7 +35,10 @@ export interface Item {
   lastModifiedDate: number,
   ordering: Uint8Array,
   title: string,
-  spatialPositionBl: Vector
+  spatialPositionBl: Vector,
+
+  computed_boundsPx: BoundingBox | null,
+  computed_fromParentIdMaybe: Uid | null // when moving.
 }
 
 export function cloneItem(item: Item): Item {
@@ -44,38 +47,21 @@ export function cloneItem(item: Item): Item {
   throwExpression(`Unknown item type: ${item.type}`);
 }
 
-// TODO (HIGH): movable interface type to remove need for some of these cases.
+export function calcSizeForSpatialBl(item: Item): Dimensions {
+  if (isPageItem(item)) { return calcPageSizeForSpatialBl(asPageItem(item)); }
+  if (isNoteItem(item)) { return calcNoteSizeForSpatialBl(asNoteItem(item)); }
+  throwExpression(`Unknown item type: ${item.type}`);
+}
 
 export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {
-  if (isPageItem(item)) {
-    let pageItem = asPageItem(item);
-    pageItem.computed_boundsPx = {
-      x: (pageItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-      y: (pageItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-      w: (pageItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
-      h: (Math.floor(pageItem.spatialWidthBl / pageItem.naturalAspect) * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h
-    }
-  } else if (isNoteItem(item)) {
-    let noteItem = asNoteItem(item);
-    noteItem.computed_boundsPx = {
-      x: (noteItem.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-      y: (noteItem.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-      w: (noteItem.spatialWidthBl * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w,
-      h: (1.0 * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h
-    }
-  } else {
-    throwExpression(`Unknown item type: ${item.type}`);
+  item.computed_boundsPx = {
+    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
+    h: calcSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
   }
 }
 
 export function setFromParentId(item: Item, fromParentId: Uid): void {
-  if (isPageItem(item)) {
-    let pageItem = asPageItem(item);
-    pageItem.computed_fromParentIdMaybe = fromParentId;
-  } else if (isNoteItem(item)) {
-    let noteItem = asNoteItem(item);
-    noteItem.computed_fromParentIdMaybe = fromParentId;
-  } else {
-    throwExpression(`unnown item type: ${item.type}`);
-  }
+  item.computed_fromParentIdMaybe = fromParentId;
 }

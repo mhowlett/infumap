@@ -70,10 +70,13 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
       let newPosBl = add(startPosBl!, deltaBl);
       newPosBl.x = Math.round(newPosBl.x * 2.0) / 2.0;
       newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
+      if (newPosBl.x < 0.0) { newPosBl.x = 0.0; }
+      if (newPosBl.y < 0.0) { newPosBl.y = 0.0; }
       itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
     } else {
       let newWidthBl = startWidthBl! + deltaBl.x;
       newWidthBl = Math.round(newWidthBl);
+      if (newWidthBl < 1) { newWidthBl = 1.0; }
       itemStore.updateItem(props.item.id, item => { asNoteItem(item).spatialWidthBl = newWidthBl; });
     }
   };
@@ -101,7 +104,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
          onMouseDown={mouseDownHandler}>
       <Show when={props.item.url != null}
             fallback={<span>{props.item.title}</span>}>
-        <a href={props.item.url}>{props.item.title}</a>
+        <a href={props.item.url} draggable={false} target="_blank">{props.item.title}</a>
       </Show>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
           style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>

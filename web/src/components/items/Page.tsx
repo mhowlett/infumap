@@ -38,7 +38,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
 
   let mouseDownHandler = (pos: MouseEvent) => {
     // Can't move or adjust top level page.
-    if (props.item.id == layoutStore.layout.currentPage) { return; }
+    if (props.item.id == layoutStore.layout.currentPageId) { return; }
 
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
@@ -72,10 +72,13 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
       let newPosBl = add(startPosBl!, deltaBl);
       newPosBl.x = Math.round(newPosBl.x * 2.0) / 2.0;
       newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
+      if (newPosBl.x < 0.0) { newPosBl.x = 0.0; }
+      if (newPosBl.y < 0.0) { newPosBl.y = 0.0; }
       itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
     } else {
       let newWidthBl = startWidthBl! + deltaBl.x;
       newWidthBl = Math.round(newWidthBl);
+      if (newWidthBl < 1) { newWidthBl = 1.0; }
       itemStore.updateItem(props.item.id, item => { asPageItem(item).spatialWidthBl = newWidthBl; });
     }
   };
