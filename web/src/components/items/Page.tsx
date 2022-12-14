@@ -39,9 +39,6 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   let moving = () => { return startPosBl != null; }
 
   let mouseDownHandler = (pos: MouseEvent) => {
-    // Can't move or adjust top level page.
-    if (props.item.id == layoutStore.layout.currentPageId) { return; }
-
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
     let rect = outerDiv!.getBoundingClientRect();
@@ -101,50 +98,52 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   let wPx = props.item.computed_boundsPx!.w;
   let hPx = props.item.computed_boundsPx!.h;
 
+  // Current top page.
   if (props.item.id == layoutStore.layout.currentPageId) {
     return (
       <div ref={outerDiv}
-            id={props.item.id}
-            class={`absolute`}
-            style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
-            onMouseDown={mouseDownHandler}>
+           id={props.item.id}
+           class={`absolute`}
+           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}>
       </div>
     );
-  } else {
-    if (props.item.spatialWidthBl < 6) {
-      return (
-        <div ref={outerDiv}
-              id={props.item.id}
-              class={`absolute border border-slate-700 rounded-sm`}
-              style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                     `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.986)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 1.0)});`}
-              onMouseDown={mouseDownHandler}>
-          <div style={`width: ${wPx}px; height: ${hPx}px; align-items: center; display: flex; justify-content: center;`}>
-            <div class="text-xs font-bold text-white" style={"display: flex; align-items: center; text-align: center;"}>
-              {props.item.title}
-            </div>
-          </div>
-          <div class={`absolute opacity-0 cursor-nwse-resize`}
-                style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
-        </div>
-      );
-    } else {
-      return (
-        <div ref={outerDiv}
-              id={props.item.id}
-              class={`absolute border border-slate-700`}
-              style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                     `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.386)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.364)});`}
-              onMouseDown={mouseDownHandler}>
-          <div style={`width: ${wPx}px; height: ${hPx}px; align-items: center; display: flex; justify-content: center;`}>
-            <div class="text-xl font-bold text-white" style={"display: flex; align-items: center; text-align: center;"}>
-              {props.item.title}
-            </div>
-          </div>
-          <div class={`absolute opacity-0 cursor-nwse-resize`}
-                style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
-        </div>
-      );
-    }
   }
+
+  // Too small for inside items to be visible. Opaque.
+  if (props.item.spatialWidthBl < 6) {
+    return (
+      <div ref={outerDiv}
+           id={props.item.id}
+           class={`absolute border border-slate-700 rounded-sm`}
+           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
+                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.986)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 1.0)});`}
+           onMouseDown={mouseDownHandler}>
+        <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
+          <div class="flex items-center text-center text-xs font-bold text-white">
+            {props.item.title}
+          </div>
+        </div>
+        <div class={`absolute opacity-0 cursor-nwse-resize`}
+             style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+      </div>
+    );
+  }
+
+  // Show child items. Translucent.
+  return (
+    <div ref={outerDiv}
+         id={props.item.id}
+         class={`absolute border border-slate-700`}
+         style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
+                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.386)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.364)});`}
+         onMouseDown={mouseDownHandler}>
+      <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
+        <div class="flex items-center text-center text-xl text-white">
+          {props.item.title}
+        </div>
+      </div>
+      <div class={`absolute opacity-0 cursor-nwse-resize`}
+           style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+    </div>
+  );
 }
