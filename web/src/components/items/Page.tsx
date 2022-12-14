@@ -22,6 +22,8 @@ import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { asPageItem, PageItem } from "../../store/items/page-item";
 import { GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
+import { hexToRGBA } from "../../util/color";
+import { Colors } from "../../style";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
@@ -42,9 +44,9 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
 
     document.addEventListener('mousemove', mouseMoveHandler);
     document.addEventListener('mouseup', mouseUpHandler);
-    let rect = outerDiv?.getBoundingClientRect();
+    let rect = outerDiv!.getBoundingClientRect();
     startPx = clientPosVector(pos);
-    if (rect?.right! - startPx.x < RESIZE_BOX_SIZE && rect?.bottom! - startPx.y < RESIZE_BOX_SIZE) {
+    if (rect.right - startPx.x < RESIZE_BOX_SIZE && rect.bottom - startPx.y < RESIZE_BOX_SIZE) {
       startPosBl = null;
       startWidthBl = props.item.spatialWidthBl;
     } else {
@@ -94,19 +96,55 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     startWidthBl = null;
   };
 
-  let lPx = props.item.computed_boundsPx!.x!;
-  let tPx = props.item.computed_boundsPx!.y!;
-  let wPx = props.item.computed_boundsPx!.w!;
-  let hPx = props.item.computed_boundsPx!.h!;
-  return (
-    <div ref={outerDiv}
-          id={props.item.id}
-          class={`absolute border border-rose-500`}
-          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
-          onMouseDown={mouseDownHandler}>
-      <div class="text-xs">{props.item.title}</div>
-      <div class={`absolute opacity-0 cursor-nwse-resize`}
-            style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
-    </div>
-  );
+  let lPx = props.item.computed_boundsPx!.x;
+  let tPx = props.item.computed_boundsPx!.y;
+  let wPx = props.item.computed_boundsPx!.w;
+  let hPx = props.item.computed_boundsPx!.h;
+
+  if (props.item.id == layoutStore.layout.currentPageId) {
+    return (
+      <div ref={outerDiv}
+            id={props.item.id}
+            class={`absolute`}
+            style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
+            onMouseDown={mouseDownHandler}>
+      </div>
+    );
+  } else {
+    if (props.item.spatialWidthBl < 6) {
+      return (
+        <div ref={outerDiv}
+              id={props.item.id}
+              class={`absolute border border-slate-700 rounded-sm`}
+              style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
+                     `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.986)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 1.0)});`}
+              onMouseDown={mouseDownHandler}>
+          <div style={`width: ${wPx}px; height: ${hPx}px; align-items: center; display: flex; justify-content: center;`}>
+            <div class="text-xs font-bold text-white" style={"display: flex; align-items: center; text-align: center;"}>
+              {props.item.title}
+            </div>
+          </div>
+          <div class={`absolute opacity-0 cursor-nwse-resize`}
+                style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+        </div>
+      );
+    } else {
+      return (
+        <div ref={outerDiv}
+              id={props.item.id}
+              class={`absolute border border-slate-700`}
+              style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
+                     `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.386)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.364)});`}
+              onMouseDown={mouseDownHandler}>
+          <div style={`width: ${wPx}px; height: ${hPx}px; align-items: center; display: flex; justify-content: center;`}>
+            <div class="text-xl font-bold text-white" style={"display: flex; align-items: center; text-align: center;"}>
+              {props.item.title}
+            </div>
+          </div>
+          <div class={`absolute opacity-0 cursor-nwse-resize`}
+                style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+        </div>
+      );
+    }
+  }
 }
