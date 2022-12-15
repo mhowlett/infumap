@@ -36,7 +36,7 @@ export const Desktop: Component = () => {
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  let getCurrentPageItems = (): Array<Item> => {
+  function getFixedItems(): Array<Item> {
     if (layoutStore.layout.currentPageId == null) { return []; }
 
     let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
@@ -56,15 +56,27 @@ export const Desktop: Component = () => {
       r.push(child.id);
     });
 
+    return r.map(a => cloneItem(itemStore.getItem(a)!));
+  };
+
+  function getMovingItems(): Array<Item> {
+    if (layoutStore.layout.currentPageId == null) { return []; }
+    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
+    let innerDimensionsCo = {
+      w: currentPage.innerSpatialWidthBl * GRID_SIZE,
+      h: Math.floor(currentPage.innerSpatialWidthBl / currentPage.naturalAspect) * GRID_SIZE
+    };
+  
+    let r: Array<string> = [];
     itemStore.items.moving.forEach(itm => {
-      if (itm.parentId == currentPage.id) {
+      if (itm.parentId == layoutStore.layout.currentPageId) {
         itemStore.updateItem(itm.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
         r.push(itm.id);
       }
     });
 
     return r.map(a => cloneItem(itemStore.getItem(a)!));
-  };
+  }
 
   const keyListener = (ev: KeyboardEvent) => {
     // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.
@@ -101,19 +113,24 @@ export const Desktop: Component = () => {
     window.removeEventListener('resize', windowResizeListener);
   });
 
+  function drawItems(items: Array<Item>) {
+    return <For each={items}>{item =>
+      <Switch fallback={<div>Not Found</div>}>
+        <Match when={isPageItem(item)}>
+          <Page item={item as PageItem} />
+        </Match>
+        <Match when={isNoteItem(item)}>
+          <Note item={item as NoteItem} />
+        </Match>
+      </Switch>
+    }</For>
+  }
+
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
-      <For each={getCurrentPageItems()}>{item =>
-        <Switch fallback={<div>Not Found</div>}>
-          <Match when={isPageItem(item)}>
-            <Page item={item as PageItem} />
-          </Match>
-          <Match when={isNoteItem(item)}>
-            <Note item={item as NoteItem} />
-          </Match>
-        </Switch>
-      }</For>
+      {drawItems(getFixedItems())}
+      {drawItems(getMovingItems())}
       <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
         <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
       </Show>
