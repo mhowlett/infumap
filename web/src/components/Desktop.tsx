@@ -24,7 +24,7 @@ import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, isPageItem, PageItem } from "../store/items/page-item";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
-import { GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
+import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
 import { clientPosVector, subtract } from "../util/geometry";
@@ -36,13 +36,15 @@ export const Desktop: Component = () => {
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  function getFixedItems(): Array<Item> {
+  function getFixedItems(currentPage: PageItem | null): Array<Item> {
     if (layoutStore.layout.currentPageId == null) { return []; }
 
-    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
-    itemStore.updateItem(currentPage.id, item => {
-      asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
-    });
+    if (currentPage == null) {
+      currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
+      itemStore.updateItem(currentPage.id, item => {
+        asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+      });
+    }
 
     let innerDimensionsCo = {
       w: currentPage.innerSpatialWidthBl * GRID_SIZE,
@@ -52,8 +54,14 @@ export const Desktop: Component = () => {
     let r = [currentPage.id];
 
     currentPage.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
-      itemStore.updateItem(child.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
+      itemStore.updateItem(child.id, item => { updateBounds(item, currentPage!.computed_boundsPx!, innerDimensionsCo); });
       r.push(child.id);
+      if (isPageItem(child)) {
+        let childPage = asPageItem(child);
+        if (childPage.spatialWidthBl >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
+          getFixedItems(childPage).forEach(c => r.push(c.id));
+        }
+      }
     });
 
     return r.map(a => cloneItem(itemStore.getItem(a)!));
@@ -129,7 +137,7 @@ export const Desktop: Component = () => {
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
-      {drawItems(getFixedItems())}
+      {drawItems(getFixedItems(null))}
       {drawItems(getMovingItems())}
       <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
         <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />

@@ -25,3 +25,8 @@ export const RESIZE_BOX_SIZE = 8;
 export const LINE_HEIGHT_PX = 24;
 
 export const NOTE_PADDING_PX = 5;
+
+export const CHILD_ITEMS_VISIBLE_WIDTH_BL = 6;
+
+// TODO (MEDIUM)
+export const CHILD_ITEMS_INTERACTABLE_WIDTH_BL = 20;

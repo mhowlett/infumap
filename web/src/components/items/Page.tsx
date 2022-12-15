@@ -21,7 +21,7 @@ import { add, clientPosVector as clientPxFromMouseEvent, subtract, Vector } from
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/items/page-item";
-import { GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
+import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
 
@@ -110,7 +110,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   }
 
   // Too small for inside items to be visible. Opaque.
-  if (props.item.spatialWidthBl < 6) {
+  if (props.item.spatialWidthBl < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
     return (
       <div ref={outerDiv}
            id={props.item.id}
