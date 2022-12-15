@@ -23,3 +23,5 @@ export const TOOLBAR_WIDTH = 40;
 export const RESIZE_BOX_SIZE = 8;
 
 export const LINE_HEIGHT_PX = 24;
+
+export const NOTE_PADDING_PX = 5;

@@ -20,7 +20,7 @@ import { Component, Show } from "solid-js";
 import { add, clientPosVector, subtract, Vector } from "../../util/geometry";
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
-import { GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE } from "../../constants";
+import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE } from "../../constants";
 import { asNoteItem } from "../../store/items/note-item";
 
 
@@ -109,8 +109,9 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}
          onMouseDown={mouseDownHandler}>
-      <div style={`left: ${lPx}px; top: ${tPx}px; width: ${naturalWidthPx}px; line-height: 24px; transform: scale(${scale}); ` +
-                  `transform-origin: top left; overflow-wrap: break-word; padding: 3px;`}>
+      <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
+                  `line-height: 24px; transform: scale(${scale}); transform-origin: top left; ` +
+                  `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
         <Show when={props.item.url != null}
               fallback={<span>{props.item.title}</span>}>
           <a href={props.item.url} draggable={false} target="_blank">{props.item.title}</a>

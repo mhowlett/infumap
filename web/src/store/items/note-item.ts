@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { LINE_HEIGHT_PX } from '../../constants';
+import { LINE_HEIGHT_PX, NOTE_PADDING_PX } from '../../constants';
 import { RelationshipToParent } from '../../relationship-to-parent';
 import { cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
@@ -34,19 +34,19 @@ export interface NoteItem extends XSizableItem {
   computed_attachments: Array<Uid>,
 }
 
-function measureText(s: string, widthBl: number): number {
+function measureLineCount(s: string, widthBl: number): number {
   const div = document.createElement("div");
-  div.setAttribute("style", `line-height: ${LINE_HEIGHT_PX}px; width: ${widthBl*LINE_HEIGHT_PX}px; overflow-wrap: break-word; padding: 3px;`);
+  div.setAttribute("style", `line-height: ${LINE_HEIGHT_PX}px; width: ${widthBl*LINE_HEIGHT_PX}px; overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`);
   const txt = document.createTextNode(s);
   div.appendChild(txt);
   document.body.appendChild(div);
   let lineCount = div.offsetHeight / LINE_HEIGHT_PX;
   document.body.removeChild(div);
-  return lineCount;
+  return Math.floor(lineCount);
 }
 
 export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
-  let lineCount = measureText(item.title, item.spatialWidthBl);
+  let lineCount = measureLineCount(item.title, item.spatialWidthBl);
   return { w: item.spatialWidthBl, h: lineCount };
 }
 
