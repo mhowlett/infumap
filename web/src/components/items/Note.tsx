@@ -118,7 +118,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
         </Show>
       </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
-          style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: 5px; height: 5px; background-color: #888`}></div>
+           style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: ${RESIZE_BOX_SIZE}px; height: ${RESIZE_BOX_SIZE}px;`}></div>
     </div>
   );
 }
