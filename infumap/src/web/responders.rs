@@ -22,28 +22,28 @@ use std::io::Cursor;
 
 
 pub struct RawPngImage<T> {
-    pub image_data: T
+  pub image_data: T
 }
 
 impl<'r> Responder<'r, 'static> for RawPngImage<&'static [u8]> {
-    fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
-        Response::build()
-            .header(ContentType::PNG)
-            .sized_body(self.image_data.len(), Cursor::new(self.image_data))
-            .ok()
-    }
+  fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
+    Response::build()
+      .header(ContentType::PNG)
+      .sized_body(self.image_data.len(), Cursor::new(self.image_data))
+      .ok()
+  }
 }
 
 
 pub struct RawIcoImage<T> {
-    pub image_data: T
+  pub image_data: T
 }
 
 impl<'r> Responder<'r, 'static> for RawIcoImage<&'static [u8]> {
-    fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
-        Response::build()
-            .header(ContentType::Icon)
-            .sized_body(self.image_data.len(), Cursor::new(self.image_data))
-            .ok()
-    }
+  fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
+    Response::build()
+      .header(ContentType::Icon)
+      .sized_body(self.image_data.len(), Cursor::new(self.image_data))
+      .ok()
+  }
 }

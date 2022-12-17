@@ -14,30 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mod store;
-mod util;
-mod web;
+pub mod user;
+pub mod session;
+pub mod item;
 
-#[macro_use] extern crate rocket;
-use clap::App;
-
-
-#[rocket::main]
-async fn main() {
-  // TODO (HIGH): stops rocket logging working.. why?
-  // pretty_env_logger::init();
-
-  let matches = App::new("Infumap")
-    .version("0.1.0")
-    .subcommand(web::make_clap_subcommand())
-    .get_matches();
-
-  match matches.subcommand() {
-    Some(("web", sub_matches)) => {
-      web::handle_matches(sub_matches).await
-    },
-    _ => {
-      println!(".. --help for help.");
-    },
-  }
+pub fn load_items() {
+  
 }

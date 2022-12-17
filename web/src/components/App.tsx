@@ -23,6 +23,7 @@ import { useLayoutStore } from '../store/LayoutStoreProvider';
 import { fetchUser, useUserStore } from '../store/UserStoreProvider';
 import { panic } from '../util/lang';
 import { Desktop } from './Desktop';
+import { Login } from './Login';
 import { Toolbar } from './Toolbar';
 
 
@@ -45,6 +46,7 @@ const App: Component = () => {
     <div class="fixed top-0 left-0 right-0 bottom-0 select-none touch-none overflow-hidden">
       <Desktop />
       <Toolbar />
+      <Login />
     </div>
   );
 };
