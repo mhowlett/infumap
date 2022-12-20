@@ -28,6 +28,7 @@ use serde_json::Value::Object;
 
 use crate::util::infu::{InfuError, InfuResult};
 use crate::util::fs::expand_tilde;
+use crate::util::uid::Uid;
 
 pub mod user;
 pub mod session;
@@ -44,7 +45,7 @@ pub fn get_json_object_string_field(map: &Map<String, Value>, field: &str) -> In
   ))
 }
 
-pub fn _get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<i64> {
+pub fn get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<i64> {
   Ok(
     map
       .get(field)
@@ -56,14 +57,14 @@ pub fn _get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> 
 
 
 pub trait JsonLogSerializable<T> {
-  fn get_id(&self) -> &String;
+  fn get_id(&self) -> &Uid;
   fn value_type_identifier() -> &'static str;
 
   fn serialize_entry(&self) -> Map<String, Value>;
-  fn deserialize_entry(m: &Map<String, Value>) -> InfuResult<T>;
+  fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<T>;
 
   fn serialize_update(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
-  fn deserialize_update(&mut self, m: &Map<String, Value>) -> InfuResult<()>;
+  fn deserialize_update(&mut self, map: &Map<String, Value>) -> InfuResult<()>;
 }
 
 

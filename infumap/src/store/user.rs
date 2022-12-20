@@ -15,13 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use serde_json::{Map, Value};
-use crate::util::infu::{InfuError, InfuResult};
+use crate::util::{infu::{InfuError, InfuResult}, uid::Uid};
 use super::{JsonLogSerializable, get_json_object_string_field};
 
 
 pub struct User {
   pub id: String,
-  pub username: String,
+  pub username: Uid,
   pub password_hash: String,
   pub password_salt: String,
   pub root_page_id: String,
@@ -72,8 +72,8 @@ impl JsonLogSerializable<User> for User {
     // TODO (LOW): check for/error on unexepected fields.
     if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
     if let Ok(v) = get_json_object_string_field(map, "password_hash") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "password_salt") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.password_hash = v; }
+    if let Ok(v) = get_json_object_string_field(map, "password_salt") { self.password_salt = v; }
+    if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.root_page_id = v; }
     Ok(())
   }
 
