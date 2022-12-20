@@ -128,7 +128,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     Ok(())
   }
 
-  pub fn remove(&mut self, id: &str) -> InfuResult<()> {
+  pub fn _remove(&mut self, id: &str) -> InfuResult<()> {
     if !self.map.contains_key(id) {
       return Err(InfuError::new(&format!("Entry with id {} does not exist.", id)));
     }
@@ -140,11 +140,11 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     Ok(())
   }
 
-  pub fn get(&self, id: &str) -> Option<&T> {
+  pub fn _get(&self, id: &str) -> Option<&T> {
     self.map.get(id)
   }
 
-  pub fn update(&mut self, id: &str, updated: T) -> InfuResult<()> {
+  pub fn _update(&mut self, id: &str, updated: T) -> InfuResult<()> {
     if !self.map.contains_key(id) {
       return Err(InfuError::new(&format!("Entry with id {} does not exist.", id)));
     }

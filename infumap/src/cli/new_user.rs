@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::{io::BufRead, hash};
+use std::io::BufRead;
 use clap::{ArgMatches, App, Arg};
-use crate::{config::setup_config, store::{KVStore, user::User}, util::uid::new_uid};
+use crate::config::setup_config;
+use crate::store::{KVStore, user::User};
+use crate::util::uid::new_uid;
 use sha2::{Sha256, Digest};
 
 
