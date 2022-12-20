@@ -19,15 +19,16 @@ mod dist_handlers;
 
 use rocket::response::content::RawJson;
 use uuid::{uuid, Uuid};
-use std::{time::SystemTime, os::unix::prelude::FileExt};
+use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
 use clap::{App, ArgMatches, Arg};
-use config::{Config, FileFormat};
+
+use crate::{store::{KVStore, user::User}, config::setup_config};
 
 
 #[get("/gen")]
 fn gen() -> String {
-  // TODO: remove. playing with OTP / base62 uuids.
+  // TODO (HIGH): remove. playing with OTP / base62 uuids.
 
   const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
   // let key_uuid = uuid::Uuid::new_v4();
@@ -57,10 +58,9 @@ fn gen() -> String {
 
 #[get("/test-json")]
 fn json() -> RawJson<&'static str> {
-  // TODO: remove. Playing with JSON.
+  // TODO (HIGH): remove. Playing with JSON.
   RawJson("[{ \"test\": \"one\" }, { \"test\": \"two\" }]")
 }
-
 
 pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
   App::new("web")
@@ -75,117 +75,23 @@ pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
       .required(false))
 }
 
+pub async fn handle_command_arg_matches<'a>(sub_matches: &ArgMatches) {
 
-const CONFIG_PREFIX: &'static str = "INFUMAP";
-
-pub async fn handle_matches<'a>(sub_matches: &ArgMatches) {
-  let settings_path_maybe = match sub_matches.value_of("settings_path") {
-
-    Some(path) => {
-      if !std::path::Path::new(path).exists() {
-        println!("The specified settings file path '{path}' does not exist.");
-        return;
-      }
-      Some(String::from(path))
-    },
-
-    None => {
-      let config = match Config::builder()
-        .add_source(config::Environment::with_prefix(CONFIG_PREFIX))
-        .build() {
-          Ok(c) => c,
-          Err(e) => {
-            println!("An error occurred building env var-only configuration: '{e}'");
-            return;
-          }
-        };
-      let env_has_all_mandatory_config = match config.get_string("data_dir") { Ok(_) => true, Err(_) => false };
-
-      if !env_has_all_mandatory_config {
-        // If mandatory config is not all available via env vars, then the settings file must be read as well.
-        // And if it doesn't exist, it must be successfully created (and defaults used).
-
-        let mut pb = match dirs::home_dir() {
-          Some(dir) => dir,
-          None => {
-            println!("No settings path was specified, and the home dir could not be determined.");
-            return;
-          }
-        };
-        pb.push(".infumap");
-        if !pb.as_path().exists() {
-          match std::fs::create_dir(pb.as_path()) {
-            Ok(_) => {
-              println!("Settings file was not specified, creating .infumap in home directory.");
-            },
-            Err(e) => {
-              println!("Could not create .infumap in home directory: {e}");
-              return;
-            }
-          }
-        }
-        pb.push("settings.toml");
-        if !pb.as_path().exists() {
-          let f = match std::fs::File::create(pb.as_path()) {
-            Ok(f) => f,
-            Err(e) => {
-              println!("Could not open default settings file for write {e}");
-              return;
-            }
-          };
-          let buf = include_bytes!("../../default_settings.toml");
-          match f.write_all_at(buf, 0) {
-            Ok(_) => {
-              println!("Created default settings file at ~/.infumap/settings.toml");
-            },
-            Err(e) => {
-              println!("Could not create default settings file at ~/.infumap/settings.toml: '{e}'");
-              return;
-            }
-          };
-        }
-
-        Some(String::from(pb.as_os_str().to_str().unwrap()))
-
-      } else {
-        // If all required config is available via env vars, then also (first) read the settings from
-        // the default location, but only if the file exists (don't create one with defaults).
-
-        match dirs::home_dir() {
-          Some(mut dir) => {
-            dir.push(".infumap");
-            dir.push("settings.toml");
-            if dir.as_path().exists() { Some(String::from(dir.as_os_str().to_str().unwrap())) }
-            else { None }
-          },
-          None => {
-            None
-          }
-        }
-      }
+  let config = match setup_config(sub_matches.value_of("settings_path")) {
+    Ok(c) => c,
+    Err(e) => {
+      println!("Could not setup configuration {e}");
+      return;
     }
   };
 
-  let config_builder =
-    if let Some(path) = settings_path_maybe {
-      println!("Using settings from path: {path}, and overriding with env vars if set.");
-      Config::builder()
-        .add_source(config::File::new(&path, FileFormat::Toml))
-    } else {
-      println!("Not using settings file - taking all settings from env vars.");
-      Config::builder()
+  let _user_store: KVStore<User> = match KVStore::init(&config.get_string("data_dir").unwrap(), "users.json") {
+    Ok(store) => store,
+    Err(e) => {
+      println!("Could not read user store log: {e}");
+      return;
     }
-    .add_source(config::Environment::with_prefix(CONFIG_PREFIX));
-
-  let config = match config_builder.build() {
-      Ok(c) => c,
-      Err(e) => {
-        println!("An error occurred loading configuration: '{e}'");
-        return;
-      }
-    };
-
-  println!("Data directory: {}", config.get_string("data_dir").unwrap());
+  };
 
   _ = dist_handlers::mount(
     rocket::build()

@@ -17,8 +17,12 @@
 mod store;
 mod util;
 mod web;
+mod cli;
+mod config;
 
 #[macro_use] extern crate rocket;
+// use std::error::Error;
+
 use clap::App;
 
 
@@ -30,11 +34,17 @@ async fn main() {
   let matches = App::new("Infumap")
     .version("0.1.0")
     .subcommand(web::make_clap_subcommand())
+    .subcommand(cli::new_user::make_clap_subcommand())
     .get_matches();
+
+  // test();
 
   match matches.subcommand() {
     Some(("web", sub_matches)) => {
-      web::handle_matches(sub_matches).await
+      web::handle_command_arg_matches(sub_matches).await
+    },
+    Some(("new-user", sub_matches)) => {
+      cli::new_user::handle_command_arg_matches(sub_matches)
     },
     _ => {
       println!(".. --help for help.");

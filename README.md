@@ -12,7 +12,9 @@ infumap web
 
 Then point your web browser at `http://localhost:8000`.
 
-The first time you do this, a default settings file and data folder will be created in `~/.infumap/`.
+## Configuration
+
+The first time you run Infumap, a default settings file and data folder will be created in `~/.infumap/`.
 
 You can instruct Infumap to read the settings file from a custom location (and you can specify a custom data directory in that if you want) like so:
 

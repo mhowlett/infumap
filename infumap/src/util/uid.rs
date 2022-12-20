@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub struct _Item {
-  version: u8,
-  id: String,
+use uuid::Uuid;
+
+
+pub type Uid = String;
+
+pub fn new_uid() -> Uid {
+  super::base62::encode(&uuid::Uuid::new_v4().as_bytes().clone())
 }

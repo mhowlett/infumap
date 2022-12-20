@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub struct Session {
-  id: String
+pub struct _Session {
+  version: u8,
+  id: String,
+  user_id: String,
+  expires: i64
 }
