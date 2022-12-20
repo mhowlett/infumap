@@ -111,7 +111,8 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
       let file = File::create(path)?;
       let mut writer = BufWriter::new(file);
       let descriptor = DescriptorRecord { value_type: String::from(T::value_type_identifier()) };
-      writer.write_all(serde_json::to_string(&descriptor)?.as_bytes())?;
+      writer.write_all(serde_json::to_string_pretty(&descriptor)?.as_bytes())?;
+      writer.write_all("\n".as_bytes())?;
     }
     let map = Self::read_log(path)?;
     Ok(Self { log_path, map })
@@ -123,7 +124,8 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
-    writer.write_all(serde_json::to_string(&entry)?.as_bytes())?;
+    writer.write_all(serde_json::to_string_pretty(&entry)?.as_bytes())?;
+    writer.write_all("\n".as_bytes())?;
     self.map.insert(entry.get_id().clone(), entry);
     Ok(())
   }
@@ -135,7 +137,8 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     let delete_record = DeleteRecord { id: String::from(id) };
-    writer.write_all(serde_json::to_string(&delete_record)?.as_bytes())?;
+    writer.write_all(serde_json::to_string_pretty(&delete_record)?.as_bytes())?;
+    writer.write_all("\n".as_bytes())?;
     self.map.remove(id).ok_or(InfuError::new(&format!("Entry with id {} does not exist (internal logic error).", id)))?;
     Ok(())
   }
@@ -152,7 +155,10 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
       return Err(InfuError::new(&format!("Updated entry has unexpected id.")));
     }
     let update_record = T::get_json_update_map(self.map.get(id).ok_or(InfuError::new("Entry with id {} does not exist (internal logic issue)."))?, &updated)?;
-    serde_json::to_string(&update_record)?;
+    let file = OpenOptions::new().append(true).open(&self.log_path)?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(serde_json::to_string_pretty(&update_record)?.as_bytes())?;
+    writer.write_all("\n".as_bytes())?;
     self.map.insert(updated.get_id().clone(), updated);
     Ok(())
   }
