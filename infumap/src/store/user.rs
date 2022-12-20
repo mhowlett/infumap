@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::{Serialize, ser::SerializeStruct};
 use serde_json::{Map, Value};
 use crate::util::infu::{InfuError, InfuResult};
 use super::{JsonLogSerializable, get_json_object_string_field};
@@ -28,26 +27,27 @@ pub struct User {
   pub root_page_id: String,
 }
 
-impl Serialize for User {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
-    const NUM_FIELDS: usize = 6;
-    let mut state = serializer.serialize_struct("user", NUM_FIELDS)?;
-    state.serialize_field("__record_type", "entry")?;
-    state.serialize_field("id", &self.id)?;
-    state.serialize_field("username", &self.username)?;
-    state.serialize_field("password_hash", &self.password_hash)?;
-    state.serialize_field("password_salt", &self.password_salt)?;
-    state.serialize_field("root_page_id", &self.root_page_id)?;
-    state.end()
-  }
-}
-
 impl JsonLogSerializable<User> for User {
   fn value_type_identifier() -> &'static str {
     "user"
   }
 
-  fn from_json_map(map: &Map<String, Value>) -> InfuResult<User> {
+  fn get_id(&self) -> &String {
+    &self.id
+  }
+
+  fn serialize_entry(&self) -> Map<String, Value> {
+    let mut result = Map::new();
+    result.insert(String::from("__record_type"), Value::String(String::from("entry")));
+    result.insert(String::from("id"), Value::String(self.id.clone()));
+    result.insert(String::from("username"), Value::String(self.username.clone()));
+    result.insert(String::from("password_hash"), Value::String(self.password_hash.clone()));
+    result.insert(String::from("password_salt"), Value::String(self.password_salt.clone()));
+    result.insert(String::from("root_page_id"), Value::String(self.root_page_id.clone()));
+    result
+  }
+
+  fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<User> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(User {
       id: get_json_object_string_field(map, "id")?,
@@ -58,20 +58,7 @@ impl JsonLogSerializable<User> for User {
     })
   }
 
-  fn update_from_json_map(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
-    // TODO (LOW): check for/error on unexepected fields.
-    if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
-    if let Ok(v) = get_json_object_string_field(map, "password_hash") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "password_salt") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.password_hash = v; }
-    Ok(())
-  }
-
-  fn get_id(&self) -> &String {
-    &self.id
-  }
-
-  fn get_json_update_map(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
+  fn serialize_update(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
     if old.id != new.id { return Err(InfuError::new("Attempt was made to create a User update record from instances with non-matching ids.")); }
     let mut result: Map<String, Value> = Map::new();
     result.insert(String::from("__record_type"), serde_json::from_str("update")?);
@@ -80,4 +67,14 @@ impl JsonLogSerializable<User> for User {
     if old.root_page_id != new.root_page_id { result.insert(String::from("root_page_id"), serde_json::from_str(&new.root_page_id)?); }
     Ok(result)
   }
+
+  fn deserialize_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
+    // TODO (LOW): check for/error on unexepected fields.
+    if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
+    if let Ok(v) = get_json_object_string_field(map, "password_hash") { self.password_hash = v; }
+    if let Ok(v) = get_json_object_string_field(map, "password_salt") { self.password_hash = v; }
+    if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.password_hash = v; }
+    Ok(())
+  }
+
 }

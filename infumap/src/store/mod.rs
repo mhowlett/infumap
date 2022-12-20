@@ -58,9 +58,12 @@ pub fn _get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> 
 pub trait JsonLogSerializable<T> {
   fn get_id(&self) -> &String;
   fn value_type_identifier() -> &'static str;
-  fn from_json_map(m: &Map<String, Value>) -> InfuResult<T>;
-  fn update_from_json_map(&mut self, m: &Map<String, Value>) -> InfuResult<()>;
-  fn get_json_update_map(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
+
+  fn serialize_entry(&self) -> Map<String, Value>;
+  fn deserialize_entry(m: &Map<String, Value>) -> InfuResult<T>;
+
+  fn serialize_update(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
+  fn deserialize_update(&mut self, m: &Map<String, Value>) -> InfuResult<()>;
 }
 
 
@@ -96,12 +99,12 @@ impl Serialize for DeleteRecord {
 }
 
 /// A pretty naive KV store implementation, but it'll probably be good enough indefinitely.
-pub struct KVStore<T> where T: JsonLogSerializable<T> + Serialize {
+pub struct KVStore<T> where T: JsonLogSerializable<T> {
   log_path: PathBuf,
   map: HashMap<String, T>
 }
 
-impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
+impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
   pub fn init(data_dir: &str, log_file_name: &str) -> InfuResult<KVStore<T>> {
     let mut log_path = expand_tilde(data_dir).ok_or(InfuError::new("Could not interpret path."))?;
@@ -124,7 +127,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
-    writer.write_all(serde_json::to_string_pretty(&entry)?.as_bytes())?;
+    writer.write_all(serde_json::to_string_pretty(&entry.serialize_entry())?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
     self.map.insert(entry.get_id().clone(), entry);
     Ok(())
@@ -154,7 +157,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
     if id != updated.get_id() {
       return Err(InfuError::new(&format!("Updated entry has unexpected id.")));
     }
-    let update_record = T::get_json_update_map(self.map.get(id).ok_or(InfuError::new("Entry with id {} does not exist (internal logic issue)."))?, &updated)?;
+    let update_record = T::serialize_update(self.map.get(id).ok_or(InfuError::new("Entry with id {} does not exist (internal logic issue)."))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     writer.write_all(serde_json::to_string_pretty(&update_record)?.as_bytes())?;
@@ -204,7 +207,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
 
             "entry" => {
               // Log record is a full specification of the entry value.
-              let u = T::from_json_map(&kvs)?;
+              let u = T::deserialize_entry(&kvs)?;
               if result.contains_key(u.get_id()) {
                 return Err(InfuError::new(&format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id())));
               }
@@ -221,7 +224,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> + Serialize {
               let u = result
                 .get_mut(&String::from(id))
                 .ok_or(InfuError::new(&format!("Update record has id '{}', but this is unknown.", id)))?;
-              u.update_from_json_map(&kvs)?;
+              u.deserialize_update(&kvs)?;
             },
 
             "delete" => {
