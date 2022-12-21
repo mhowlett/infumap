@@ -17,7 +17,7 @@
 */
 
 import { RelationshipToParent } from '../../relationship-to-parent';
-import { BoundingBox, cloneBoundingBox, Dimensions } from '../../util/geometry';
+import { cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';

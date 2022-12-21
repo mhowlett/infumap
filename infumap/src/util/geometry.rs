@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod base62;
-pub mod fs;
-pub mod infu;
-pub mod uid;
-pub mod geometry;
+pub struct Vector<T> {
+  pub x: T,
+  pub y: T
+}

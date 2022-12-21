@@ -29,7 +29,6 @@ import { XSizableItem } from './base/x-sizeable-item';
 
 export interface NoteItem extends XSizableItem {
   url: string,
-  hasFavIcon: boolean,
 
   computed_attachments: Array<Uid>,
 }
@@ -76,7 +75,6 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     spatialWidthBl: item.spatialWidthBl,
 
     url: item.url,
-    hasFavIcon: item.hasFavIcon,
 
     computed_attachments: [...item.computed_attachments],
     computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
@@ -100,7 +98,6 @@ export function newNoteItem(parentId: Uid, relationshipToParent: RelationshipToP
     spatialWidthBl: 4.0,
 
     url: "",
-    hasFavIcon: false,
 
     computed_attachments: [],
     computed_boundsPx: null,

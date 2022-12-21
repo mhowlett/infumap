@@ -93,7 +93,6 @@ export function constructDummyItemsForTesting(rootId: Uid): (Array<Item>) {
     computed_boundsPx: null,
     computed_fromParentIdMaybe: null,
     url: 'https://www.google.com',
-    hasFavIcon: false,
     spatialWidthBl: 8.0,
     id: newUid(),
     parentId: rootId,

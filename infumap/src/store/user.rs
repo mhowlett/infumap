@@ -36,7 +36,7 @@ impl JsonLogSerializable<User> for User {
     &self.id
   }
 
-  fn serialize_entry(&self) -> Map<String, Value> {
+  fn serialize_entry(&self) -> InfuResult<Map<String, Value>> {
     let mut result = Map::new();
     result.insert(String::from("__record_type"), Value::String(String::from("entry")));
     result.insert(String::from("id"), Value::String(self.id.clone()));
@@ -44,7 +44,7 @@ impl JsonLogSerializable<User> for User {
     result.insert(String::from("password_hash"), Value::String(self.password_hash.clone()));
     result.insert(String::from("password_salt"), Value::String(self.password_salt.clone()));
     result.insert(String::from("root_page_id"), Value::String(self.root_page_id.clone()));
-    result
+    Ok(result)
   }
 
   fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<User> {
@@ -76,5 +76,4 @@ impl JsonLogSerializable<User> for User {
     if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.root_page_id = v; }
     Ok(())
   }
-
 }
