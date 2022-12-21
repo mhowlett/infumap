@@ -134,7 +134,6 @@ pub struct KVStore<T> where T: JsonLogSerializable<T> {
 }
 
 impl<T> KVStore<T> where T: JsonLogSerializable<T> {
-
   pub fn init(data_dir: &str, log_file_name: &str) -> InfuResult<KVStore<T>> {
     let mut log_path = expand_tilde(data_dir).ok_or(InfuError::new("Could not interpret path."))?;
     log_path.push(log_file_name);
@@ -199,8 +198,78 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     Ok(())
   }
 
-  fn read_log(path: &str) -> InfuResult<HashMap<String, T>> {
+  fn read_log_record(result: &mut HashMap<String, T>, kvs: &Map<String, Value>) -> InfuResult<()> {
+    let record_type = kvs
+      .get("__record_type")
+      .ok_or(InfuError::new("Log record is missing field __record_type."))?
+      .as_str()
+      .ok_or(InfuError::new("Log record type field is not of type 'string'."))?;
 
+    match record_type {
+      "descriptor" => {
+        // Subsequent records in the log conform to this descriptor.
+        let version = kvs
+          .get("version")
+          .ok_or(InfuError::new("Descriptor log record does not specify a version."))?
+          .as_i64()
+          .ok_or(InfuError::new("Descriptor version does not have type 'number'."))?;
+        if version != 0 {
+          return Err(InfuError::new("Descriptor version is not 0."));
+        }
+        let value_type = kvs
+          .get("value_type")
+          .ok_or(InfuError::new("Descriptor log record does not specify a value type."))?
+          .as_str()
+          .ok_or(InfuError::new("Descriptor value_type field is not of type 'string'."))?;
+        if value_type != T::value_type_identifier() {
+          return Err(InfuError::new(format!("Descriptor value_type is '{}', expecting '{}'.", value_type, T::value_type_identifier()).as_str()));
+        }
+      },
+
+      "entry" => {
+        // Log record is a full specification of an entry value.
+        let u = T::deserialize_entry(&kvs)?;
+        if result.contains_key(u.get_id()) {
+          return Err(InfuError::new(&format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id())));
+        }
+        result.insert(u.get_id().clone(), u);
+      },
+
+      "update" => {
+        // Log record specifies an update to an entry value.
+        let id = kvs
+          .get("id")
+          .ok_or(InfuError::new("Update log record does not specify an entry id."))?
+          .as_str()
+          .ok_or(InfuError::new("Update log record id does not have type 'string'."))?;
+        let u = result
+          .get_mut(&String::from(id))
+          .ok_or(InfuError::new(&format!("Update record has id '{}', but this is unknown.", id)))?;
+        u.deserialize_update(&kvs)?;
+      },
+
+      "delete" => {
+        // Log record specifies that the entry with the given id should be deleted.
+        let id = kvs
+          .get("id")
+          .ok_or(InfuError::new("Delete log record does not specify an entry id."))?
+          .as_str()
+          .ok_or(InfuError::new("Delete log record id does not have type 'string'."))?;
+        if !result.contains_key(&String::from(id)) {
+          return Err(InfuError::new(&format!("Delete record has id '{}', but this is unknown.", id)));
+        }
+        result.remove(&String::from(id));
+      },
+
+      unexpected_record_type => {
+        return Err(InfuError::new(&format!("Unknown log record type '{}'.", unexpected_record_type)));
+      }
+    }
+
+    Ok(())
+  }
+
+  fn read_log(path: &str) -> InfuResult<HashMap<String, T>> {
     let f = BufReader::new(File::open(path)?);
     let deserializer = serde_json::Deserializer::from_reader(f);
     let iterator = deserializer.into_iter::<serde_json::Value>();
@@ -209,78 +278,9 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
     for item in iterator {
       match item? {
-
-        Object(kvs) => {
-          let record_type = kvs
-            .get("__record_type")
-            .ok_or(InfuError::new("Log record is missing field __record_type."))?
-            .as_str()
-            .ok_or(InfuError::new("Log record type field is not of type 'string'."))?;
-
-          match record_type {
-            "descriptor" => {
-              // Subsequent records in the log conform to this descriptor.
-              let version = kvs
-                .get("version")
-                .ok_or(InfuError::new("Descriptor log record does not specify a version."))?
-                .as_i64()
-                .ok_or(InfuError::new("Descriptor version does not have type 'number'."))?;
-              if version != 0 {
-                return Err(InfuError::new("Descriptor version is not 0."));
-              }
-              let value_type = kvs
-                .get("value_type")
-                .ok_or(InfuError::new("Descriptor log record does not specify a value type."))?
-                .as_str()
-                .ok_or(InfuError::new("Descriptor value_type field is not of type 'string'."))?;
-              if value_type != T::value_type_identifier() {
-                return Err(InfuError::new(format!("Descriptor value_type is '{}', expecting '{}'.", value_type, T::value_type_identifier()).as_str()));
-              }
-            },
-
-            "entry" => {
-              // Log record is a full specification of an entry value.
-              let u = T::deserialize_entry(&kvs)?;
-              if result.contains_key(u.get_id()) {
-                return Err(InfuError::new(&format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id())));
-              }
-              result.insert(u.get_id().clone(), u);
-            },
-
-            // Log record specifies an update to an entry value.
-            "update" => {
-              let id = kvs
-                .get("id")
-                .ok_or(InfuError::new("Update log record does not specify an entry id."))?
-                .as_str()
-                .ok_or(InfuError::new("Update log record id does not have type 'string'."))?;
-              let u = result
-                .get_mut(&String::from(id))
-                .ok_or(InfuError::new(&format!("Update record has id '{}', but this is unknown.", id)))?;
-              u.deserialize_update(&kvs)?;
-            },
-
-            "delete" => {
-              // Log record specifies that the entry with the given id should be deleted.
-              let id = kvs
-                .get("id")
-                .ok_or(InfuError::new("Delete log record does not specify an entry id."))?
-                .as_str()
-                .ok_or(InfuError::new("Delete log record id does not have type 'string'."))?;
-              if !result.contains_key(&String::from(id)) {
-                return Err(InfuError::new(&format!("Delete record has id '{}', but this is unknown.", id)));
-              }
-              result.remove(&String::from(id));
-            },
-
-            record_type => {
-              return Err(InfuError::new(&format!("Unknown log record type '{}'.", record_type)));
-            }
-          }
-        },
-
-        record => {
-          return Err(InfuError::new(&format!("Log record type is '{:?}', but 'Object' was expected.", record.type_id())));
+        Object(kvs) => { Self::read_log_record(&mut result, &kvs)?; },
+        unexpected_type => {
+          return Err(InfuError::new(&format!("Log record has JSON type '{:?}', but 'Object' was expected.", unexpected_type.type_id())));
         }
       }
     }
