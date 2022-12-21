@@ -70,7 +70,7 @@ pub fn get_json_object_vector_field(map: &Map<String, Value>, field: &str) -> In
     .ok_or(InfuError::new(&format!("'{}' field was not of type 'f64'.", field)))?;
   Ok(Vector {
     x: get_json_object_float_field(o, "x")?,
-    y: get_json_object_float_field(map, "y")?
+    y: get_json_object_float_field(o, "y")?
   })
 }
 
