@@ -54,7 +54,6 @@ export function clonePageItem(item: PageItem): PageItem {
     id: item.id,
     parentId: item.parentId,
     relationshipToParent: item.relationshipToParent,
-    originalCreationDate: item.originalCreationDate,
     creationDate: item.creationDate,
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
@@ -80,17 +79,16 @@ export function newPageItem(parentId: Uid, relationshipToParent: RelationshipToP
     id: newUid(),
     parentId,
     relationshipToParent,
-    originalCreationDate: currentUnixTimeSeconds(),
     creationDate: currentUnixTimeSeconds(),
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering,
     title,
     spatialPositionBl: { x: 0.0, y: 0.0 },
 
-    spatialWidthBl: 4.0,
+    spatialWidthBl: 60.0,
 
     innerSpatialWidthBl: 60.0,
-    naturalAspect: 1.6,
+    naturalAspect: 2.0,
     bgColorIdx: 0,
 
     computed_children: [],

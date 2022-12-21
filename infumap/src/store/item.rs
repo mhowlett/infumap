@@ -46,27 +46,30 @@ impl RelationshipToParent {
 
 
 pub struct Item {
-  item_type: String,
-  id: Uid,
-  parent_id: Option<Uid>,
-  relationship_to_parent: RelationshipToParent,
-  original_creation_date: i64,
-  creation_date: i64,
-  last_modified_date: i64,
-  ordering: Vec<u8>,
-  title: String,
-  spatial_position_bl: Vector<f64>,
+  pub item_type: String,
+  pub id: Uid,
+  pub parent_id: Option<Uid>,
+  pub relationship_to_parent: RelationshipToParent,
+  pub creation_date: i64, // The creation date of the item.
+  pub last_modified_date: i64,
+  pub ordering: Vec<u8>,
+  pub title: String,
+  pub spatial_position_bl: Vector<f64>,
 
   // x-sizeable
-  spatial_width_bl: Option<f64>,
+  pub spatial_width_bl: Option<f64>,
 
   // page
-  inner_spatial_width_bl: Option<f64>,
-  natural_aspect: Option<f64>,
-  bg_color_idx: Option<i64>,
+  pub inner_spatial_width_bl: Option<f64>,
+  pub natural_aspect: Option<f64>,
+  pub bg_color_idx: Option<i64>,
 
   // note
-  url: Option<String>,
+  pub url: Option<String>,
+
+  // file
+  pub original_creation_date: Option<i64>,
+  // TODO: not complete
 }
 
 impl JsonLogSerializable<Item> for Item {
@@ -88,7 +91,6 @@ impl JsonLogSerializable<Item> for Item {
       None => { result.insert(String::from("parent_id"), Value::Null); }
     };
     result.insert(String::from("relationship_to_parent"), Value::String(String::from(self.relationship_to_parent.to_string())));
-    result.insert(String::from("original_creation_date"), Value::Number(self.original_creation_date.into()));
     result.insert(String::from("creation_date"), Value::Number(self.creation_date.into()));
     result.insert(String::from("last_modified_date"), Value::Number(self.last_modified_date.into()));
     result.insert(String::from("ordering"), Value::Array(self.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>()));
@@ -116,6 +118,12 @@ impl JsonLogSerializable<Item> for Item {
       result.insert(String::from("url"), Value::String(url.clone()));
     }
 
+    // file
+    if let Some(original_creation_date) = self.original_creation_date {
+      result.insert(String::from("original_creation_date"), Value::Number(original_creation_date.into()));
+    }
+    // TODO (MEDIUM): not complete.
+
     Ok(result)
   }
 
@@ -126,7 +134,6 @@ impl JsonLogSerializable<Item> for Item {
       id: get_json_object_string_field(map, "id")?,
       parent_id: match get_json_object_string_field(map, "parent_id") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
       relationship_to_parent: RelationshipToParent::from_string(&get_json_object_string_field(map, "relationship_to_parent")?)?,
-      original_creation_date: get_json_object_integer_field(map, "original_creation_date")?,
       creation_date: get_json_object_integer_field(map, "creation_date")?,
       last_modified_date: get_json_object_integer_field(map, "last_modified_date")?,
       ordering: map.get("ordering")
@@ -147,6 +154,10 @@ impl JsonLogSerializable<Item> for Item {
 
       // note
       url: get_json_object_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
+
+      // file
+      original_creation_date: get_json_object_integer_field(map, "original_creation_date").ok(), // TODO (LOW): Proper handling of errors.
+      // TODO (MEDIUM): not complete.
     })
   }
 

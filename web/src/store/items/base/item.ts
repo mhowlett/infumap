@@ -30,7 +30,6 @@ export interface Item {
   id: Uid,
   parentId: Uid | null,
   relationshipToParent: RelationshipToParent,
-  originalCreationDate: number,
   creationDate: number,
   lastModifiedDate: number,
   ordering: Uint8Array,
