@@ -17,8 +17,8 @@
 use rocket::State;
 use rocket::response::content::RawJson;
 use rocket::serde::json::Json;
-use serde::Deserialize;
-use crate::store::Store;
+use serde::{Deserialize, Serialize};
+use crate::store::{Store, user::User};
 
 
 #[derive(Deserialize)]
@@ -27,9 +27,32 @@ pub struct LoginParams {
     password: String,
 }
 
+#[derive(Serialize)]
+pub struct LoginResult {
+  success: bool,
+  session_id: Option<String>,
+  root_page_id: Option<String>,
+}
+
 #[post("/account/login", data = "<payload>")]
-pub fn login(_store: &State<Store>, payload: Json<LoginParams>) -> RawJson<&str> {
-  RawJson("[{ \"test\": \"one\" }, { \"test\": \"two\" }]")
+pub fn login(store: &State<Store>, payload: Json<LoginParams>) -> Json<LoginResult> {
+  let user = match store.user_store._get_by_username(&payload.username) {
+    Some(u) => u,
+    None => { return Json(LoginResult { success: false, session_id: None, root_page_id: None }) }
+  };
+
+  let test_hash = User::compute_password_hash(&user.password_salt, &payload.password);
+  if test_hash != user.password_hash {
+    return Json(LoginResult { success: false, session_id: None, root_page_id: None });
+  }
+
+  let result = LoginResult {
+    success: true,
+    session_id: Some(String::from("session id 234234")),
+    root_page_id: Some(user.root_page_id.clone())
+  };
+
+  Json(result)
 }
 
 #[derive(Deserialize)]

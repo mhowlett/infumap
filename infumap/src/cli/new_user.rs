@@ -22,7 +22,6 @@ use crate::store::kv_store::KVStore;
 use crate::store::user::User;
 use crate::util::geometry::Vector;
 use crate::util::uid::{new_uid, Uid};
-use sha2::{Sha256, Digest};
 
 
 pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
@@ -72,14 +71,10 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
   stdout.lock().flush().unwrap();
   let password = stdin.lock().lines().next().unwrap().unwrap();
 
-  let mut hasher = Sha256::new();
-  hasher.update(format!("{}-{}", password, password_salt));
-  let password_hash = format!("{:x}", hasher.finalize());
-
   match user_store.add(User {
     id: user_id,
     username: username.clone(),
-    password_hash: password_hash,
+    password_hash: User::compute_password_hash(&password_salt, &password),
     password_salt: password_salt,
     root_page_id: root_page_id.clone()
   }) {

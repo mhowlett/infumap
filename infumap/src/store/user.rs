@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use serde_json::{Map, Value};
+use sha2::{Sha256, Digest};
 use crate::util::{infu::{InfuError, InfuResult}, uid::Uid};
 
 use super::kv_store::{JsonLogSerializable, get_json_object_string_field};
@@ -26,6 +27,14 @@ pub struct User {
   pub password_hash: String,
   pub password_salt: String,
   pub root_page_id: String,
+}
+
+impl User {
+  pub fn compute_password_hash(password_salt: &str, password: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(format!("{}-{}", password, password_salt));
+    String::from(format!("{:x}", hasher.finalize()))
+  }
 }
 
 impl JsonLogSerializable<User> for User {
