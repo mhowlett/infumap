@@ -17,22 +17,23 @@
 use self::item::Item;
 use self::kv_store::KVStore;
 use self::session::Session;
-use self::user::User;
+use self::user_store::UserStore;
 
 pub mod user;
+pub mod user_store;
 pub mod session;
 pub mod item;
 pub mod kv_store;
 
 pub struct Store {
-  pub user_store: KVStore<User>,
+  pub user_store: UserStore,
   pub item_store: KVStore<Item>,
   pub session_store: KVStore<Session>
 }
 
 impl Store {
   pub fn new(data_dir: &str) -> Store {
-    let user_store: KVStore<User> = match KVStore::init(data_dir, "users.json") {
+    let user_store: UserStore = match UserStore::init(data_dir, "users.json") {
       Ok(store) => store,
       Err(e) => {
         println!("Could not read user store log: {e}");

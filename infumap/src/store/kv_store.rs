@@ -179,7 +179,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     self.map.iter()
   }
   
-  pub fn _get(&self, id: &str) -> Option<&T> {
+  pub fn get(&self, id: &str) -> Option<&T> {
     self.map.get(id)
   }
 
