@@ -31,7 +31,7 @@ async fn main() {
   // TODO (HIGH): stops rocket logging working.. why?
   // pretty_env_logger::init();
 
-  let matches = App::new("Infumap")
+  let arg_matches = App::new("Infumap")
     .version("0.1.0")
     .subcommand(web::make_clap_subcommand())
     .subcommand(cli::new_user::make_clap_subcommand())
@@ -39,12 +39,12 @@ async fn main() {
 
   // test();
 
-  match matches.subcommand() {
-    Some(("web", sub_matches)) => {
-      web::handle_command_arg_matches(sub_matches).await
+  match arg_matches.subcommand() {
+    Some(("web", arg_sub_matches)) => {
+      web::execute(arg_sub_matches).await
     },
-    Some(("new-user", sub_matches)) => {
-      cli::new_user::handle_command_arg_matches(sub_matches)
+    Some(("new-user", arg_sub_matches)) => {
+      cli::new_user::execute(arg_sub_matches)
     },
     _ => {
       println!(".. --help for help.");

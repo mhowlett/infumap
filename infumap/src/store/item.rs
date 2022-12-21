@@ -16,7 +16,7 @@
 
 use serde_json::{Value, Map, Number};
 use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
-use super::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
+use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
 pub enum RelationshipToParent {
@@ -50,7 +50,7 @@ pub struct Item {
   pub id: Uid,
   pub parent_id: Option<Uid>,
   pub relationship_to_parent: RelationshipToParent,
-  pub creation_date: i64, // The creation date of the item.
+  pub creation_date: i64,
   pub last_modified_date: i64,
   pub ordering: Vec<u8>,
   pub title: String,

@@ -16,7 +16,8 @@
 
 use serde_json::{Map, Value};
 use crate::util::{infu::{InfuError, InfuResult}, uid::Uid};
-use super::{JsonLogSerializable, get_json_object_string_field};
+
+use super::kv_store::{JsonLogSerializable, get_json_object_string_field};
 
 
 pub struct User {

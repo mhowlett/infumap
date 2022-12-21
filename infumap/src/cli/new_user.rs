@@ -18,7 +18,8 @@ use std::io::{BufRead, Write};
 use clap::{ArgMatches, App, Arg};
 use crate::config::setup_config;
 use crate::store::item::{Item, RelationshipToParent};
-use crate::store::{KVStore, user::User};
+use crate::store::kv_store::KVStore;
+use crate::store::user::User;
 use crate::util::geometry::Vector;
 use crate::util::uid::{new_uid, Uid};
 use sha2::{Sha256, Digest};
@@ -37,7 +38,7 @@ pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
       .required(false))
 }
 
-pub fn handle_command_arg_matches<'a>(sub_matches: &ArgMatches) {
+pub fn execute<'a>(sub_matches: &ArgMatches) {
   let config = match setup_config(sub_matches.value_of("settings_path")) {
     Ok(c) => c,
     Err(e) => {

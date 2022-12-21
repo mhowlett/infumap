@@ -16,7 +16,8 @@
 
 use serde_json::{Value, Map};
 use crate::util::{uid::Uid, infu::InfuResult};
-use super::{JsonLogSerializable, get_json_object_string_field, get_json_object_integer_field};
+
+use super::kv_store::{JsonLogSerializable, get_json_object_string_field, get_json_object_integer_field};
 
 
 pub struct Session {

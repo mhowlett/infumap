@@ -17,13 +17,15 @@
 mod responders;
 mod dist_handlers;
 
-use rocket::response::content::RawJson;
+use rocket::{response::content::RawJson, Rocket, Build};
+use rocket::fairing::AdHoc;
 use uuid::{uuid, Uuid};
 use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
 use clap::{App, ArgMatches, Arg};
 
-use crate::{store::{KVStore, user::User}, config::setup_config};
+use crate::store::Store;
+use crate::config::setup_config;
 
 
 #[get("/gen")]
@@ -75,27 +77,21 @@ pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
       .required(false))
 }
 
-pub async fn handle_command_arg_matches<'a>(sub_matches: &ArgMatches) {
-
-  let config = match setup_config(sub_matches.value_of("settings_path")) {
+pub async fn execute<'a>(arg_matches: &ArgMatches) {
+  let config = match setup_config(arg_matches.value_of("settings_path")) {
     Ok(c) => c,
-    Err(e) => {
-      println!("Could not setup configuration {e}");
-      return;
-    }
+    Err(e) => { println!("Could not setup configuration {e}"); return; }
   };
 
-  let _user_store: KVStore<User> = match KVStore::init(&config.get_string("data_dir").unwrap(), "users.json") {
-    Ok(store) => store,
-    Err(e) => {
-      println!("Could not read user store log: {e}");
-      return;
-    }
+  let data_dir = config.get_string("data_dir").unwrap();
+
+  let init_store = |rocket: Rocket<Build>| async move {
+    rocket.manage(Store::new(&data_dir))
   };
 
   _ = dist_handlers::mount(
     rocket::build()
       .mount("/", routes![json])
-      .mount("/", routes![gen])).launch().await;
-
+      .mount("/", routes![gen])
+      .attach(AdHoc::on_ignite("Initialize Store", init_store))).launch().await;
 }
