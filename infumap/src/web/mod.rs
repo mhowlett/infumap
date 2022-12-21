@@ -16,8 +16,9 @@
 
 mod responders;
 mod dist_handlers;
+mod routes;
 
-use rocket::{response::content::RawJson, Rocket, Build};
+use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use uuid::{uuid, Uuid};
 use std::time::SystemTime;
@@ -58,12 +59,6 @@ fn gen() -> String {
 }
 
 
-#[get("/test-json")]
-fn json() -> RawJson<&'static str> {
-  // TODO (HIGH): remove. Playing with JSON.
-  RawJson("[{ \"test\": \"one\" }, { \"test\": \"two\" }]")
-}
-
 pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
   App::new("web")
     .about("The Infumap web server")
@@ -91,7 +86,10 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
 
   _ = dist_handlers::mount(
     rocket::build()
-      .mount("/", routes![json])
-      .mount("/", routes![gen])
+      .mount("/", routes![
+        gen,
+        routes::account::login,
+        routes::account::logout
+      ])
       .attach(AdHoc::on_ignite("Initialize Store", init_store))).launch().await;
 }

@@ -45,3 +45,15 @@ render(() => (
     </UserStoreProvider>
   </ItemStoreProvider>
 ), document.getElementById('root') as HTMLElement);
+
+
+fetch('/account/login', {
+    method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ "username": "test", "password": "qwerty" })
+})
+.then(response => response.json())
+.then(response => console.log(JSON.stringify(response)))
