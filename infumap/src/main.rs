@@ -32,7 +32,7 @@ async fn main() {
   let arg_matches = App::new("Infumap")
     .version("0.1.0")
     .subcommand(web::make_clap_subcommand())
-    .subcommand(cli::new_user::make_clap_subcommand())
+    .subcommand(cli::add_user::make_clap_subcommand())
     .get_matches();
 
   // test();
@@ -41,8 +41,8 @@ async fn main() {
     Some(("web", arg_sub_matches)) => {
       web::execute(arg_sub_matches).await
     },
-    Some(("new-user", arg_sub_matches)) => {
-      cli::new_user::execute(arg_sub_matches)
+    Some(("add-user", arg_sub_matches)) => {
+      cli::add_user::execute(arg_sub_matches)
     },
     _ => {
       println!(".. --help for help.");

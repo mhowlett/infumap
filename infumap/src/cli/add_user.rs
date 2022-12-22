@@ -27,7 +27,7 @@ use crate::util::uid::{new_uid, Uid};
 
 
 pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
-  App::new("new-user")
+  App::new("add-user")
     .about("Create a new user")
     .arg(Arg::new("settings_path")
       .short('s')
