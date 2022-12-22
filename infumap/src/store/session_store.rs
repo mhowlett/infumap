@@ -86,9 +86,11 @@ impl SessionStore {
       if let Some(ids) = self.ids_by_user.remove(&user_id) { ids }
       else { return Err(InfuError::new(&format!("Session '{}' does not exist in ids_by_user map.", id))); };
 
-    let new_ids_for_user =
+    let new_ids_for_user: Vec<String> =
       current_ids_for_user.iter().filter(|vid| *vid != id).map(|v| v.clone()).collect();
-    self.ids_by_user.insert(user_id, new_ids_for_user);
+    if new_ids_for_user.len() > 0 {
+      self.ids_by_user.insert(user_id, new_ids_for_user);
+    }
 
     Ok(())
   }
