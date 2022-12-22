@@ -17,7 +17,7 @@
 use rocket::State;
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
-use crate::store::{Stores, user::User};
+use crate::store::{Store, user::User};
 use crate::util::base62;
 use uuid::{uuid, Uuid};
 use std::sync::Mutex;
@@ -40,10 +40,10 @@ pub struct LoginResponse {
 }
 
 #[post("/account/login", data = "<request>")]
-pub fn login(stores: &State<Mutex<Stores>>, request: Json<LoginRequest>) -> Json<LoginResponse> {
-  let mut stores = stores.lock().unwrap();
+pub fn login(store: &State<Mutex<Store>>, request: Json<LoginRequest>) -> Json<LoginResponse> {
+  let mut store = store.lock().unwrap();
 
-  let user = match stores.user_store.get_by_username(&request.username) {
+  let user = match store.user.get_by_username(&request.username) {
     Some(user) => user,
     None => {
       info!("Login was attempted for a user that does not exist '{}'.", request.username);
@@ -57,7 +57,7 @@ pub fn login(stores: &State<Mutex<Stores>>, request: Json<LoginRequest>) -> Json
     return Json(LoginResponse { success: false, session_id: None, user_id: None, root_page_id: None });
   }
 
-  match stores.session_store.create_session(&user.id) {
+  match store.session.create_session(&user.id) {
     Ok(session) => {
       let result = LoginResponse {
         success: true,
@@ -87,7 +87,7 @@ pub struct LogoutResponse {
 }
 
 #[post("/account/logout", data = "<_payload>")]
-pub fn logout(_stores: &State<Mutex<Stores>>, _payload: Json<LogoutRequest>) -> Json<LogoutResponse> {
+pub fn logout(_store: &State<Mutex<Store>>, _payload: Json<LogoutRequest>) -> Json<LogoutResponse> {
   let result = LogoutResponse { success: false };
 
   Json(result)

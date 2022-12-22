@@ -22,7 +22,7 @@ use std::sync::Mutex;
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use clap::{App, ArgMatches, Arg};
-use crate::store::Stores;
+use crate::store::Store;
 use crate::config::setup_config;
 
 
@@ -47,7 +47,7 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
 
   let data_dir = config.get_string("data_dir").unwrap();
   let init_stores = |rocket: Rocket<Build>| async move {
-    rocket.manage(Mutex::new(Stores::new(&data_dir)))
+    rocket.manage(Mutex::new(Store::new(&data_dir)))
   };
 
   _ = dist_handlers::mount(
