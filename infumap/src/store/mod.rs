@@ -35,7 +35,7 @@ pub struct Store {
 
 impl Store {
   pub fn new(data_dir: &str) -> Store {
-    let user_store: UserStore = match UserStore::init(data_dir, "users.json") {
+    let user_store: UserStore = match UserStore::init(data_dir) {
       Ok(store) => store,
       Err(e) => {
         println!("Could not initialize user store: {e}");
@@ -44,10 +44,10 @@ impl Store {
     };
 
     // Assume for the moment there is just one user...
-    let (_id, user) = user_store.get_iter().next().unwrap();
+    let (user_id, _user) = user_store.get_iter().next().unwrap();
 
-    let path = String::from("items_") + &user.username + &String::from(".json");
-    let item_store: ItemStore = match ItemStore::init(data_dir, &path) {
+    let mut item_store = ItemStore::init(data_dir);
+    match item_store.load_user_items(&user_id, false) {
       Ok(store) => store,
       Err(e) => {
         println!("Could not initialize item store: {e}");
@@ -55,7 +55,7 @@ impl Store {
       }
     };
 
-    let session_store = match SessionStore::init(data_dir, "sessions.json") {
+    let session_store = match SessionStore::init(data_dir) {
       Ok(store) => store,
       Err(e) => {
         println!("Could not initialize session store: {e}");

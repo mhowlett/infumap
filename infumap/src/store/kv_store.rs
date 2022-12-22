@@ -134,9 +134,9 @@ pub struct KVStore<T> where T: JsonLogSerializable<T> {
 }
 
 impl<T> KVStore<T> where T: JsonLogSerializable<T> {
-  pub fn init(data_dir: &str, log_file_name: &str) -> InfuResult<KVStore<T>> {
+  pub fn init(data_dir: &str, log_filename: &str) -> InfuResult<KVStore<T>> {
     let mut log_path = expand_tilde(data_dir).ok_or(InfuError::new("Could not interpret path."))?;
-    log_path.push(log_file_name);
+    log_path.push(log_filename);
     let path = log_path.as_path().to_str().unwrap();
     if !std::path::Path::new(path).exists() {
       let file = File::create(path)?;

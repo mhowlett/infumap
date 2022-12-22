@@ -19,6 +19,7 @@ use std::time::SystemTime;
 use clap::{ArgMatches, App, Arg};
 use crate::config::setup_config;
 use crate::store::item::{Item, RelationshipToParent};
+use crate::store::item_store::ItemStore;
 use crate::store::kv_store::KVStore;
 use crate::store::user::User;
 use crate::util::geometry::Vector;
@@ -72,13 +73,15 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
   stdout.lock().flush().unwrap();
   let password = stdin.lock().lines().next().unwrap().unwrap();
 
-  match user_store.add(User {
-    id: user_id,
+  let user = User {
+    id: user_id.clone(),
     username: username.clone(),
     password_hash: User::compute_password_hash(&password_salt, &password),
     password_salt: password_salt,
     root_page_id: root_page_id.clone()
-  }) {
+  };
+
+  match user_store.add(user.clone()) {
     Ok(_) => {},
     Err(e) => {
       println!("Failed to add new user to store: {e}");
@@ -86,16 +89,24 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
     }
   }
 
-  let path = String::from("items_") + &username + &String::from(".json");
-  let mut item_store: KVStore<Item> = match KVStore::init(data_dir, &path) {
-    Ok(store) => store,
+  // let path = String::from("items_") + &username + &String::from(".json");
+  // let mut item_store: KVStore<Item> = match KVStore::init(data_dir, &path) {
+  //   Ok(store) => store,
+  //   Err(e) => {
+  //     println!("Could not open item store log for user '{username}': {e}.");
+  //     return;
+  //   }
+  // };
+  let mut item_store = ItemStore::init(data_dir);
+  match item_store.load_user_items(&user.id, true) {
+    Ok(_) => {},
     Err(e) => {
-      println!("Could not open item store log for user '{username}': {e}.");
+      println!("Failed to create item store for user: {e}");
       return;
     }
-  };
+  }
 
-  match item_store.add(default_page(&username, root_page_id)) {
+  match item_store.add(default_page(user_id.as_str(), &username, root_page_id)) {
     Ok(_) => {},
     Err(e) => {
       println!("Failed to add top level page for user '{username}': {e}.");
@@ -105,9 +116,10 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
 
 }
 
-fn default_page(username: &str, root_page_id: Uid) -> Item {
+fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
   Item {
     item_type: String::from("page"),
+    owner_id: String::from(owner_id),
     id: root_page_id,
     parent_id: None,
     relationship_to_parent: RelationshipToParent::NoParent,

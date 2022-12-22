@@ -29,8 +29,9 @@ pub struct UserStore {
 }
 
 impl UserStore {
-  pub fn init(data_dir: &str, log_file_name: &str) -> InfuResult<UserStore> {
-    let store: KVStore<User> = KVStore::init(data_dir, log_file_name)?;
+  pub fn init(data_dir: &str) -> InfuResult<UserStore> {
+    const LOG_FILENAME: &str = "users.json";
+    let store: KVStore<User> = KVStore::init(data_dir, LOG_FILENAME)?;
     let mut id_by_username = HashMap::new();
     for (id, user) in store.get_iter() {
       id_by_username.insert(user.username.clone(), id.clone());

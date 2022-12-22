@@ -14,19 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::util::infu::InfuResult;
-
+use std::collections::HashMap;
+use crate::util::infu::{InfuResult, InfuError};
+use crate::util::uid::Uid;
 use super::{kv_store::KVStore, item::Item};
+
 
 /// Store for Item instances.
 /// Not threadsafe.
 pub struct ItemStore {
-  _store: KVStore<Item>,
+  data_dir: String,
+  stores: HashMap<Uid, KVStore<Item>>,
 }
 
 impl ItemStore {
-  pub fn init(data_dir: &str, log_file_name: &str) -> InfuResult<ItemStore> {
-    let _store: KVStore<Item> = KVStore::init(data_dir, log_file_name)?;
-    Ok(ItemStore { _store })
+  pub fn init(data_dir: &str) -> ItemStore {
+    ItemStore { data_dir: String::from(data_dir), stores: HashMap::new() }
+  }
+
+  pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
+    let log_filename = String::from("items_") + &user_id + &String::from(".json");
+    if creating {
+      if std::path::Path::new(&log_filename).exists() {
+        return Err(InfuError::new(&format!("Items log file already exists for user: '{}'.", user_id)));
+      }
+    } else {
+      if std::path::Path::new(&log_filename).exists() {
+        return Err(InfuError::new(&format!("Items log file does not exist for user: '{}'.", user_id)));
+      }
+    }
+    let store: KVStore<Item> = KVStore::init(&self.data_dir, &log_filename)?;
+    self.stores.insert(String::from(user_id), store);
+    Ok(())
+  }
+
+  pub fn _unload_user_items(_user_id: &str) -> InfuResult<()> {
+    todo!()
+  }
+
+  pub fn add(&mut self, item: Item) -> InfuResult<()> {
+    let store = self.stores.get_mut(&item.owner_id)
+      .ok_or(InfuError::new(&format!("Store has not been loaded for user '{}'", item.owner_id)))?;
+    store.add(item)
   }
 }

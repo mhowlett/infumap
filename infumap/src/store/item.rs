@@ -57,6 +57,7 @@ impl RelationshipToParent {
 
 pub struct Item {
   pub item_type: String,
+  pub owner_id: Uid,
   pub id: Uid,
   pub parent_id: Option<Uid>,
   pub relationship_to_parent: RelationshipToParent,
@@ -84,7 +85,7 @@ pub struct Item {
 
 impl Clone for Item {
   fn clone(&self) -> Self {
-    Self { item_type: self.item_type.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), bg_color_idx: self.bg_color_idx.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
+    Self { item_type: self.item_type.clone(), owner_id: self.owner_id.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), bg_color_idx: self.bg_color_idx.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
   }
 }
 
@@ -102,6 +103,7 @@ impl JsonLogSerializable<Item> for Item {
     result.insert(String::from("__record_type"), Value::String(String::from("entry")));
     result.insert(String::from("item_type"), Value::String(self.item_type.clone()));
     result.insert(String::from("id"), Value::String(self.id.clone()));
+    result.insert(String::from("owner_id"), Value::String(self.owner_id.clone()));
     match &self.parent_id {
       Some(uid) => { result.insert(String::from("parent_id"), Value::String(uid.clone())); },
       None => { result.insert(String::from("parent_id"), Value::Null); }
@@ -148,6 +150,7 @@ impl JsonLogSerializable<Item> for Item {
     Ok(Item {
       item_type: get_json_object_string_field(map, "item_type")?,
       id: get_json_object_string_field(map, "id")?,
+      owner_id: get_json_object_string_field(map, "owner_id")?,
       parent_id: match get_json_object_string_field(map, "parent_id") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
       relationship_to_parent: RelationshipToParent::from_string(&get_json_object_string_field(map, "relationship_to_parent")?)?,
       creation_date: get_json_object_integer_field(map, "creation_date")?,
