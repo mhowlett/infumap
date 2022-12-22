@@ -21,14 +21,12 @@ mod cli;
 mod config;
 
 #[macro_use] extern crate rocket;
-// use std::error::Error;
-
 use clap::App;
 
 
 #[rocket::main]
 async fn main() {
-  // TODO (HIGH): stops rocket logging working.. why?
+  // TODO (MEDIUM): Initialize logging like this when not using rocket.
   // pretty_env_logger::init();
 
   let arg_matches = App::new("Infumap")

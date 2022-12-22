@@ -17,8 +17,10 @@
 use rocket::State;
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
-use crate::{store::{Store, user::User}, util::base62};
+use crate::store::{Store, user::User};
+use crate::util::base62;
 use uuid::{uuid, Uuid};
+use std::sync::Mutex;
 use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
 
@@ -33,23 +35,26 @@ pub struct LoginRequest {
 pub struct LoginResponse {
   success: bool,
   session_id: Option<String>,
+  user_id: Option<String>,
   root_page_id: Option<String>,
 }
 
-#[post("/account/login", data = "<payload>")]
-pub fn login(store: &State<Store>, payload: Json<LoginRequest>) -> Json<LoginResponse> {
-  let user = match store.user_store.get_by_username(&payload.username) {
-    Some(u) => u,
-    None => {
-      // TODO (HIGH): Log message.
-      return Json(LoginResponse { success: false, session_id: None, root_page_id: None })
-    }
-  };
+#[post("/account/login", data = "<request>")]
+pub fn login(store: &State<Mutex<Store>>, request: Json<LoginRequest>) -> Json<LoginResponse> {
+  let mut store = store.lock().unwrap();
 
-  let test_hash = User::compute_password_hash(&user.password_salt, &payload.password);
+  let user = match store.user_store.get_by_username(&request.username) {
+    Some(user) => user,
+    None => {
+      info!("Login was attempted for a user that does not exist '{}'.", request.username);
+      return Json(LoginResponse { success: false, session_id: None, user_id: None, root_page_id: None })
+    }
+  }.clone();
+
+  let test_hash = User::compute_password_hash(&user.password_salt, &request.password);
   if test_hash != user.password_hash {
-    // TODO (HIGH): Log message.
-    return Json(LoginResponse { success: false, session_id: None, root_page_id: None });
+    info!("A login attempt for user '{}' failed due to incorrect password.", request.username);
+    return Json(LoginResponse { success: false, session_id: None, user_id: None, root_page_id: None });
   }
 
   match store.session_store.create_session(&user.id) {
@@ -57,13 +62,14 @@ pub fn login(store: &State<Store>, payload: Json<LoginRequest>) -> Json<LoginRes
       let result = LoginResponse {
         success: true,
         session_id: Some(session.id),
+        user_id: Some(user.id),
         root_page_id: Some(user.root_page_id.clone())
       };
       Json(result)
     },
-    Err(_e) => {
-      // TODO (HIGH): Log message.
-      Json(LoginResponse { success: false, session_id: None, root_page_id: None })
+    Err(e) => {
+      error!("Failed to create session for user '{}': {}.", request.username, e);
+      Json(LoginResponse { success: false, session_id: None, user_id: None, root_page_id: None })
     }
   }
 }
@@ -71,7 +77,8 @@ pub fn login(store: &State<Store>, payload: Json<LoginRequest>) -> Json<LoginRes
 
 #[derive(Deserialize)]
 pub struct LogoutRequest {
-    _username: String,
+    _user_id: String,
+    _session_id: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -80,7 +87,7 @@ pub struct LogoutResponse {
 }
 
 #[post("/account/logout", data = "<_payload>")]
-pub fn logout(_store: &State<Store>, _payload: Json<LogoutRequest>) -> Json<LogoutResponse> {
+pub fn logout(_store: &State<Mutex<Store>>, _payload: Json<LogoutRequest>) -> Json<LogoutResponse> {
   let result = LogoutResponse { success: false };
 
   Json(result)

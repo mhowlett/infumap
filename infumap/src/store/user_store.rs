@@ -21,6 +21,8 @@ use super::kv_store::KVStore;
 use super::user::User;
 
 
+/// Store for User instances.
+/// Not threadsafe.
 pub struct UserStore {
   store: KVStore<User>,
   id_by_username: HashMap<String, String>

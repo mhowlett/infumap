@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::sync::Mutex;
 use rocket::{State, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use crate::store::Store;
@@ -31,6 +32,6 @@ pub struct SendResponse {
 }
 
 #[post("/command", data = "<_payload>")]
-pub fn send(_store: &State<Store>, _payload: Json<SendRequest>) -> Json<SendResponse> {
+pub fn send(_store: &State<Mutex<Store>>, _payload: Json<SendRequest>) -> Json<SendResponse> {
   Json(SendResponse {})
 }
