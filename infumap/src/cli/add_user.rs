@@ -89,14 +89,6 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
     }
   }
 
-  // let path = String::from("items_") + &username + &String::from(".json");
-  // let mut item_store: KVStore<Item> = match KVStore::init(data_dir, &path) {
-  //   Ok(store) => store,
-  //   Err(e) => {
-  //     println!("Could not open item store log for user '{username}': {e}.");
-  //     return;
-  //   }
-  // };
   let mut item_store = ItemStore::init(data_dir);
   match item_store.load_user_items(&user.id, true) {
     Ok(_) => {},

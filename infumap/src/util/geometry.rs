@@ -20,7 +20,7 @@ pub struct Vector<T> {
 }
 
 impl Clone for Vector<f64> {
-    fn clone(&self) -> Self {
-        Self { x: self.x.clone(), y: self.y.clone() }
-    }
+  fn clone(&self) -> Self {
+    Self { x: self.x.clone(), y: self.y.clone() }
+  }
 }
