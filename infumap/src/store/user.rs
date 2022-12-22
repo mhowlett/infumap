@@ -37,6 +37,12 @@ impl User {
   }
 }
 
+impl Clone for User {
+  fn clone(&self) -> Self {
+    Self { id: self.id.clone(), username: self.username.clone(), password_hash: self.password_hash.clone(), password_salt: self.password_salt.clone(), root_page_id: self.root_page_id.clone() }
+  }
+}
+
 impl JsonLogSerializable<User> for User {
   fn value_type_identifier() -> &'static str {
     "user"

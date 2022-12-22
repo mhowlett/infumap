@@ -17,46 +17,11 @@
 mod responders;
 mod dist_handlers;
 mod routes;
-
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
-use uuid::{uuid, Uuid};
-use std::time::SystemTime;
-use totp_rs::{Algorithm, TOTP};
 use clap::{App, ArgMatches, Arg};
-
 use crate::store::Store;
 use crate::config::setup_config;
-
-
-#[get("/gen")]
-fn gen() -> String {
-  // TODO (HIGH): remove. playing with OTP / base62 uuids.
-
-  const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
-  // let key_uuid = uuid::Uuid::new_v4();
-  let b = ID.as_bytes().clone();
-  let a = super::util::base62::encode(&b);
-  println!("{}", a);
-
-  // The secret should be randomly generated of N bits length (look it up)
-  let totp = TOTP::new(
-    Algorithm::SHA1,
-    6,
-    1,
-    30,
-    "hello123123123123123123123123123".as_bytes(),
-    Some("infumap".to_string()),
-    "math".to_string()
-  ).unwrap();
-  let time = SystemTime::now()
-    .duration_since(SystemTime::UNIX_EPOCH).unwrap()
-    .as_secs();
-  println!("{}", totp.get_url());
-  let token = totp.generate(time);
-  println!("{}", token);
-  "hello".to_string()
-}
 
 
 pub fn make_clap_subcommand<'a, 'b>() -> App<'a> {
@@ -79,7 +44,6 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
   };
 
   let data_dir = config.get_string("data_dir").unwrap();
-
   let init_store = |rocket: Rocket<Build>| async move {
     rocket.manage(Store::new(&data_dir))
   };
@@ -87,9 +51,9 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
   _ = dist_handlers::mount(
     rocket::build()
       .mount("/", routes![
-        gen,
         routes::account::login,
-        routes::account::logout
+        routes::account::logout,
+        routes::command::send,
       ])
       .attach(AdHoc::on_ignite("Initialize Store", init_store))).launch().await;
 }

@@ -15,52 +15,103 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use rocket::State;
-use rocket::response::content::RawJson;
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
-use crate::store::{Store, user::User};
+use crate::{store::{Store, user::User}, util::base62};
+use uuid::{uuid, Uuid};
+use std::time::SystemTime;
+use totp_rs::{Algorithm, TOTP};
 
 
 #[derive(Deserialize)]
-pub struct LoginParams {
+pub struct LoginRequest {
     username: String,
     password: String,
 }
 
 #[derive(Serialize)]
-pub struct LoginResult {
+pub struct LoginResponse {
   success: bool,
   session_id: Option<String>,
   root_page_id: Option<String>,
 }
 
 #[post("/account/login", data = "<payload>")]
-pub fn login(store: &State<Store>, payload: Json<LoginParams>) -> Json<LoginResult> {
-  let user = match store.user_store._get_by_username(&payload.username) {
+pub fn login(store: &State<Store>, payload: Json<LoginRequest>) -> Json<LoginResponse> {
+  let user = match store.user_store.get_by_username(&payload.username) {
     Some(u) => u,
-    None => { return Json(LoginResult { success: false, session_id: None, root_page_id: None }) }
+    None => {
+      // TODO (HIGH): Log message.
+      return Json(LoginResponse { success: false, session_id: None, root_page_id: None })
+    }
   };
 
   let test_hash = User::compute_password_hash(&user.password_salt, &payload.password);
   if test_hash != user.password_hash {
-    return Json(LoginResult { success: false, session_id: None, root_page_id: None });
+    // TODO (HIGH): Log message.
+    return Json(LoginResponse { success: false, session_id: None, root_page_id: None });
   }
 
-  let result = LoginResult {
-    success: true,
-    session_id: Some(String::from("session id 234234")),
-    root_page_id: Some(user.root_page_id.clone())
-  };
+  match store.session_store.create_session(&user.id) {
+    Ok(session) => {
+      let result = LoginResponse {
+        success: true,
+        session_id: Some(session.id),
+        root_page_id: Some(user.root_page_id.clone())
+      };
+      Json(result)
+    },
+    Err(_e) => {
+      // TODO (HIGH): Log message.
+      Json(LoginResponse { success: false, session_id: None, root_page_id: None })
+    }
+  }
+}
+
+
+#[derive(Deserialize)]
+pub struct LogoutRequest {
+    _username: String,
+}
+
+#[derive(Serialize)]
+pub struct LogoutResponse {
+  success: bool,
+}
+
+#[post("/account/logout", data = "<_payload>")]
+pub fn logout(_store: &State<Store>, _payload: Json<LogoutRequest>) -> Json<LogoutResponse> {
+  let result = LogoutResponse { success: false };
 
   Json(result)
 }
 
-#[derive(Deserialize)]
-pub struct LogoutParams {
-    username: String,
-}
 
-#[post("/account/logout", data = "<payload>")]
-pub fn logout(_store: &State<Store>, payload: Json<LogoutParams>) -> RawJson<&str> {
-  RawJson("[{ \"test\": \"one\" }, { \"test\": \"two\" }]")
+#[get("/gen")]
+fn _gen() -> String {
+  // TODO (HIGH): remove. playing with OTP / base62 uuids.
+
+  const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
+  // let key_uuid = uuid::Uuid::new_v4();
+  let b = ID.as_bytes().clone();
+  let a = base62::encode(&b);
+  println!("{}", a);
+
+  // The secret should be randomly generated of N bits length (look it up)
+  let totp = TOTP::new(
+    Algorithm::SHA1,
+    6,
+    1,
+    30,
+    "hello123123123123123123123123123".as_bytes(),
+    Some("infumap".to_string()),
+    "math".to_string()
+  ).unwrap();
+  let time = SystemTime::now()
+    .duration_since(SystemTime::UNIX_EPOCH).unwrap()
+    .as_secs();
+  println!("{}", totp.get_url());
+  let token = totp.generate(time);
+  println!("{}", token);
+  "hello".to_string()
 }

@@ -23,7 +23,7 @@ use super::user::User;
 
 pub struct UserStore {
   store: KVStore<User>,
-  id_by_username: HashMap<String,String>
+  id_by_username: HashMap<String, String>
 }
 
 impl UserStore {
@@ -44,7 +44,7 @@ impl UserStore {
     self.store.get(id)
   }
 
-  pub fn _get_by_username(&self, username: &str) -> Option<&User> {
+  pub fn get_by_username(&self, username: &str) -> Option<&User> {
     match self.id_by_username.get(username) {
       None => None,
       Some(id) => self.store.get(id)

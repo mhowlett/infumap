@@ -15,15 +15,21 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use serde_json::{Value, Map};
-use crate::util::{uid::Uid, infu::InfuResult};
-
+use crate::util::uid::Uid;
+use crate::util::infu::InfuResult;
 use super::kv_store::{JsonLogSerializable, get_json_object_string_field, get_json_object_integer_field};
 
 
 pub struct Session {
-  id: Uid,
-  user_id: Uid,
-  expires: i64
+  pub id: Uid,
+  pub user_id: Uid,
+  pub expires: i64
+}
+
+impl Clone for Session {
+  fn clone(&self) -> Self {
+    Self { id: self.id.clone(), user_id: self.user_id.clone(), expires: self.expires.clone() }
+  }
 }
 
 impl JsonLogSerializable<Session> for Session {

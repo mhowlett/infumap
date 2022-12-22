@@ -16,6 +16,7 @@
 
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::time::SystemTimeError;
 
 pub type InfuResult<T> = Result<T, InfuError>;
 
@@ -51,6 +52,12 @@ impl From<serde_json::Error> for InfuError {
 
 impl From<std::io::Error> for InfuError {
   fn from(err: std::io::Error) -> Self {
+    Self::new(&err.to_string())
+  }
+}
+
+impl From<SystemTimeError> for InfuError {
+  fn from(err: SystemTimeError) -> Self {
     Self::new(&err.to_string())
   }
 }

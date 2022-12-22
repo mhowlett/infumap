@@ -25,6 +25,16 @@ pub enum RelationshipToParent {
   Attachment
 }
 
+impl Clone for RelationshipToParent {
+  fn clone(&self) -> Self {
+    match self {
+      Self::NoParent => Self::NoParent,
+      Self::Child => Self::Child,
+      Self::Attachment => Self::Attachment,
+    }
+  }
+}
+
 impl RelationshipToParent {
   pub fn to_string(&self) -> &'static str {
     match self {
@@ -70,6 +80,12 @@ pub struct Item {
   // file
   pub original_creation_date: Option<i64>,
   // TODO: not complete
+}
+
+impl Clone for Item {
+  fn clone(&self) -> Self {
+    Self { item_type: self.item_type.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), bg_color_idx: self.bg_color_idx.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
+  }
 }
 
 impl JsonLogSerializable<Item> for Item {

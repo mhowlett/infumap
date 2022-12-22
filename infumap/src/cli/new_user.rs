@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::io::{BufRead, Write};
+use std::time::SystemTime;
 use clap::{ArgMatches, App, Arg};
 use crate::config::setup_config;
 use crate::store::item::{Item, RelationshipToParent};
@@ -110,8 +111,8 @@ fn default_page(username: &str, root_page_id: Uid) -> Item {
     id: root_page_id,
     parent_id: None,
     relationship_to_parent: RelationshipToParent::NoParent,
-    creation_date: std::time::SystemTime::now().elapsed().unwrap().as_secs() as i64,
-    last_modified_date: std::time::SystemTime::now().elapsed().unwrap().as_secs() as i64,
+    creation_date: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as i64,
+    last_modified_date: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as i64,
     ordering: vec![128],
     title: username.to_string(),
     spatial_position_bl: Vector { x: 0.0, y: 0.0 },
