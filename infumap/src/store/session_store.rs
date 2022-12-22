@@ -46,13 +46,10 @@ impl SessionStore {
 
     let mut ids_by_user: HashMap<String, Vec<Uid>> = HashMap::new();
     for (id, session) in store.get_iter() {
-      if ids_by_user.contains_key(&session.user_id) {
-        let vec = ids_by_user.get_mut(&session.user_id).unwrap();
+      if let Some(vec) = ids_by_user.get_mut(&session.user_id) {
         vec.push(id.clone());
       } else {
-        let mut vec = vec![];
-        vec.push(id.clone());
-        ids_by_user.insert(session.user_id.clone(), vec);
+        ids_by_user.insert(session.user_id.clone(), vec![id.clone()]);
       }
     }
 
