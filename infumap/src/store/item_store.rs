@@ -33,14 +33,14 @@ impl ItemStore {
   }
 
   pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
-    let log_filename = String::from("items_") + &user_id + &String::from(".json");
+    let log_filename = String::from("items_") + &user_id + ".json";
     if creating {
       if std::path::Path::new(&log_filename).exists() {
-        return Err(InfuError::new(&format!("Items log file already exists for user: '{}'.", user_id)));
+        return Err(InfuError::new(&format!("Items log file already exists for user '{}'.", user_id)));
       }
     } else {
       if std::path::Path::new(&log_filename).exists() {
-        return Err(InfuError::new(&format!("Items log file does not exist for user: '{}'.", user_id)));
+        return Err(InfuError::new(&format!("Items log file does not exist for user '{}'.", user_id)));
       }
     }
     let store: KVStore<Item> = KVStore::init(&self.data_dir, &log_filename)?;

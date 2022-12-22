@@ -27,14 +27,14 @@ pub mod item_store;
 pub mod kv_store;
 
 
-pub struct Store {
+pub struct Stores {
   pub user_store: UserStore,
   pub item_store: ItemStore,
   pub session_store: SessionStore
 }
 
-impl Store {
-  pub fn new(data_dir: &str) -> Store {
+impl Stores {
+  pub fn new(data_dir: &str) -> Stores {
     let user_store: UserStore = match UserStore::init(data_dir) {
       Ok(store) => store,
       Err(e) => {
@@ -63,6 +63,6 @@ impl Store {
       }
     };
 
-    Store { user_store, item_store, session_store }
+    Stores { user_store, item_store, session_store }
   }
 }
