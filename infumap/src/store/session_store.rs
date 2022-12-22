@@ -24,8 +24,8 @@ use super::{kv_store::KVStore, session::Session};
 /// Store for Session instances.
 /// Not threadsafe.
 /// Sessions are automatically removed if expired on init, or on get_session.
-/// TODO (LOW): remove expired sessions periodically as well.
-/// TODO (LOW): log compaction.
+/// TODO (LOW): Remove expired sessions periodically as well.
+/// TODO (LOW): Log compaction.
 pub struct SessionStore {
   store: KVStore<Session>,
   ids_by_user: HashMap<String, Vec<String>>,

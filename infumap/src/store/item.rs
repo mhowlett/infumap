@@ -19,6 +19,7 @@ use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
 use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
+#[derive(PartialEq)]
 pub enum RelationshipToParent {
   NoParent,
   Child,
