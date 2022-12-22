@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use self::item::Item;
-use self::kv_store::KVStore;
+use self::item_store::ItemStore;
 use self::session_store::SessionStore;
 use self::user_store::UserStore;
 
@@ -24,12 +23,13 @@ pub mod user_store;
 pub mod session;
 pub mod session_store;
 pub mod item;
+pub mod item_store;
 pub mod kv_store;
 
 
 pub struct Store {
   pub user_store: UserStore,
-  pub item_store: KVStore<Item>,
+  pub item_store: ItemStore,
   pub session_store: SessionStore
 }
 
@@ -38,7 +38,7 @@ impl Store {
     let user_store: UserStore = match UserStore::init(data_dir, "users.json") {
       Ok(store) => store,
       Err(e) => {
-        println!("Could not read user store log: {e}");
+        println!("Could not initialize user store: {e}");
         panic!();
       }
     };
@@ -47,10 +47,10 @@ impl Store {
     let (_id, user) = user_store.get_iter().next().unwrap();
 
     let path = String::from("items_") + &user.username + &String::from(".json");
-    let item_store: KVStore<Item> = match KVStore::init(data_dir, &path) {
+    let item_store: ItemStore = match ItemStore::init(data_dir, &path) {
       Ok(store) => store,
       Err(e) => {
-        println!("Could not read item store log: {e}");
+        println!("Could not initialize item store: {e}");
         panic!();
       }
     };
@@ -58,7 +58,7 @@ impl Store {
     let session_store = match SessionStore::init(data_dir, "sessions.json") {
       Ok(store) => store,
       Err(e) => {
-        println!("Could not read session store log: {e}");
+        println!("Could not initialize session store: {e}");
         panic!();
       }
     };
