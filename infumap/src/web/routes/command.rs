@@ -49,18 +49,18 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
       match store.session.get_session(&request.session_id) {
         Ok(s) => s,
         Err(e) => {
-          error!("Could not get session '{}' for '{}': {}.", request.session_id, request.user_id, e);
+          error!("An error occurred retrieving session '{}' for user '{}': {}.", request.session_id, request.user_id, e);
           return Json(SendResponse { success: false, json_data: None });
         }
       } {
     Some(s) => s,
     None => {
-      info!("Session '{}' for user '{}' not availble. It may have expired.", request.session_id, request.user_id);
+      info!("Session '{}' for user '{}' is not availble. It may have expired.", request.session_id, request.user_id);
       return Json(SendResponse { success: false, json_data: None });
     }
   };
   if session.user_id != request.user_id {
-    warn!("Session '{}' does not correspond to user '{}'.", request.session_id, request.user_id);
+    warn!("Session '{}' if for user '{}' not user '{}'.", request.session_id, session.user_id, request.user_id);
     return Json(SendResponse { success: false, json_data: None });
   }
 
@@ -69,6 +69,7 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
     match store.item.load_user_items(&session.user_id, false) {
       Ok(_) => {},
       Err(_e) => {
+        error!("An error occurred loading item state for user '{}'.", session.user_id);
         return Json(SendResponse { success: false, json_data: None });
       }
     }
@@ -78,12 +79,17 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
   let response_data_maybe = match request.command.as_str() {
     "get-children" => handle_get_children(&mut store, &request.json_data),
     "get-attachments" => handle_get_attachments(&mut store, &request.json_data),
-    _ => { return Json(SendResponse { success: false, json_data: None }); }
+    "add-item" => handle_add_item(&mut store, &request.json_data),
+    _ => {
+      warn!("Unknown command '{}' issued by user '{}', session '{}'", request.command, request.user_id, request.session_id);
+      return Json(SendResponse { success: false, json_data: None });
+    }
   };
 
   let response_data = match response_data_maybe {
     Ok(r) => r,
-    Err(_e) => {
+    Err(e) => {
+      error!("An error occurred servicing a '{}' command for user '{}': {}.", request.command, request.user_id, e);
       return Json(SendResponse { success: false, json_data: None });
     }
   };
@@ -116,4 +122,13 @@ fn handle_get_attachments(store: &mut MutexGuard<Store>, json: &str) -> InfuResu
   let request: GetAttachmentsRequest = serde_json::from_str(json)?;
   let attachments = store.item.get_attachments(&request.parent_id)?;
   Ok(serde_json::to_string(&attachments)?)
+}
+
+
+#[derive(Deserialize)]
+pub struct AddItemRequest {
+}
+
+fn handle_add_item(_store: &mut MutexGuard<Store>, _json: &str) -> InfuResult<String> {
+  Ok(serde_json::to_string("")?)
 }
