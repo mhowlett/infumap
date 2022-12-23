@@ -128,6 +128,7 @@ impl Serialize for DeleteRecord {
 
 
 /// A pretty naive KV store implementation, but it'll probably be good enough indefinitely.
+/// TODO (MEDIUM): Lock mechanism to ensure only one KVStore instance is accessing files at any given time.
 pub struct KVStore<T> where T: JsonLogSerializable<T> {
   log_path: PathBuf,
   map: HashMap<String, T>

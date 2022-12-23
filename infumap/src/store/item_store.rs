@@ -20,6 +20,7 @@ use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
 use super::kv_store::KVStore;
 use super::item::Item;
+use super::user_store::UserStore;
 
 
 /// Store for Item instances.
@@ -111,18 +112,41 @@ impl ItemStore {
     self.connect_item(&item)
   }
 
-  pub fn _get_children(&self, _parent_id: &Uid) -> Vec<&Item> {
-    todo!()
+  /// TODO (MEDIUM): Make async. This will probably cause issues with rocket if it blocks too long.
+  pub fn _get_children(&mut self, user_store: &UserStore, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
+    let owner_id = match self.owner_id_by_item_id.get(parent_id) {
+      Some(id) => id,
+      None => {
+        // Check if parent_id is a root page id of an unloaded user. If so, load user.
+        match user_store.get_iter().find(|(_uid, user)| &user.root_page_id == parent_id) {
+          None => return Err("Item '{}' is unknown and is not the root page of an unloaded user.".into()),
+          Some((uid, _user)) => {
+            self.load_user_items(uid, false)?;
+            uid
+          }
+        }
+      }
+    };
+    let store = self.store_by_user_id.get(owner_id)
+      .ok_or(format!("Store is not loaded for user '{}'.", owner_id))?;
+    let children = self.children_of
+      .get(parent_id)
+      .unwrap_or(&vec![])
+      .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
+      .ok_or(format!("One or more children of '{}' is not available.", parent_id))?;
+    Ok(children)
   }
 
   pub fn _get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
-    let owner_id = self.owner_id_by_item_id.get(parent_id).ok_or(format!("Unknown item '{}'.", parent_id))?;
-    let store = self.store_by_user_id.get(owner_id).ok_or(format!("No store loaded for user '{}'.", owner_id))?;
+    let owner_id = self.owner_id_by_item_id.get(parent_id)
+      .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;
+    let store = self.store_by_user_id.get(owner_id)
+      .ok_or(format!("Store is not loaded for user '{}'.", owner_id))?;
     let attachments = self.attachments_of
       .get(parent_id)
       .unwrap_or(&vec![])
       .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
-      .ok_or(format!("One or more attachment of '{}' is unknown.", parent_id))?;
+      .ok_or(format!("One or more attachment of '{}' is not available.", parent_id))?;
     Ok(attachments)
   }
 
