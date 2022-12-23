@@ -35,6 +35,7 @@ const App: Component = () => {
   onMount(async () => {
     let user = await fetchUser();
     let rootId = user.rootPageId ?? panic();
+    console.log(user);
     userStore.setUser(user);
     itemStore.setRoot(rootId);
     let r = await fetchContainerItems(rootId);

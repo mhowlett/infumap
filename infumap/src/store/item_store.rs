@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::HashMap;
+use log::info;
+
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
@@ -117,6 +119,7 @@ impl ItemStore {
         match user_store._get_iter().find(|(_uid, user)| &user.root_page_id == parent_id) {
           None => return Err("Item '{}' is unknown and is not the root page of an unloaded user.".into()),
           Some((uid, _user)) => {
+            info!("Loading items for user '{}'.", uid);
             self.load_user_items(uid, false)?;
             uid
           }

@@ -34,8 +34,11 @@ pub struct LoginRequest {
 #[derive(Serialize)]
 pub struct LoginResponse {
   success: bool,
+  #[serde(rename="sessionId")]
   session_id: Option<String>,
+  #[serde(rename="userId")]
   user_id: Option<String>,
+  #[serde(rename="rootPageId")]
   root_page_id: Option<String>,
 }
 
