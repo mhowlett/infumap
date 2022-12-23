@@ -27,13 +27,20 @@ use super::item::Item;
 pub struct ItemStore {
   data_dir: String,
   store_by_user_id: HashMap<Uid, KVStore<Item>>,
+  owner_id_by_item_id: HashMap<Uid, Uid>,
   children_of: HashMap<Uid, Vec<Uid>>,
   attachments_of: HashMap<Uid, Vec<Uid>>,
 }
 
 impl ItemStore {
   pub fn init(data_dir: &str) -> ItemStore {
-    ItemStore { data_dir: String::from(data_dir), store_by_user_id: HashMap::new(), children_of: HashMap::new(), attachments_of: HashMap::new() }
+    ItemStore {
+      data_dir: String::from(data_dir),
+      store_by_user_id: HashMap::new(),
+      owner_id_by_item_id: HashMap::new(),
+      children_of: HashMap::new(),
+      attachments_of: HashMap::new()
+    }
   }
 
   pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
@@ -61,6 +68,7 @@ impl ItemStore {
   }
 
   fn connect_item(&mut self, item: &Item) -> InfuResult<()> {
+    self.owner_id_by_item_id.insert(item.id.clone(), item.owner_id);
     match &item.parent_id {
       Some(parent_id) => {
         match item.relationship_to_parent {
@@ -98,8 +106,25 @@ impl ItemStore {
 
   pub fn add(&mut self, item: Item) -> InfuResult<()> {
     let store = self.store_by_user_id.get_mut(&item.owner_id)
-      .ok_or(InfuError::new(&format!("Store has not been loaded for user '{}'", item.owner_id)))?;
+      .ok_or(InfuError::new(&format!("Store has not been loaded for user '{}'.", item.owner_id)))?;
     store.add(item.clone())?;
     self.connect_item(&item)
   }
+
+  pub fn get_children(&self, _parent_id: &Uid) -> Vec<&Item> {
+    todo!()
+  }
+
+  pub fn get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
+    let owner_id = self.owner_id_by_item_id.get(parent_id)
+      .ok_or(InfuError::new(&format!("Unknown item '{}'.", parent_id)))?;
+    let store = self.store_by_user_id.get(owner_id)
+      .ok_or(InfuError::new(&format!("No store loaded for user '{}'.", owner_id)))?;
+    Ok(self.attachments_of
+      .get(parent_id)
+      .unwrap_or(&vec![])
+      .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
+      .ok_or(InfuError::new(&format!("")))?)
+  }
+
 }
