@@ -17,7 +17,6 @@
 */
 
 import { LINE_HEIGHT_PX, NOTE_PADDING_PX } from '../../constants';
-import { RelationshipToParent } from '../../relationship-to-parent';
 import { cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
@@ -81,7 +80,7 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
   };
 }
 
-export function newNoteItem(parentId: Uid, relationshipToParent: RelationshipToParent, title: string, ordering: Uint8Array): NoteItem {
+export function newNoteItem(parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): NoteItem {
   return {
     type: "note",
     id: newUid(),

@@ -14,24 +14,106 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
+use log::{error, warn};
 use rocket::{State, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use crate::store::Store;
+use crate::util::infu::InfuResult;
 
 
 #[derive(Deserialize)]
 pub struct SendRequest {
-  _username: String,
-  _session_id: String,
-  _command: String,
+  #[serde(rename="userId")]
+  user_id: String,
+  #[serde(rename="sessionId")]
+  session_id: String,
+  command: String,
+  #[serde(rename="jsonData")]
+  json_data: String,
 }
 
 #[derive(Serialize)]
 pub struct SendResponse {
+  success: bool,
+  #[serde(rename="jsonData")]
+  json_data: Option<String>,
 }
 
-#[post("/command", data = "<_payload>")]
-pub fn send(_store: &State<Mutex<Store>>, _payload: Json<SendRequest>) -> Json<SendResponse> {
-  Json(SendResponse {})
+#[post("/command", data = "<request>")]
+pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<SendResponse> {
+  let mut store = store.lock().unwrap();
+
+  // validate session
+  let session = match
+      match store.session.get_session(&request.session_id) {
+        Ok(s) => s,
+        Err(e) => {
+          error!("Could not get session '{}' for '{}': {}.", request.session_id, request.user_id, e);
+          return Json(SendResponse { success: false, json_data: None });
+        }
+      } {
+    Some(s) => s,
+    None => {
+      info!("Session '{}' for user '{}' not availble. It may have expired.", request.session_id, request.user_id);
+      return Json(SendResponse { success: false, json_data: None });
+    }
+  };
+  if session.user_id != request.user_id {
+    warn!("Session '{}' does not correspond to user '{}'.", request.session_id, request.user_id);
+    return Json(SendResponse { success: false, json_data: None });
+  }
+
+  // load user items if required
+  if !store.item.user_items_loaded(&session.user_id) {
+    match store.item.load_user_items(&session.user_id, false) {
+      Ok(_) => {},
+      Err(_e) => {
+        return Json(SendResponse { success: false, json_data: None });
+      }
+    }
+  }
+
+  // handle
+  let response_data_maybe = match request.command.as_str() {
+    "get-children" => handle_get_children(&mut store, &request.json_data),
+    "get-attachments" => handle_get_attachments(&mut store, &request.json_data),
+    _ => { return Json(SendResponse { success: false, json_data: None }); }
+  };
+
+  let response_data = match response_data_maybe {
+    Ok(r) => r,
+    Err(_e) => {
+      return Json(SendResponse { success: false, json_data: None });
+    }
+  };
+
+  let r = SendResponse { success: true, json_data: Some(response_data) };
+  Json(r)
+}
+
+
+#[derive(Deserialize)]
+pub struct GetChildrenRequest {
+  #[serde(rename="containerId")]
+  container_id: String,
+}
+
+fn handle_get_children(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
+  let request: GetChildrenRequest = serde_json::from_str(json)?;
+  let children = store.item.get_children(&request.container_id)?;
+  Ok(serde_json::to_string(&children)?)
+}
+
+
+#[derive(Deserialize)]
+pub struct GetAttachmentsRequest {
+  #[serde(rename="parentId")]
+  parent_id: String,
+}
+
+fn handle_get_attachments(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
+  let request: GetAttachmentsRequest = serde_json::from_str(json)?;
+  let attachments = store.item.get_attachments(&request.parent_id)?;
+  Ok(serde_json::to_string(&attachments)?)
 }

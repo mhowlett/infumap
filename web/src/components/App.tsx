@@ -16,8 +16,8 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onCleanup, onMount } from 'solid-js';
-import { fetchContainerItems } from '../store/items';
+import { Component, onMount } from 'solid-js';
+import { fetchContainerItems } from '../command';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
 import { fetchUser, useUserStore } from '../store/UserStoreProvider';
@@ -35,10 +35,9 @@ const App: Component = () => {
   onMount(async () => {
     let user = await fetchUser();
     let rootId = user.rootPageId ?? panic();
-    console.log(user);
     userStore.setUser(user);
     itemStore.setRoot(rootId);
-    let r = await fetchContainerItems(rootId);
+    let r = await fetchContainerItems(user, rootId);
     itemStore.setChildItems(r);
     layoutStore.setLayout({ currentPageId: rootId });
   });

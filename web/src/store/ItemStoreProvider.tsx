@@ -20,11 +20,11 @@ import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { panic, throwExpression } from "../util/lang";
-import { RelationshipToParent } from "../relationship-to-parent";
 import { asPageItem, isPageItem, PageItem } from "./items/page-item";
 import { Item, setFromParentId } from "./items/base/item";
 import { Uid } from "../util/uid";
 import { Items } from "./items";
+import { Child, NoParent } from "../relationship-to-parent";
 
 
 export interface ItemStoreContextModel {
@@ -115,7 +115,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 
     itms.forEach(item => {
       if (item.parentId == null) {
-        if (item.relationshipToParent != RelationshipToParent.NoParent) { panic(); }
+        if (item.relationshipToParent != NoParent) { panic(); }
       } else {
         updateItem(item.parentId, parentItem => {
           if (!isPageItem(parentItem)) { panic(); }
@@ -131,7 +131,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 
   const addItem = (item: Item): void => {
     setItems("fixed", produce(items => { items[item.id] = item; }));
-    if (item.relationshipToParent == RelationshipToParent.Child) {
+    if (item.relationshipToParent == Child) {
       updateItem(item.parentId!, parentItem => {
         if (!isPageItem(parentItem)) { panic(); }
         (parentItem as PageItem).computed_children.push(item.id);

@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use serde::Serialize;
 use serde_json::{Value, Map, Number};
 use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
 use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize)]
 pub enum RelationshipToParent {
   NoParent,
   Child,
@@ -55,31 +56,43 @@ impl RelationshipToParent {
   }
 }
 
-
+#[derive(Serialize)]
 pub struct Item {
+  #[serde(rename="type")]
   pub item_type: String,
+  #[serde(rename="ownerId")]
   pub owner_id: Uid,
   pub id: Uid,
+  #[serde(rename="parentId")]
   pub parent_id: Option<Uid>,
+  #[serde(rename="relationshipToParent")]
   pub relationship_to_parent: RelationshipToParent,
+  #[serde(rename="creationDate")]
   pub creation_date: i64,
+  #[serde(rename="lastModifiedDate")]
   pub last_modified_date: i64,
   pub ordering: Vec<u8>,
   pub title: String,
+  #[serde(rename="spatialPositionBl")]
   pub spatial_position_bl: Vector<f64>,
 
   // x-sizeable
+  #[serde(rename="spatialWidthBl")]
   pub spatial_width_bl: Option<f64>,
 
   // page
+  #[serde(rename="innerSpatialWidthBl")]
   pub inner_spatial_width_bl: Option<f64>,
+  #[serde(rename="naturalAspect")]
   pub natural_aspect: Option<f64>,
+  #[serde(rename="bgColorIdx")]
   pub bg_color_idx: Option<i64>,
 
   // note
   pub url: Option<String>,
 
   // file
+  #[serde(rename="originalCreationDate")]
   pub original_creation_date: Option<i64>,
   // TODO: not complete
 }

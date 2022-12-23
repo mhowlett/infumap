@@ -15,14 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::HashMap;
-use log::info;
-
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
 use super::kv_store::KVStore;
 use super::item::Item;
-use super::user_store::UserStore;
 
 
 /// Store for Item instances.
@@ -44,6 +41,10 @@ impl ItemStore {
       children_of: HashMap::new(),
       attachments_of: HashMap::new()
     }
+  }
+
+  pub fn user_items_loaded(&self, user_id: &Uid) -> bool {
+    self.store_by_user_id.contains_key(user_id)
   }
 
   pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
@@ -110,22 +111,9 @@ impl ItemStore {
     self.connect_item(&item)
   }
 
-  /// TODO (MEDIUM): Make async. This may cause issues with Rocket if it blocks for too long.
-  pub fn _get_children(&mut self, user_store: &UserStore, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
-    let owner_id = match self.owner_id_by_item_id.get(parent_id) {
-      Some(id) => id,
-      None => {
-        // Check if parent_id is a root page id of an unloaded user. If so, load user.
-        match user_store._get_iter().find(|(_uid, user)| &user.root_page_id == parent_id) {
-          None => return Err("Item '{}' is unknown and is not the root page of an unloaded user.".into()),
-          Some((uid, _user)) => {
-            info!("Loading items for user '{}'.", uid);
-            self.load_user_items(uid, false)?;
-            uid
-          }
-        }
-      }
-    };
+  pub fn get_children(&mut self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
+    let owner_id = self.owner_id_by_item_id.get(parent_id)
+      .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;
     let store = self.store_by_user_id.get(owner_id)
       .ok_or(format!("Store is not loaded for user '{}'.", owner_id))?;
     let children = self.children_of
@@ -136,7 +124,7 @@ impl ItemStore {
     Ok(children)
   }
 
-  pub fn _get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
+  pub fn get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = self.owner_id_by_item_id.get(parent_id)
       .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;
     let store = self.store_by_user_id.get(owner_id)

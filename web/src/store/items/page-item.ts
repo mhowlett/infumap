@@ -16,7 +16,6 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { RelationshipToParent } from '../../relationship-to-parent';
 import { cloneBoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
@@ -73,7 +72,7 @@ export function clonePageItem(item: PageItem): PageItem {
   };
 }
 
-export function newPageItem(parentId: Uid, relationshipToParent: RelationshipToParent, title: string, ordering: Uint8Array): PageItem {
+export function newPageItem(parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): PageItem {
   return {
     type: "page",
     id: newUid(),
@@ -85,7 +84,7 @@ export function newPageItem(parentId: Uid, relationshipToParent: RelationshipToP
     title,
     spatialPositionBl: { x: 0.0, y: 0.0 },
 
-    spatialWidthBl: 60.0,
+    spatialWidthBl: 4.0,
 
     innerSpatialWidthBl: 60.0,
     naturalAspect: 2.0,

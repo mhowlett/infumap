@@ -105,7 +105,7 @@ impl SessionStore {
     Ok(())
   }
 
-  pub fn _get_session(&mut self, id: &Uid) -> InfuResult<Option<Session>> {
+  pub fn get_session(&mut self, id: &Uid) -> InfuResult<Option<Session>> {
     let session_copy =
       if let Some(s) = self.store.get(id) { s.clone() }
       else { return Ok(None); };

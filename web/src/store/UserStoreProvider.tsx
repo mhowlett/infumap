@@ -20,7 +20,7 @@ import { createContext, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, SetStoreFunction } from "solid-js/store";
 import { panic, throwExpression } from "../util/lang";
-import { newUid, Uid } from "../util/uid";
+import { Uid } from "../util/uid";
 
 export const fetchUser: (() => Promise<User>) = async () => {
   let username = "test";
@@ -28,8 +28,8 @@ export const fetchUser: (() => Promise<User>) = async () => {
   let fetchResult = await fetch('/account/login', {
     method: 'POST',
     headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ "username": username, "password": password })
   });

@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { RelationshipToParent } from "../../relationship-to-parent";
+import { Child } from "../../relationship-to-parent";
 import { newOrderingAtEndOfChildren } from "../../store/items";
 import { newNoteItem } from "../../store/items/note-item";
 import { asPageItem, isPageItem, newPageItem, PageItem } from "../../store/items/page-item";
@@ -42,7 +42,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newPage = newPageItem(props.contextItem?.id!, RelationshipToParent.Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
+      let newPage = newPageItem(props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
       newPage.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newPage);
       layoutStore.hideContextMenu();
@@ -51,7 +51,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newNote = newNoteItem(props.contextItem?.id!, RelationshipToParent.Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
+      let newNote = newNoteItem(props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
       newNote.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
       layoutStore.hideContextMenu();

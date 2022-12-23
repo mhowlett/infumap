@@ -62,7 +62,7 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
       .mount("/", routes![
         routes::account::login,
         routes::account::logout,
-        routes::command::send,
+        routes::command::command,
       ])
       .attach(AdHoc::on_ignite("Initialize Store", init_stores))).launch().await;
 }

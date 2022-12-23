@@ -16,10 +16,8 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-export enum RelationshipToParent {
-    NoParent,
-    Child,
-    Attachment,
-    InMove,
-    Unknown
-}
+export const NoParent = "NoParent";
+export const Child = "Child";
+export const Attachment = "Attachment";
+export const InMove = "InMove";
+export const Unknown = "Unknown";

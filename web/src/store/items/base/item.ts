@@ -17,7 +17,6 @@
 */
 
 import { GRID_SIZE } from '../../../constants';
-import { RelationshipToParent } from '../../../relationship-to-parent';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
@@ -29,7 +28,7 @@ export interface Item {
   type: string,
   id: Uid,
   parentId: Uid | null,
-  relationshipToParent: RelationshipToParent,
+  relationshipToParent: string,
   creationDate: number,
   lastModifiedDate: number,
   ordering: Uint8Array,
