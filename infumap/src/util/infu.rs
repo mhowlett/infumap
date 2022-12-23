@@ -61,3 +61,15 @@ impl From<SystemTimeError> for InfuError {
     Self::new(&err.to_string())
   }
 }
+
+impl From<String> for InfuError {
+  fn from(err: String) -> Self {
+    Self::new(&err)
+  }
+}
+
+impl From<&str> for InfuError {
+  fn from(err: &str) -> Self {
+    Self::new(&err)
+  }
+}

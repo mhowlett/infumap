@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::HashMap;
-use crate::util::infu::{InfuResult, InfuError};
+use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
 use super::kv_store::KVStore;
@@ -48,11 +48,11 @@ impl ItemStore {
 
     if creating {
       if std::path::Path::new(&log_filename).exists() {
-        return Err(InfuError::new(&format!("Items log file already exists for user '{}'.", user_id)));
+        return Err(format!("Items log file already exists for user '{}'.", user_id).into());
       }
     } else {
       if std::path::Path::new(&log_filename).exists() {
-        return Err(InfuError::new(&format!("Items log file does not exist for user '{}'.", user_id)));
+        return Err(format!("Items log file does not exist for user '{}'.", user_id).into());
       }
     }
 
@@ -68,7 +68,7 @@ impl ItemStore {
   }
 
   fn connect_item(&mut self, item: &Item) -> InfuResult<()> {
-    self.owner_id_by_item_id.insert(item.id.clone(), item.owner_id);
+    self.owner_id_by_item_id.insert(item.id.clone(), item.owner_id.clone());
     match &item.parent_id {
       Some(parent_id) => {
         match item.relationship_to_parent {
@@ -85,13 +85,13 @@ impl ItemStore {
             }
           },
           RelationshipToParent::NoParent => {
-            return Err(InfuError::new("NoParent relationship is invalid except for root element."));
+            return Err("NoParent relationship is invalid except for root element.".into());
           }
         }
       },
       None => {
         if item.relationship_to_parent != RelationshipToParent::NoParent {
-          return Err(InfuError::new("Root element relationship to parent is not NoParent."));
+          return Err("Root element relationship to parent is not NoParent.".into());
         }
         // By convention, root level items are children of themselves.
         match self.children_of.get_mut(&item.id) {
@@ -106,25 +106,24 @@ impl ItemStore {
 
   pub fn add(&mut self, item: Item) -> InfuResult<()> {
     let store = self.store_by_user_id.get_mut(&item.owner_id)
-      .ok_or(InfuError::new(&format!("Store has not been loaded for user '{}'.", item.owner_id)))?;
+      .ok_or(format!("Store has not been loaded for user '{}'.", item.owner_id))?;
     store.add(item.clone())?;
     self.connect_item(&item)
   }
 
-  pub fn get_children(&self, _parent_id: &Uid) -> Vec<&Item> {
+  pub fn _get_children(&self, _parent_id: &Uid) -> Vec<&Item> {
     todo!()
   }
 
-  pub fn get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
-    let owner_id = self.owner_id_by_item_id.get(parent_id)
-      .ok_or(InfuError::new(&format!("Unknown item '{}'.", parent_id)))?;
-    let store = self.store_by_user_id.get(owner_id)
-      .ok_or(InfuError::new(&format!("No store loaded for user '{}'.", owner_id)))?;
-    Ok(self.attachments_of
+  pub fn _get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
+    let owner_id = self.owner_id_by_item_id.get(parent_id).ok_or(format!("Unknown item '{}'.", parent_id))?;
+    let store = self.store_by_user_id.get(owner_id).ok_or(format!("No store loaded for user '{}'.", owner_id))?;
+    let attachments = self.attachments_of
       .get(parent_id)
       .unwrap_or(&vec![])
       .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
-      .ok_or(InfuError::new(&format!("")))?)
+      .ok_or(format!("One or more attachment of '{}' is unknown.", parent_id))?;
+    Ok(attachments)
   }
 
 }

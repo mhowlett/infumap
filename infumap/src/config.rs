@@ -16,7 +16,7 @@
 
 use std::os::unix::prelude::FileExt;
 use config::{Config, FileFormat};
-use crate::util::infu::{InfuResult, InfuError};
+use crate::util::infu::InfuResult;
 
 
 const CONFIG_PREFIX: &'static str = "INFUMAP";
@@ -26,7 +26,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
 
     Some(path) => {
       if !std::path::Path::new(path).exists() {
-        return Err(InfuError::new(&format!("The specified settings file path '{path}' does not exist.")));
+        return Err(format!("The specified settings file path '{path}' does not exist.").into());
       }
       Some(String::from(path))
     },
@@ -37,7 +37,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         .build() {
           Ok(c) => c,
           Err(e) => {
-            return Err(InfuError::new(&format!("An error occurred building env var-only configuration: '{e}'")));
+            return Err(format!("An error occurred building env var-only configuration: '{e}'").into());
           }
         };
       let env_has_all_mandatory_config = match config.get_string("data_dir") { Ok(_) => true, Err(_) => false };
@@ -49,7 +49,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         let mut pb = match dirs::home_dir() {
           Some(dir) => dir,
           None => {
-            return Err(InfuError::new(&format!("No settings path was specified, and the home dir could not be determined.")));
+            return Err(format!("No settings path was specified, and the home dir could not be determined.").into());
           }
         };
 
@@ -60,7 +60,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
               println!("Settings file was not specified, creating .infumap in home directory.");
             },
             Err(e) => {
-              return Err(InfuError::new(&format!("Could not create .infumap in home directory: {e}")));
+              return Err(format!("Could not create .infumap in home directory: {e}").into());
             }
           }
         }
@@ -68,7 +68,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         pb.push("data");
         if !pb.as_path().exists() {
           if let Err(e) = std::fs::create_dir(pb.as_path()) {
-            return Err(InfuError::new(&format!("Could not create data directory: '{e}'")));
+            return Err(format!("Could not create data directory: '{e}'").into());
           }
         }
 
@@ -78,7 +78,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
           let f = match std::fs::File::create(pb.as_path()) {
             Ok(f) => f,
             Err(e) => {
-              return Err(InfuError::new(&format!("Could not open default settings file for write {e}")));
+              return Err(format!("Could not open default settings file for write {e}").into());
             }
           };
           let buf = include_bytes!("../default_settings.toml");
@@ -87,7 +87,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
               println!("Created default settings file at ~/.infumap/settings.toml");
             },
             Err(e) => {
-              return Err(InfuError::new(&format!("Could not create default settings file at ~/.infumap/settings.toml: '{e}'")));
+              return Err(format!("Could not create default settings file at ~/.infumap/settings.toml: '{e}'").into());
             }
           };
         }
@@ -128,7 +128,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
   let config = match config_builder.build() {
     Ok(c) => c,
     Err(e) => {
-      return Err(InfuError::new(&format!("An error occurred loading configuration: '{e}'")));
+      return Err(format!("An error occurred loading configuration: '{e}'").into());
     }
   };
 

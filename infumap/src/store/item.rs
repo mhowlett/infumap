@@ -50,7 +50,7 @@ impl RelationshipToParent {
       "attachment" => Ok(RelationshipToParent::Attachment),
       "child" => Ok(RelationshipToParent::Child),
       "no-parent" => Ok(RelationshipToParent::NoParent),
-      other => Err(InfuError::new(&format!("invalid relationship-to-parent value: '{}'.", other)))
+      other => Err(format!("invalid relationship-to-parent value: '{}'.", other).into())
     }
   }
 }

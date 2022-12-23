@@ -16,8 +16,8 @@
 
 use serde_json::{Map, Value};
 use sha2::{Sha256, Digest};
-use crate::util::{infu::{InfuError, InfuResult}, uid::Uid};
-
+use crate::util::infu::InfuResult;
+use crate::util::uid::Uid;
 use super::kv_store::{JsonLogSerializable, get_json_object_string_field};
 
 
@@ -75,7 +75,7 @@ impl JsonLogSerializable<User> for User {
   }
 
   fn serialize_update(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
-    if old.id != new.id { return Err(InfuError::new("Attempt was made to create a User update record from instances with non-matching ids.")); }
+    if old.id != new.id { return Err("Attempt was made to create a User update record from instances with non-matching ids.".into()); }
     let mut result: Map<String, Value> = Map::new();
     result.insert(String::from("__record_type"), serde_json::from_str("update")?);
     if old.password_hash != new.password_hash { result.insert(String::from("password_hash"), serde_json::from_str(&new.password_hash)?); }

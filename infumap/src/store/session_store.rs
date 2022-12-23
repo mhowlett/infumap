@@ -16,7 +16,7 @@
 
 use std::time::{Duration, SystemTime};
 use std::collections::HashMap;
-use crate::util::infu::{InfuResult, InfuError};
+use crate::util::infu::InfuResult;
 use crate::util::uid::{new_uid, Uid};
 use super::{kv_store::KVStore, session::Session};
 
@@ -76,13 +76,13 @@ impl SessionStore {
   pub fn _delete_session(&mut self, id: &str) -> InfuResult<()> {
     let session =
       if let Some(session) = self.store.get(id) { session }
-      else { return Err(InfuError::new(&format!("Session '{}' does not exist.", id))); };
+      else { return Err(format!("Session '{}' does not exist.", id).into()); };
     let user_id = session.user_id.clone();
   
     self.store.remove(id)?;
     let current_ids_for_user =
       if let Some(ids) = self.ids_by_user.remove(&user_id) { ids }
-      else { return Err(InfuError::new(&format!("Session '{}' does not exist in ids_by_user map.", id))); };
+      else { return Err(format!("Session '{}' does not exist in ids_by_user map.", id).into()); };
 
     let new_ids_for_user: Vec<String> =
       current_ids_for_user.iter().filter(|vid| *vid != id).map(|v| v.clone()).collect();

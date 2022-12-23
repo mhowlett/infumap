@@ -37,9 +37,9 @@ pub fn get_json_object_string_field(map: &Map<String, Value>, field: &str) -> In
   Ok(String::from(
     map
       .get(field)
-      .ok_or(InfuError::new(&format!("'{}' field was not specified", field)))?
+      .ok_or(format!("'{}' field was not specified", field))?
       .as_str()
-      .ok_or(InfuError::new(&format!("'{}' field was not of type 'string'.", field)))?
+      .ok_or(format!("'{}' field was not of type 'string'.", field))?
   ))
 }
 
@@ -47,9 +47,9 @@ pub fn get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> I
   Ok(
     map
       .get(field)
-      .ok_or(InfuError::new(&format!("'{}' field was not specified", field)))?
+      .ok_or(format!("'{}' field was not specified", field))?
       .as_i64()
-      .ok_or(InfuError::new(&format!("'{}' field was not of type 'i64'.", field)))?
+      .ok_or(format!("'{}' field was not of type 'i64'.", field))?
   )
 }
 
@@ -57,17 +57,17 @@ pub fn get_json_object_float_field(map: &Map<String, Value>, field: &str) -> Inf
   Ok(
     map
       .get(field)
-      .ok_or(InfuError::new(&format!("'{}' field was not specified", field)))?
+      .ok_or(format!("'{}' field was not specified", field))?
       .as_f64()
-      .ok_or(InfuError::new(&format!("'{}' field was not of type 'f64'.", field)))?
+      .ok_or(format!("'{}' field was not of type 'f64'.", field))?
   )
 }
 
 pub fn get_json_object_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Vector<f64>> {
   let o = map
-    .get(field).ok_or(InfuError::new(&format!("'{}' field was not specified", field)))?
+    .get(field).ok_or(format!("'{}' field was not specified", field))?
     .as_object()
-    .ok_or(InfuError::new(&format!("'{}' field was not of type 'f64'.", field)))?;
+    .ok_or(format!("'{}' field was not of type 'f64'.", field))?;
   Ok(Vector {
     x: get_json_object_float_field(o, "x")?,
     y: get_json_object_float_field(o, "y")?
@@ -135,7 +135,7 @@ pub struct KVStore<T> where T: JsonLogSerializable<T> {
 
 impl<T> KVStore<T> where T: JsonLogSerializable<T> {
   pub fn init(data_dir: &str, log_filename: &str) -> InfuResult<KVStore<T>> {
-    let mut log_path = expand_tilde(data_dir).ok_or(InfuError::new("Could not interpret path."))?;
+    let mut log_path = expand_tilde(data_dir).ok_or("Could not interpret path.")?;
     log_path.push(log_filename);
     let path = log_path.as_path().to_str().unwrap();
     if !std::path::Path::new(path).exists() {
@@ -151,7 +151,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
   pub fn add(&mut self, entry: T) -> InfuResult<()> {
     if self.map.contains_key(entry.get_id()) {
-      return Err(InfuError::new(&format!("Entry with id {} already exists.", entry.get_id())));
+      return Err(format!("Entry with id {} already exists.", entry.get_id()).into());
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
@@ -163,14 +163,14 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
   pub fn remove(&mut self, id: &str) -> InfuResult<()> {
     if !self.map.contains_key(id) {
-      return Err(InfuError::new(&format!("Entry with id {} does not exist.", id)));
+      return Err(format!("Entry with id {} does not exist.", id).into());
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     let delete_record = DeleteRecord { id: String::from(id) };
     writer.write_all(serde_json::to_string_pretty(&delete_record)?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
-    self.map.remove(id).ok_or(InfuError::new(&format!("Entry with id {} does not exist (internal logic error).", id)))?;
+    self.map.remove(id).ok_or(format!("Entry with id {} does not exist (internal logic error).", id))?;
     Ok(())
   }
 
@@ -184,12 +184,12 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
   pub fn _update(&mut self, id: &str, updated: T) -> InfuResult<()> {
     if !self.map.contains_key(id) {
-      return Err(InfuError::new(&format!("Entry with id {} does not exist.", id)));
+      return Err(format!("Entry with id {} does not exist.", id).into());
     }
     if id != updated.get_id() {
-      return Err(InfuError::new(&format!("Updated entry has unexpected id.")));
+      return Err(format!("Updated entry has unexpected id.").into());
     }
-    let update_record = T::serialize_update(self.map.get(id).ok_or(InfuError::new("Entry with id {} does not exist (internal logic issue)."))?, &updated)?;
+    let update_record = T::serialize_update(self.map.get(id).ok_or(format!("Entry with id {} does not exist (internal logic issue).", id))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     writer.write_all(serde_json::to_string_pretty(&update_record)?.as_bytes())?;
@@ -214,7 +214,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
           .as_i64()
           .ok_or(InfuError::new("Descriptor version does not have type 'number'."))?;
         if version != 0 {
-          return Err(InfuError::new("Descriptor version is not 0."));
+          return Err("Descriptor version is not 0.".into());
         }
         let value_type = kvs
           .get("value_type")
@@ -222,7 +222,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
           .as_str()
           .ok_or(InfuError::new("Descriptor value_type field is not of type 'string'."))?;
         if value_type != T::value_type_identifier() {
-          return Err(InfuError::new(format!("Descriptor value_type is '{}', expecting '{}'.", value_type, T::value_type_identifier()).as_str()));
+          return Err(format!("Descriptor value_type is '{}', expecting '{}'.", value_type, T::value_type_identifier()).into());
         }
       },
 
@@ -230,7 +230,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
         // Log record is a full specification of an entry value.
         let u = T::deserialize_entry(&kvs)?;
         if result.contains_key(u.get_id()) {
-          return Err(InfuError::new(&format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id())));
+          return Err(format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id()).into());
         }
         result.insert(u.get_id().clone(), u);
       },
@@ -256,13 +256,13 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
           .as_str()
           .ok_or(InfuError::new("Delete log record id does not have type 'string'."))?;
         if !result.contains_key(&String::from(id)) {
-          return Err(InfuError::new(&format!("Delete record has id '{}', but this is unknown.", id)));
+          return Err(format!("Delete record has id '{}', but this is unknown.", id).into());
         }
         result.remove(&String::from(id));
       },
 
       unexpected_record_type => {
-        return Err(InfuError::new(&format!("Unknown log record type '{}'.", unexpected_record_type)));
+        return Err(format!("Unknown log record type '{}'.", unexpected_record_type).into());
       }
     }
 
@@ -280,7 +280,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
       match item? {
         Object(kvs) => { Self::read_log_record(&mut result, &kvs)?; },
         unexpected_type => {
-          return Err(InfuError::new(&format!("Log record has JSON type '{:?}', but 'Object' was expected.", unexpected_type.type_id())));
+          return Err(format!("Log record has JSON type '{:?}', but 'Object' was expected.", unexpected_type.type_id()).into());
         }
       }
     }
