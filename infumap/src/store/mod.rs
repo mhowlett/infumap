@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::util::infu::InfuResult;
 use self::item_store::ItemStore;
 use self::session_store::SessionStore;
 use self::user_store::UserStore;
@@ -34,35 +35,11 @@ pub struct Store {
 }
 
 impl Store {
-  pub fn new(data_dir: &str) -> Store {
-    let user_store: UserStore = match UserStore::init(data_dir) {
-      Ok(store) => store,
-      Err(e) => {
-        println!("Could not initialize user store: {e}");
-        panic!();
-      }
-    };
-
-    // Assume for the moment there is just one user...
-    let (user_id, _user) = user_store.get_iter().next().unwrap();
-
-    let mut item_store = ItemStore::init(data_dir);
-    match item_store.load_user_items(&user_id, false) {
-      Ok(store) => store,
-      Err(e) => {
-        println!("Could not initialize item store: {e}");
-        panic!();
-      }
-    };
-
-    let session_store = match SessionStore::init(data_dir) {
-      Ok(store) => store,
-      Err(e) => {
-        println!("Could not initialize session store: {e}");
-        panic!();
-      }
-    };
-
-    Store { user: user_store, item: item_store, session: session_store }
+  pub fn new(data_dir: &str) -> InfuResult<Store> {
+    Ok(Store {
+      user: UserStore::init(data_dir)?,
+      session: SessionStore::init(data_dir)?,
+      item: ItemStore::init(data_dir)
+    })
   }
 }

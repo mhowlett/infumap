@@ -47,7 +47,14 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
 
   let data_dir = config.get_string("data_dir").unwrap();
   let init_stores = |rocket: Rocket<Build>| async move {
-    rocket.manage(Mutex::new(Store::new(&data_dir)))
+    rocket.manage(Mutex::new(
+      match Store::new(&data_dir) {
+        Ok(store) => store,
+        Err(e) => {
+          println!("Failed to initialize store: {}", e);
+          panic!();
+        }
+      }))
   };
 
   _ = dist_handlers::mount(

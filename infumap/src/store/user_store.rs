@@ -39,7 +39,7 @@ impl UserStore {
     Ok(UserStore { store, id_by_username })
   }
 
-  pub fn get_iter(&self) -> Iter<String, User> {
+  pub fn _get_iter(&self) -> Iter<String, User> {
     self.store.get_iter()
   }
 

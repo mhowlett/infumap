@@ -64,10 +64,6 @@ impl ItemStore {
     Ok(())
   }
 
-  pub fn _unload_user_items(_user_id: &str) -> InfuResult<()> {
-    todo!()
-  }
-
   fn connect_item(&mut self, item: &Item) -> InfuResult<()> {
     self.owner_id_by_item_id.insert(item.id.clone(), item.owner_id.clone());
     match &item.parent_id {
@@ -112,13 +108,13 @@ impl ItemStore {
     self.connect_item(&item)
   }
 
-  /// TODO (MEDIUM): Make async. This will probably cause issues with rocket if it blocks too long.
+  /// TODO (MEDIUM): Make async. This may cause issues with Rocket if it blocks for too long.
   pub fn _get_children(&mut self, user_store: &UserStore, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = match self.owner_id_by_item_id.get(parent_id) {
       Some(id) => id,
       None => {
         // Check if parent_id is a root page id of an unloaded user. If so, load user.
-        match user_store.get_iter().find(|(_uid, user)| &user.root_page_id == parent_id) {
+        match user_store._get_iter().find(|(_uid, user)| &user.root_page_id == parent_id) {
           None => return Err("Item '{}' is unknown and is not the root page of an unloaded user.".into()),
           Some((uid, _user)) => {
             self.load_user_items(uid, false)?;
