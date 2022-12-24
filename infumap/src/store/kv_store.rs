@@ -20,7 +20,8 @@ use std::collections::hash_map::Iter;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use std::{fs::File, io::BufReader};
+use std::fs::File;
+use std::io::BufReader;
 
 use serde::ser::SerializeStruct;
 use serde::Serialize;

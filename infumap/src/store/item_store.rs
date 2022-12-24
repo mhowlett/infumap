@@ -37,6 +37,8 @@ impl ItemStore {
     ItemStore {
       data_dir: String::from(data_dir),
       store_by_user_id: HashMap::new(),
+
+      // indexes
       owner_id_by_item_id: HashMap::new(),
       children_of: HashMap::new(),
       attachments_of: HashMap::new()
@@ -61,13 +63,13 @@ impl ItemStore {
     }
 
     let store: KVStore<Item> = KVStore::init(&self.data_dir, &log_filename)?;
-    for (_id, item) in store.get_iter() { self.connect_item(item)?; }
+    for (_id, item) in store.get_iter() { self.add_to_indexes(item)?; }
     self.store_by_user_id.insert(String::from(user_id), store);
 
     Ok(())
   }
 
-  fn connect_item(&mut self, item: &Item) -> InfuResult<()> {
+  fn add_to_indexes(&mut self, item: &Item) -> InfuResult<()> {
     self.owner_id_by_item_id.insert(item.id.clone(), item.owner_id.clone());
     match &item.parent_id {
       Some(parent_id) => {
@@ -85,13 +87,13 @@ impl ItemStore {
             }
           },
           RelationshipToParent::NoParent => {
-            return Err("NoParent relationship is invalid except for root element.".into());
+            return Err(format!("'no-parent' relationship to parent for item '{}' is not valid because it is not a root item.", item.id).into());
           }
         }
       },
       None => {
         if item.relationship_to_parent != RelationshipToParent::NoParent {
-          return Err("Root element relationship to parent is not NoParent.".into());
+          return Err(format!("Relationship to parent for root item '{}' must be 'no-parent', not '{}'", item.id, item.relationship_to_parent.to_string()).into());
         }
         // By convention, root level items are children of themselves.
         match self.children_of.get_mut(&item.id) {
@@ -100,48 +102,89 @@ impl ItemStore {
         }
       }
     }
+    Ok(())
+  }
 
+  fn remove_from_indexes(&mut self, item: &Item) -> InfuResult<()> {
+    self.owner_id_by_item_id.remove(&item.id).ok_or(format!("Item '{}' is missing from owner_id_by_item_id map.", item.id))?;
+    match &item.parent_id {
+      Some(parent_id) => {
+        match item.relationship_to_parent {
+          RelationshipToParent::Child => {
+            let list = self.children_of.remove(parent_id)
+              .ok_or(format!("Item '{}' parent '{}' is missing a children index.", item.id, parent_id))?;
+            if list.len() > 0 {
+              self.children_of.insert(parent_id.clone(),
+                list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+            }
+          },
+          RelationshipToParent::Attachment => {
+            let list = self.attachments_of.remove(parent_id)
+              .ok_or(format!("Item '{}' parent '{}' is missing an attachment index.", item.id, parent_id))?;
+            if list.len() > 0 {
+              self.attachments_of.insert(parent_id.clone(),
+                list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+            }
+          },
+          RelationshipToParent::NoParent => {
+            return Err(format!("'no-parent' relationship to parent for item '{}' is not valid because it is not a root item.", item.id).into());
+          }
+        }
+      },
+      None => {
+        if item.relationship_to_parent != RelationshipToParent::NoParent {
+          return Err(format!("Relationship to parent for root item '{}' must be 'no-parent', not '{}'", item.id, item.relationship_to_parent.to_string()).into());
+        }
+        // By convention, root level items are children of themselves.
+        let list = self.children_of.remove(&item.id)
+          .ok_or(format!("Root item '{}' is missing a children index.", item.id))?;
+        if list.len() > 0 {
+          self.children_of.insert(item.id.clone(),
+            list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+        }
+      }
+    }
     Ok(())
   }
 
   pub fn add(&mut self, item: Item) -> InfuResult<()> {
-    let store = self.store_by_user_id.get_mut(&item.owner_id)
-      .ok_or(format!("Store has not been loaded for user '{}'.", item.owner_id))?;
-    store.add(item.clone())?;
-    self.connect_item(&item)
+    self.store_by_user_id.get_mut(&item.owner_id)
+      .ok_or(format!("Item store has not been loaded for user '{}'.", item.owner_id))?
+      .add(item.clone())?;
+    self.add_to_indexes(&item)
   }
 
   pub fn update(&mut self, item: &Item) -> InfuResult<()> {
-    let store = self.store_by_user_id.get_mut(&item.owner_id)
-      .ok_or(format!("Store has not been loaded for user '{}'.", item.owner_id))?;
-    store.update(item.clone())
-    // TODO: reconnect.
+    self.remove_from_indexes(&item)?;
+    self.store_by_user_id.get_mut(&item.owner_id)
+      .ok_or(format!("Item store has not been loaded for user '{}'.", item.owner_id))?
+      .update(item.clone())?;
+    self.add_to_indexes(item)
   }
 
   pub fn get_children(&mut self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = self.owner_id_by_item_id.get(parent_id)
-      .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;
+      .ok_or(format!("Unknown item '{}' - corresponding user item store might not be loaded.", parent_id))?;
     let store = self.store_by_user_id.get(owner_id)
-      .ok_or(format!("Store is not loaded for user '{}'.", owner_id))?;
+      .ok_or(format!("Item store is not loaded for user '{}'.", owner_id))?;
     let children = self.children_of
       .get(parent_id)
       .unwrap_or(&vec![])
       .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
-      .ok_or(format!("One or more children of '{}' is not available.", parent_id))?;
+      .ok_or(format!("One or more children of '{}' are missing.", parent_id))?;
     Ok(children)
   }
 
   pub fn get_attachments(&self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = self.owner_id_by_item_id.get(parent_id)
-      .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;
+      .ok_or(format!("Unknown item '{}' - corresponding user item store may not be loaded.", parent_id))?;
     let store = self.store_by_user_id.get(owner_id)
-      .ok_or(format!("Store is not loaded for user '{}'.", owner_id))?;
+      .ok_or(format!("Item store is not loaded for user '{}'.", owner_id))?;
     let attachments = self.attachments_of
       .get(parent_id)
       .unwrap_or(&vec![])
       .iter().map(|id| store.get(&id)).collect::<Option<Vec<&Item>>>()
-      .ok_or(format!("One or more attachment of '{}' is not available.", parent_id))?;
+      .ok_or(format!("One or more attachments of '{}' are missing.", parent_id))?;
     Ok(attachments)
   }
-
 }

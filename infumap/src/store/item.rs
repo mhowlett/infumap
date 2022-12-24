@@ -16,7 +16,10 @@
 
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map, Number};
-use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
+use crate::util::uid::Uid;
+use crate::util::geometry::Vector;
+use crate::util::infu::{InfuResult, InfuError};
+use crate::util::lang::option_xor;
 use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
@@ -294,9 +297,4 @@ impl JsonLogSerializable<Item> for Item {
 
     Ok(())
   }
-}
-
-
-fn option_xor<U, T>(a: &Option<U>, b: &Option<T>) -> bool {
-  a.is_none() && b.is_some() || a.is_some() && b.is_none()
 }
