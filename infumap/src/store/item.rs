@@ -194,11 +194,80 @@ impl JsonLogSerializable<Item> for Item {
     })
   }
 
-  fn serialize_update(_old: &Item, _new: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
-    todo!()
+  fn serialize_update(old: &Item, new: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
+    if old.id != new.id { return Err("Attempt was made to create an Item update record from instances with non-matching ids.".into()); }
+    if old.owner_id != new.owner_id { return Err("Attempt was made to create an Item update record from instances with non-matching owner_ids.".into()); }
+
+    let mut result: Map<String, Value> = Map::new();
+    result.insert(String::from("__recordType"), serde_json::from_str("update")?);
+
+    if option_xor(&old.parent_id, &new.parent_id) { return Err("Attempt was made to add or remove a parent_id in an item update.".into()); }
+    // TODO (LOW): could make this logic a macro.
+    if let Some(parent_id) = &new.parent_id {
+      if old.parent_id.as_ref().unwrap() != parent_id {
+        result.insert(String::from("parentId"), serde_json::from_str(parent_id)?);
+      }
+    }
+
+    if old.relationship_to_parent != new.relationship_to_parent { result.insert(String::from("relationshipToParent"), serde_json::from_str(&new.relationship_to_parent.to_string())?); }
+    if old.creation_date != new.creation_date { return Err("Attempt was made to update item creation_date field.".into()); }
+    if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
+    if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }
+    if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
+    if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), vector_to_object(&new.spatial_position_bl)?); }
+
+    // x-sizable.
+    if option_xor(&old.spatial_width_bl, &new.spatial_width_bl) { return Err("Attempt was made to add or remove spatial_width_bl field in an item update.".into()); }
+    if let Some(spatial_width_bl) = new.spatial_width_bl {
+      if old.spatial_width_bl.unwrap() != spatial_width_bl {
+        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+      }
+    }
+
+    // page
+    if option_xor(&old.inner_spatial_width_bl, &new.inner_spatial_width_bl) { return Err("Attempt was made to add or remove inner_spatial_width_bl field in an item update.".into()); }
+    if let Some(inner_spatial_width_bl) = new.inner_spatial_width_bl {
+      if old.inner_spatial_width_bl.unwrap() != inner_spatial_width_bl {
+        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+      }
+    }
+    if option_xor(&old.natural_aspect, &new.natural_aspect) { return Err("Attempt was made to add or remove natural_aspect field in an item update.".into()); }
+    if let Some(natural_aspect) = new.natural_aspect {
+      if old.natural_aspect.unwrap() != natural_aspect {
+        result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
+      }
+    }
+    if option_xor(&old.bg_color_idx, &new.bg_color_idx) { return Err("Attempt was made to add or remove bg_color_idx field in an item update.".into()); }
+    if let Some(bg_color_idx) = new.bg_color_idx {
+      if old.bg_color_idx.unwrap() != bg_color_idx {
+        result.insert(String::from("bgColorIdx"), Value::Number(bg_color_idx.into()));
+      }
+    }
+
+    // note
+    if option_xor(&old.url, &new.url) { return Err("Attempt was made to add or remove url field in an item update.".into()); }
+    if let Some(url) = &new.url {
+      if old.url.as_ref().unwrap() != url {
+        result.insert(String::from("url"), Value::String(url.clone()));
+      }
+    }
+
+    // file
+    if option_xor(&old.original_creation_date, &new.original_creation_date) { return Err("Attempt was made to add or remove original_creation_date field in an item update.".into()); }
+    if let Some(original_creation_date) = new.original_creation_date {
+      if old.original_creation_date.unwrap() != original_creation_date { return Err("Attempt was made to update item original_creation_date field.".into()); }
+    }
+    // TODO (MEDIUM): not complete.
+
+    Ok(result)
   }
 
   fn deserialize_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
     todo!()
   }
+}
+
+
+fn option_xor<U, T>(a: &Option<U>, b: &Option<T>) -> bool {
+  a.is_none() && b.is_some() || a.is_some() && b.is_none()
 }
