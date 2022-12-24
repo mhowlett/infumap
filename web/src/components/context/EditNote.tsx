@@ -17,24 +17,31 @@
 */
 
 import { Component } from "solid-js";
+import { command } from "../../command";
 import { Item } from "../../store/items/base/item";
 import { asNoteItem } from "../../store/items/note-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
+import { useUserStore } from "../../store/UserStoreProvider";
 import { TextInput } from "../TextInput";
 
 
 export const EditNote: Component<{item: Item}> = (props: {item: Item}) => {
+  const userStore = useUserStore();
   const itemStore = useItemStore();
 
   let noteId = props.item.id;
   let noteItem = asNoteItem(props.item);
 
   const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => item.title = v); };
-  const handleUrlChange = (v: string) => { itemStore.updateItem(noteId, item => asNoteItem(item).url = v); };
+  const handleTextChanged = (v: string) => { command.updateItem(userStore.user, itemStore.getItem(noteId)!); }
+  const handleUrlChange = (v: string) => {
+    itemStore.updateItem(noteId, item => asNoteItem(item).url = v);
+    command.updateItem(userStore.user, itemStore.getItem(noteId)!);
+  };
 
   return (
     <div class="m-1">
-      <div class="text-slate-800 text-sm">Text <TextInput value={noteItem.title} onIncrementalChange={handleTextChange} onChange={null} /></div>
+      <div class="text-slate-800 text-sm">Text <TextInput value={noteItem.title} onIncrementalChange={handleTextChange} onChange={handleTextChanged} /></div>
       <div class="text-slate-800 text-sm">Url <TextInput value={noteItem.url} onIncrementalChange={null} onChange={handleUrlChange} /></div>
     </div>
   );

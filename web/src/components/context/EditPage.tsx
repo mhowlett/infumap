@@ -17,26 +17,36 @@
 */
 
 import { Component } from "solid-js";
+import { command } from "../../command";
 import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
+import { useUserStore } from "../../store/UserStoreProvider";
 import { TextInput } from "../TextInput";
 import { ColorSelector } from "./ColorSelector";
 
 
 export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
+  const userStore = useUserStore();
   const itemStore = useItemStore();
 
   let pageId = props.item.id;
   let pageItem = asPageItem(props.item);
 
-  const handleBlockWidthChange = (v: string) => { itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthBl = parseInt(v)); };
-  const handleNaturalAspectChange = (v: string) => { itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v)); };
+  const handleBlockWidthChange = (v: string) => {
+    itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthBl = parseInt(v));
+    command.updateItem(userStore.user, itemStore.getItem(pageId)!);
+  };
+  const handleNaturalAspectChange = (v: string) => {
+    itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v));
+    command.updateItem(userStore.user, itemStore.getItem(pageId)!);
+  };
   const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => item.title = v); };
+  const handleTitleChanged = (v: string) => { command.updateItem(userStore.user, itemStore.getItem(pageId)!); }
 
   return (
     <div class="m-1">
-      <div class="text-slate-800 text-sm">Title <TextInput value={pageItem.title} onIncrementalChange={handleTitleChange} onChange={null} /></div>
+      <div class="text-slate-800 text-sm">Title <TextInput value={pageItem.title} onIncrementalChange={handleTitleChange} onChange={handleTitleChanged} /></div>
       <div class="text-slate-800 text-sm">Inner block width <TextInput value={pageItem.innerSpatialWidthBl.toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
       <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pageItem.naturalAspect.toString()} onIncrementalChange={null} onChange={handleNaturalAspectChange} /></div>
       <ColorSelector item={props.item} />

@@ -22,9 +22,12 @@ import { useItemStore } from "../../store/ItemStoreProvider";
 import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE } from "../../constants";
 import { asNoteItem } from "../../store/items/note-item";
+import { useUserStore } from "../../store/UserStoreProvider";
+import { command } from "../../command";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
+  const userStore = useUserStore();
   const itemStore = useItemStore();
 
   let outerDiv: HTMLDivElement | undefined;
@@ -85,6 +88,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     if (moving()) {
       itemStore.transitionMovingToFixed();
     }
+    command.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     startPx = null;
     startPosBl = null;
     startWidthBl = null;
