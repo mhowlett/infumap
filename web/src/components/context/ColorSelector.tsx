@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { command } from "../../command";
+import { server } from "../../server";
 import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
@@ -42,7 +42,7 @@ export const ColorSelector: Component<{ item: Item }> = (props: {item: Item }) =
 
   const handleClick = (col: number) => {
     itemStore.updateItem(props.item.id, item => asPageItem(item).backgroundColorIndex = col);
-    command.updateItem(userStore.user, itemStore.getItem(itemId)!);
+    server.updateItem(userStore.user, itemStore.getItem(itemId)!);
   }
 
   return (

@@ -23,7 +23,7 @@ import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item"
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE } from "../../constants";
 import { asNoteItem } from "../../store/items/note-item";
 import { useUserStore } from "../../store/UserStoreProvider";
-import { command } from "../../command";
+import { server } from "../../server";
 
 
 export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) => {
@@ -88,7 +88,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
     if (moving()) {
       itemStore.transitionMovingToFixed();
     }
-    command.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
+    server.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     startPx = null;
     startPosBl = null;
     startWidthBl = null;

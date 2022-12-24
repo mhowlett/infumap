@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { command } from "../../command";
+import { server } from "../../server";
 import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
@@ -35,14 +35,14 @@ export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
 
   const handleBlockWidthChange = (v: string) => {
     itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthBl = parseInt(v));
-    command.updateItem(userStore.user, itemStore.getItem(pageId)!);
+    server.updateItem(userStore.user, itemStore.getItem(pageId)!);
   };
   const handleNaturalAspectChange = (v: string) => {
     itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v));
-    command.updateItem(userStore.user, itemStore.getItem(pageId)!);
+    server.updateItem(userStore.user, itemStore.getItem(pageId)!);
   };
   const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => item.title = v); };
-  const handleTitleChanged = (v: string) => { command.updateItem(userStore.user, itemStore.getItem(pageId)!); }
+  const handleTitleChanged = (v: string) => { server.updateItem(userStore.user, itemStore.getItem(pageId)!); }
 
   return (
     <div class="m-1">

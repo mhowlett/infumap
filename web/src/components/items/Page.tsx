@@ -24,7 +24,7 @@ import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/item
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
-import { command } from "../../command";
+import { server } from "../../server";
 import { useUserStore } from "../../store/UserStoreProvider";
 
 
@@ -91,7 +91,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     if (moving()) {
       itemStore.transitionMovingToFixed();
     }
-    command.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
+    server.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     startPx = null;
     startPosBl = null;
     startWidthBl = null;

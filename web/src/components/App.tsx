@@ -17,11 +17,10 @@
 */
 
 import { Component, onMount } from 'solid-js';
-import { command } from '../command';
+import { server } from '../server';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
 import { fetchUser, useUserStore } from '../store/UserStoreProvider';
-import { panic } from '../util/lang';
 import { Desktop } from './Desktop';
 import { Toolbar } from './Toolbar';
 
@@ -33,10 +32,10 @@ const App: Component = () => {
 
   onMount(async () => {
     let user = await fetchUser();
-    let rootId = user.rootPageId ?? panic();
+    let rootId = user.rootPageId!;
     userStore.setUser(user);
     itemStore.setRoot(rootId);
-    let r = await command.fetchChildItems(user, rootId);
+    let r = await server.fetchChildItems(user, rootId);
     itemStore.setChildItems(r);
     layoutStore.setLayout({ currentPageId: rootId });
   });

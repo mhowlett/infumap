@@ -23,14 +23,15 @@ import { throwExpression } from "./util/lang";
 import { Uid } from "./util/uid";
 
 
-export const command = {
+export const server = {
   fetchChildItems: async (user: User, parentId: Uid): Promise<Array<Item>> => {
-    let items = await send("get-children", user, { containerId: parentId });
+    let items = await send("get-children", user, { parentId });
     return items.map((item: Item) => setDefaultComputed(item));
   },
 
-  fetchAttachmentItems: async (user: User, itemId: Uid): Promise<Array<Item>> => {
-    throwExpression("not implemented");
+  fetchAttachmentItems: async (user: User, parentId: Uid): Promise<Array<Item>> => {
+    let items = await send("get-attachments", user, { parentId });
+    return items.map((item: Item) => setDefaultComputed(item));
   },
 
   addItem: async (user: User, item: Item): Promise<void> => {

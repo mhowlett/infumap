@@ -103,13 +103,13 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
 
 #[derive(Deserialize)]
 pub struct GetChildrenRequest {
-  #[serde(rename="containerId")]
-  container_id: String,
+  #[serde(rename="parentId")]
+  parent_id: String,
 }
 
 fn handle_get_children(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
   let request: GetChildrenRequest = serde_json::from_str(json)?;
-  let children = store.item.get_children(&request.container_id)?;
+  let children = store.item.get_children(&request.parent_id)?;
   Ok(serde_json::to_string(&children)?)
 }
 

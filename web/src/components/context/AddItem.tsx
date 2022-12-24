@@ -26,7 +26,7 @@ import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { Vector } from "../../util/geometry";
 import ToolbarIcon from "../ToolbarIcon";
 import { ContexMenuProps } from "./ContextMenu";
-import { command } from "../../command";
+import { server } from "../../server";
 import { useUserStore } from "../../store/UserStoreProvider";
 
 export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
@@ -48,7 +48,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
       let newPage = newPageItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
       newPage.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newPage);
-      command.addItem(userStore.user, newPage);
+      server.addItem(userStore.user, newPage);
       layoutStore.hideContextMenu();
     }
   };
@@ -58,7 +58,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
       let newNote = newNoteItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
       newNote.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
-      command.addItem(userStore.user, newNote);
+      server.addItem(userStore.user, newNote);
       layoutStore.hideContextMenu();
     }
   }

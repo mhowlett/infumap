@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { command } from "../../command";
+import { server } from "../../server";
 import { Item } from "../../store/items/base/item";
 import { asNoteItem } from "../../store/items/note-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
@@ -33,10 +33,10 @@ export const EditNote: Component<{item: Item}> = (props: {item: Item}) => {
   let noteItem = asNoteItem(props.item);
 
   const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => item.title = v); };
-  const handleTextChanged = (v: string) => { command.updateItem(userStore.user, itemStore.getItem(noteId)!); }
+  const handleTextChanged = (v: string) => { server.updateItem(userStore.user, itemStore.getItem(noteId)!); }
   const handleUrlChange = (v: string) => {
     itemStore.updateItem(noteId, item => asNoteItem(item).url = v);
-    command.updateItem(userStore.user, itemStore.getItem(noteId)!);
+    server.updateItem(userStore.user, itemStore.getItem(noteId)!);
   };
 
   return (
