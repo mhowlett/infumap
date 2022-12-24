@@ -26,6 +26,7 @@ import { asPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from 
 
 export interface Item {
   type: string,
+  ownerId: Uid,
   id: Uid,
   parentId: Uid | null,
   relationshipToParent: string,

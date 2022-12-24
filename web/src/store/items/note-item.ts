@@ -61,6 +61,7 @@ export function asNoteItem(item: Item): NoteItem {
 export function cloneNoteItem(item: NoteItem): NoteItem {
   return {
     type: "note",
+    ownerId: item.ownerId,
     id: item.id,
     parentId: item.parentId,
     relationshipToParent: item.relationshipToParent,
@@ -80,9 +81,10 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
   };
 }
 
-export function newNoteItem(parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): NoteItem {
+export function newNoteItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): NoteItem {
   return {
     type: "note",
+    ownerId,
     id: newUid(),
     parentId,
     relationshipToParent,

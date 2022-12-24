@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map, Number};
 use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
 use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
-#[derive(PartialEq, Serialize)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub enum RelationshipToParent {
   NoParent,
   Child,
@@ -56,7 +56,7 @@ impl RelationshipToParent {
   }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Item {
   #[serde(rename="type")]
   pub item_type: String,

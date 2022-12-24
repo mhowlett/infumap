@@ -19,6 +19,7 @@ use log::{error, warn};
 use rocket::{State, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use crate::store::Store;
+use crate::store::item::Item;
 use crate::util::infu::InfuResult;
 
 
@@ -127,8 +128,11 @@ fn handle_get_attachments(store: &mut MutexGuard<Store>, json: &str) -> InfuResu
 
 #[derive(Deserialize)]
 pub struct AddItemRequest {
+  item: Item
 }
 
-fn handle_add_item(_store: &mut MutexGuard<Store>, _json: &str) -> InfuResult<String> {
+fn handle_add_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
+  let request: AddItemRequest = serde_json::from_str(json)?;
+  store.item.add(request.item)?;
   Ok(serde_json::to_string("")?)
 }

@@ -17,7 +17,7 @@
 */
 
 import { Component, onMount } from 'solid-js';
-import { fetchContainerItems } from '../command';
+import { command } from '../command';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
 import { fetchUser, useUserStore } from '../store/UserStoreProvider';
@@ -37,7 +37,7 @@ const App: Component = () => {
     let rootId = user.rootPageId ?? panic();
     userStore.setUser(user);
     itemStore.setRoot(rootId);
-    let r = await fetchContainerItems(user, rootId);
+    let r = await command.fetchChildItems(user, rootId);
     itemStore.setChildItems(r);
     layoutStore.setLayout({ currentPageId: rootId });
   });

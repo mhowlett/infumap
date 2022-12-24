@@ -16,41 +16,53 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { setDefaultComputed } from "./store/items";
 import { Item } from "./store/items/base/item";
-import { NoteItem } from "./store/items/note-item";
-import { PageItem } from "./store/items/page-item";
 import { User } from "./store/UserStoreProvider";
 import { throwExpression } from "./util/lang";
 import { Uid } from "./util/uid";
 
 
-function setDefaultComputed(item: Item) {
-  item.computed_boundsPx = null;
-  item.computed_fromParentIdMaybe = null;
-  if (item.type == "page") {
-    (item as PageItem).computed_children = [];
-    (item as PageItem).computed_attachments = [];
-  } else if (item.type == "note") {
-    (item as NoteItem).computed_attachments = [];
+export const command = {
+  fetchChildItems: async (user: User, parentId: Uid): Promise<Array<Item>> => {
+    let items = await send("get-children", user, { containerId: parentId });
+    return items.map((item: Item) => setDefaultComputed(item));
+  },
+
+  fetchAttachmentItems: async (user: User, itemId: Uid): Promise<Array<Item>> => {
+    throwExpression("not implemented");
+  },
+
+  addItem: async (user: User, item: Item): Promise<void> => {
+    await send("add-item", user, { item: createItemForSend(item) });
+  },
+
+  updateItem: async (): Promise<void> => {
+
   }
-  return item;
 }
 
-export async function fetchContainerItems(user: User, containerId: Uid): Promise<Array<Item>> {
-  let payload = { containerId };
+async function send(command: string, user: User, payload: object): Promise<any> {
   let fetchResult = await fetch('/command', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ command: "get-children", "userId": user.userId, "sessionId": user.sessionId, jsonData: JSON.stringify(payload) })
+    body: JSON.stringify({ command, userId: user.userId!, sessionId: user.sessionId!, jsonData: JSON.stringify(payload) })
   });
   let r = await fetchResult.json();
-  if (!r.success) { throwExpression("fetch container items command failed!"); }
-  return JSON.parse(r.jsonData).map((item: Item) => setDefaultComputed(item));
+  if (!r.success) { throwExpression(`'${command}' command failed!`); }
+  return JSON.parse(r.jsonData);
 }
 
-export function fetchAttachmentItems(user: User, itemId: Uid): Array<Item> {
-  throwExpression("not implemented");
+function createItemForSend(item: Item): Item {
+  let result: any = {};
+  Object.assign(result, item);
+  delete result.computed_boundsPx;
+  delete result.computed_fromParentIdMaybe;
+  delete result.computed_children;
+  delete result.computed_attachments;
+  result.ordering = Array.from(item.ordering);
+  return result;
 }

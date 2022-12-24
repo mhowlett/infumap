@@ -24,6 +24,7 @@ import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/item
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
+import { command } from "../../command";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
@@ -87,6 +88,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.removeEventListener('mouseup', mouseUpHandler);
     if (moving()) {
       itemStore.transitionMovingToFixed();
+      command.updateItem();
     }
     startPx = null;
     startPosBl = null;

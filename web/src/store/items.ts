@@ -40,3 +40,15 @@ export function newOrderingAtEndOfChildren(items: Items, parentId: Uid): Uint8Ar
 export function findItemInArray(items: Array<Item>, id: Uid): Item {
   return items.find(a => a.id == id) ?? throwExpression(`no item with id '${id}' found.`);
 }
+
+export function setDefaultComputed(item: Item) {
+  item.computed_boundsPx = null;
+  item.computed_fromParentIdMaybe = null;
+  if (item.type == "page") {
+    (item as PageItem).computed_children = [];
+    (item as PageItem).computed_attachments = [];
+  } else if (item.type == "note") {
+    (item as NoteItem).computed_attachments = [];
+  }
+  return item;
+}

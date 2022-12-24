@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Vector<T> {
   pub x: T,
   pub y: T

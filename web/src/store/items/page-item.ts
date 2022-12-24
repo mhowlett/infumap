@@ -50,6 +50,7 @@ export function asPageItem(item: Item): PageItem {
 export function clonePageItem(item: PageItem): PageItem {
   return {
     type: "page",
+    ownerId: item.ownerId,
     id: item.id,
     parentId: item.parentId,
     relationshipToParent: item.relationshipToParent,
@@ -72,9 +73,10 @@ export function clonePageItem(item: PageItem): PageItem {
   };
 }
 
-export function newPageItem(parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): PageItem {
+export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): PageItem {
   return {
     type: "page",
+    ownerId,
     id: newUid(),
     parentId,
     relationshipToParent,
