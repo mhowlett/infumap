@@ -104,9 +104,9 @@ impl Serialize for DescriptorRecord {
     const NUM_FIELDS: usize = 3;
     const VERSION: i64 = 0;
     let mut state = serializer.serialize_struct("Color", NUM_FIELDS)?;
-    state.serialize_field("__record_type", "descriptor")?;
+    state.serialize_field("__recordType", "descriptor")?;
     state.serialize_field("version", &VERSION)?;
-    state.serialize_field("value_type", &self.value_type)?;
+    state.serialize_field("valueType", &self.value_type)?;
     state.end()
   }
 }
@@ -120,7 +120,7 @@ impl Serialize for DeleteRecord {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
     const NUM_FIELDS: usize = 2;
     let mut state = serializer.serialize_struct("Color", NUM_FIELDS)?;
-    state.serialize_field("__record_type", "delete")?;
+    state.serialize_field("__recordType", "delete")?;
     state.serialize_field("id", &self.id)?;
     state.end()
   }
@@ -143,7 +143,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
       let file = File::create(path)?;
       let mut writer = BufWriter::new(file);
       let descriptor = DescriptorRecord { value_type: String::from(T::value_type_identifier()) };
-      writer.write_all(serde_json::to_string_pretty(&descriptor)?.as_bytes())?;
+      writer.write_all(serde_json::to_string(&descriptor)?.as_bytes())?;
       writer.write_all("\n".as_bytes())?;
     }
     let map = Self::read_log(path)?;
@@ -156,7 +156,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
-    writer.write_all(serde_json::to_string_pretty(&entry.serialize_entry()?)?.as_bytes())?;
+    writer.write_all(serde_json::to_string(&entry.serialize_entry()?)?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
     self.map.insert(entry.get_id().clone(), entry);
     Ok(())
@@ -169,7 +169,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     let delete_record = DeleteRecord { id: String::from(id) };
-    writer.write_all(serde_json::to_string_pretty(&delete_record)?.as_bytes())?;
+    writer.write_all(serde_json::to_string(&delete_record)?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
     self.map.remove(id).ok_or(format!("Entry with id {} does not exist (internal logic error).", id))?;
     Ok(())
@@ -193,7 +193,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     let update_record = T::serialize_update(self.map.get(id).ok_or(format!("Entry with id {} does not exist (internal logic issue).", id))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
-    writer.write_all(serde_json::to_string_pretty(&update_record)?.as_bytes())?;
+    writer.write_all(serde_json::to_string(&update_record)?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
     self.map.insert(updated.get_id().clone(), updated);
     Ok(())
@@ -201,8 +201,8 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
   fn read_log_record(result: &mut HashMap<String, T>, kvs: &Map<String, Value>) -> InfuResult<()> {
     let record_type = kvs
-      .get("__record_type")
-      .ok_or(InfuError::new("Log record is missing field __record_type."))?
+      .get("__recordType")
+      .ok_or(InfuError::new("Log record is missing field __recordType."))?
       .as_str()
       .ok_or(InfuError::new("Log record type field is not of type 'string'."))?;
 
@@ -218,7 +218,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
           return Err("Descriptor version is not 0.".into());
         }
         let value_type = kvs
-          .get("value_type")
+          .get("valueType")
           .ok_or(InfuError::new("Descriptor log record does not specify a value type."))?
           .as_str()
           .ok_or(InfuError::new("Descriptor value_type field is not of type 'string'."))?;

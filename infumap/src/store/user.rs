@@ -54,12 +54,12 @@ impl JsonLogSerializable<User> for User {
 
   fn serialize_entry(&self) -> InfuResult<Map<String, Value>> {
     let mut result = Map::new();
-    result.insert(String::from("__record_type"), Value::String(String::from("entry")));
+    result.insert(String::from("__recordType"), Value::String(String::from("entry")));
     result.insert(String::from("id"), Value::String(self.id.clone()));
     result.insert(String::from("username"), Value::String(self.username.clone()));
-    result.insert(String::from("password_hash"), Value::String(self.password_hash.clone()));
-    result.insert(String::from("password_salt"), Value::String(self.password_salt.clone()));
-    result.insert(String::from("root_page_id"), Value::String(self.root_page_id.clone()));
+    result.insert(String::from("passwordHash"), Value::String(self.password_hash.clone()));
+    result.insert(String::from("passwordSalt"), Value::String(self.password_salt.clone()));
+    result.insert(String::from("rootPageId"), Value::String(self.root_page_id.clone()));
     Ok(result)
   }
 
@@ -68,28 +68,28 @@ impl JsonLogSerializable<User> for User {
     Ok(User {
       id: get_json_object_string_field(map, "id")?,
       username: get_json_object_string_field(map, "username")?,
-      password_hash: get_json_object_string_field(map, "password_hash")?,
-      password_salt: get_json_object_string_field(map, "password_salt")?,
-      root_page_id: get_json_object_string_field(map, "root_page_id")?,
+      password_hash: get_json_object_string_field(map, "passwordHash")?,
+      password_salt: get_json_object_string_field(map, "passwordSalt")?,
+      root_page_id: get_json_object_string_field(map, "rootPageId")?,
     })
   }
 
   fn serialize_update(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
     if old.id != new.id { return Err("Attempt was made to create a User update record from instances with non-matching ids.".into()); }
     let mut result: Map<String, Value> = Map::new();
-    result.insert(String::from("__record_type"), serde_json::from_str("update")?);
-    if old.password_hash != new.password_hash { result.insert(String::from("password_hash"), serde_json::from_str(&new.password_hash)?); }
-    if old.password_salt != new.password_salt { result.insert(String::from("password_salt"), serde_json::from_str(&new.password_salt)?); }
-    if old.root_page_id != new.root_page_id { result.insert(String::from("root_page_id"), serde_json::from_str(&new.root_page_id)?); }
+    result.insert(String::from("__recordType"), serde_json::from_str("update")?);
+    if old.password_hash != new.password_hash { result.insert(String::from("passwordHash"), serde_json::from_str(&new.password_hash)?); }
+    if old.password_salt != new.password_salt { result.insert(String::from("passwordSalt"), serde_json::from_str(&new.password_salt)?); }
+    if old.root_page_id != new.root_page_id { result.insert(String::from("rootPageId"), serde_json::from_str(&new.root_page_id)?); }
     Ok(result)
   }
 
   fn deserialize_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
     // TODO (LOW): check for/error on unexepected fields.
     if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
-    if let Ok(v) = get_json_object_string_field(map, "password_hash") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "password_salt") { self.password_salt = v; }
-    if let Ok(v) = get_json_object_string_field(map, "root_page_id") { self.root_page_id = v; }
+    if let Ok(v) = get_json_object_string_field(map, "passwordHash") { self.password_hash = v; }
+    if let Ok(v) = get_json_object_string_field(map, "passwordSalt") { self.password_salt = v; }
+    if let Ok(v) = get_json_object_string_field(map, "rootPageId") { self.root_page_id = v; }
     Ok(())
   }
 }

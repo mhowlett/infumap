@@ -114,35 +114,35 @@ impl JsonLogSerializable<Item> for Item {
 
   fn serialize_entry(&self) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
     let mut result = Map::new();
-    result.insert(String::from("__record_type"), Value::String(String::from("entry")));
-    result.insert(String::from("item_type"), Value::String(self.item_type.clone()));
+    result.insert(String::from("__recordType"), Value::String(String::from("entry")));
+    result.insert(String::from("itemType"), Value::String(self.item_type.clone()));
     result.insert(String::from("id"), Value::String(self.id.clone()));
-    result.insert(String::from("owner_id"), Value::String(self.owner_id.clone()));
+    result.insert(String::from("ownerId"), Value::String(self.owner_id.clone()));
     match &self.parent_id {
-      Some(uid) => { result.insert(String::from("parent_id"), Value::String(uid.clone())); },
-      None => { result.insert(String::from("parent_id"), Value::Null); }
+      Some(uid) => { result.insert(String::from("parentId"), Value::String(uid.clone())); },
+      None => { result.insert(String::from("parentId"), Value::Null); }
     };
-    result.insert(String::from("relationship_to_parent"), Value::String(String::from(self.relationship_to_parent.to_string())));
-    result.insert(String::from("creation_date"), Value::Number(self.creation_date.into()));
-    result.insert(String::from("last_modified_date"), Value::Number(self.last_modified_date.into()));
+    result.insert(String::from("relationshipToParent"), Value::String(String::from(self.relationship_to_parent.to_string())));
+    result.insert(String::from("creationDate"), Value::Number(self.creation_date.into()));
+    result.insert(String::from("lastModifiedDate"), Value::Number(self.last_modified_date.into()));
     result.insert(String::from("ordering"), Value::Array(self.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>()));
     result.insert(String::from("title"), Value::String(self.title.clone()));
-    result.insert(String::from("spatial_position_bl"), vector_to_object(&self.spatial_position_bl)?);
+    result.insert(String::from("spatialPositionBl"), vector_to_object(&self.spatial_position_bl)?);
 
     // x-sizeable
     if let Some(spatial_width_bl) = self.spatial_width_bl {
-      result.insert(String::from("spatial_width_bl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+      result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(InfuError::new("not a number"))?));
     }
 
     // page
     if let Some(inner_spatial_width_bl) = self.inner_spatial_width_bl {
-      result.insert(String::from("inner_spatial_width_bl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+      result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(InfuError::new("not a number"))?));
     }
     if let Some(natural_aspect) = self.natural_aspect {
-      result.insert(String::from("natural_aspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
+      result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
     }
     if let Some(bg_color_idx) = self.bg_color_idx {
-      result.insert(String::from("bg_color_idx"), Value::Number(bg_color_idx.into()));
+      result.insert(String::from("bgColorIdx"), Value::Number(bg_color_idx.into()));
     }
 
     // note
@@ -152,7 +152,7 @@ impl JsonLogSerializable<Item> for Item {
 
     // file
     if let Some(original_creation_date) = self.original_creation_date {
-      result.insert(String::from("original_creation_date"), Value::Number(original_creation_date.into()));
+      result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
     }
     // TODO (MEDIUM): not complete.
 
@@ -162,34 +162,34 @@ impl JsonLogSerializable<Item> for Item {
   fn deserialize_entry(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Item> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(Item {
-      item_type: get_json_object_string_field(map, "item_type")?,
+      item_type: get_json_object_string_field(map, "itemType")?,
       id: get_json_object_string_field(map, "id")?,
-      owner_id: get_json_object_string_field(map, "owner_id")?,
-      parent_id: match get_json_object_string_field(map, "parent_id") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
-      relationship_to_parent: RelationshipToParent::from_string(&get_json_object_string_field(map, "relationship_to_parent")?)?,
-      creation_date: get_json_object_integer_field(map, "creation_date")?,
-      last_modified_date: get_json_object_integer_field(map, "last_modified_date")?,
+      owner_id: get_json_object_string_field(map, "ownerId")?,
+      parent_id: match get_json_object_string_field(map, "parentId") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
+      relationship_to_parent: RelationshipToParent::from_string(&get_json_object_string_field(map, "relationshipToParent")?)?,
+      creation_date: get_json_object_integer_field(map, "creationDate")?,
+      last_modified_date: get_json_object_integer_field(map, "lastModifiedDate")?,
       ordering: map.get("ordering")
         .ok_or(InfuError::new("ordering field was not available"))?
         .as_array()
         .ok_or(InfuError::new("ordering field was not an array"))?
         .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>(), // TODO (LOW): Proper handling of errors.
       title: get_json_object_string_field(map, "title")?,
-      spatial_position_bl: get_json_object_vector_field(map, "spatial_position_bl")?,
+      spatial_position_bl: get_json_object_vector_field(map, "spatialPositionBl")?,
 
       // x-sizeable
-      spatial_width_bl: get_json_object_float_field(map, "spatial_width_bl").ok(), // TODO (LOW): Proper handling of errors.
+      spatial_width_bl: get_json_object_float_field(map, "spatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
 
       // page
-      inner_spatial_width_bl: get_json_object_float_field(map, "inner_spatial_width_bl").ok(), // TODO (LOW): Proper handling of errors.
-      natural_aspect: get_json_object_float_field(map, "natural_aspect").ok(), // TODO (LOW): Proper handling of errors.
-      bg_color_idx: get_json_object_integer_field(map, "bg_color_idx").ok(), // TODO (LOW): Proper handling of errors.
+      inner_spatial_width_bl: get_json_object_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
+      natural_aspect: get_json_object_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
+      bg_color_idx: get_json_object_integer_field(map, "bgColorIdx").ok(), // TODO (LOW): Proper handling of errors.
 
       // note
       url: get_json_object_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
 
       // file
-      original_creation_date: get_json_object_integer_field(map, "original_creation_date").ok(), // TODO (LOW): Proper handling of errors.
+      original_creation_date: get_json_object_integer_field(map, "originalCreationDate").ok(), // TODO (LOW): Proper handling of errors.
       // TODO (MEDIUM): not complete.
     })
   }

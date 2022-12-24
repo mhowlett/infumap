@@ -81,6 +81,7 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
     "get-children" => handle_get_children(&mut store, &request.json_data),
     "get-attachments" => handle_get_attachments(&mut store, &request.json_data),
     "add-item" => handle_add_item(&mut store, &request.json_data),
+    "update-item" => handle_update_item(&mut store, &request.json_data),
     _ => {
       warn!("Unknown command '{}' issued by user '{}', session '{}'", request.command, request.user_id, request.session_id);
       return Json(SendResponse { success: false, json_data: None });
@@ -134,5 +135,17 @@ pub struct AddItemRequest {
 fn handle_add_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
   let request: AddItemRequest = serde_json::from_str(json)?;
   store.item.add(request.item)?;
+  Ok(serde_json::to_string("")?)
+}
+
+
+#[derive(Deserialize)]
+pub struct UpdateItemRequest {
+  _item: Item
+}
+
+fn handle_update_item(_store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
+  let _request: UpdateItemRequest = serde_json::from_str(json)?;
+
   Ok(serde_json::to_string("")?)
 }

@@ -43,9 +43,9 @@ impl JsonLogSerializable<Session> for Session {
 
   fn serialize_entry(&self) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
     let mut result = Map::new();
-    result.insert(String::from("__record_type"), Value::String(String::from("entry")));
+    result.insert(String::from("__recordType"), Value::String(String::from("entry")));
     result.insert(String::from("id"), Value::String(self.id.clone()));
-    result.insert(String::from("user_id"), Value::String(self.user_id.clone()));
+    result.insert(String::from("userId"), Value::String(self.user_id.clone()));
     result.insert(String::from("expires"), Value::Number(self.expires.into()));
     Ok(result)
   }
@@ -54,7 +54,7 @@ impl JsonLogSerializable<Session> for Session {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(Session {
       id: get_json_object_string_field(map, "id")?,
-      user_id: get_json_object_string_field(map, "user_id")?,
+      user_id: get_json_object_string_field(map, "userId")?,
       expires: get_json_object_integer_field(map, "expires")?,
     })
   }
