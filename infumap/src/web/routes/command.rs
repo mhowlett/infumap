@@ -69,8 +69,8 @@ pub fn command(store: &State<Mutex<Store>>, request: Json<SendRequest>) -> Json<
   if !store.item.user_items_loaded(&session.user_id) {
     match store.item.load_user_items(&session.user_id, false) {
       Ok(_) => {},
-      Err(_e) => {
-        error!("An error occurred loading item state for user '{}'.", session.user_id);
+      Err(e) => {
+        error!("An error occurred loading item state for user '{}': {}", session.user_id, e);
         return Json(SendResponse { success: false, json_data: None });
       }
     }

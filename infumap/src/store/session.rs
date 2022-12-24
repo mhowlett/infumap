@@ -64,7 +64,7 @@ impl JsonLogSerializable<Session> for Session {
     panic!();
   }
 
-  fn deserialize_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
+  fn deserialize_and_apply_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
     // Never used.
     panic!()
   }

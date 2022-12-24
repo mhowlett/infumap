@@ -200,6 +200,7 @@ impl JsonLogSerializable<Item> for Item {
 
     let mut result: Map<String, Value> = Map::new();
     result.insert(String::from("__recordType"), Value::String(String::from("update")));
+    result.insert(String::from("id"), Value::String(new.id.clone()));
 
     if option_xor(&old.parent_id, &new.parent_id) { return Err("Attempt was made to add or remove a parent_id in an item update.".into()); }
     // TODO (LOW): could make this logic a macro.
@@ -262,8 +263,36 @@ impl JsonLogSerializable<Item> for Item {
     Ok(result)
   }
 
-  fn deserialize_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
-    todo!()
+  fn deserialize_and_apply_update(&mut self, map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
+    // TODO (LOW): check for/error on unexepected fields.
+    if let Ok(v) = get_json_object_string_field(map, "parentId") { self.parent_id = Some(v); }
+    if let Ok(v) = get_json_object_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
+    if let Ok(v) = get_json_object_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
+    if map.contains_key("ordering") {
+      self.ordering = map.get("ordering")
+        .unwrap()
+        .as_array()
+        .ok_or(InfuError::new("ordering field was not an array"))?
+        .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>();
+    }
+    if let Ok(v) = get_json_object_string_field(map, "title") { self.title = v; }
+    if let Ok(v) = get_json_object_vector_field(map, "spatialPositionBl") { self.spatial_position_bl = v; }
+
+    // x-sizable
+    if let Ok(v) = get_json_object_float_field(map, "spatialWidthBl") { self.spatial_width_bl = Some(v); }
+
+    // page
+    if let Ok(v) = get_json_object_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
+    if let Ok(v) = get_json_object_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
+    if let Ok(v) = get_json_object_integer_field(map, "bgColorIdx") { self.bg_color_idx = Some(v); }
+
+    // note
+    if let Ok(v) = get_json_object_string_field(map, "url") { self.url = Some(v); }
+
+    // file
+    // TODO (MEDIUM): not complete.
+
+    Ok(())
   }
 }
 

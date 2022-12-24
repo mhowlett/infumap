@@ -84,7 +84,7 @@ impl JsonLogSerializable<User> for User {
     Ok(result)
   }
 
-  fn deserialize_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
+  fn deserialize_and_apply_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
     // TODO (LOW): check for/error on unexepected fields.
     if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
     if let Ok(v) = get_json_object_string_field(map, "passwordHash") { self.password_hash = v; }

@@ -91,7 +91,7 @@ pub trait JsonLogSerializable<T> {
   fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<T>;
 
   fn serialize_update(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
-  fn deserialize_update(&mut self, map: &Map<String, Value>) -> InfuResult<()>;
+  fn deserialize_and_apply_update(&mut self, map: &Map<String, Value>) -> InfuResult<()>;
 }
 
 
@@ -184,10 +184,9 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
   }
 
   pub fn update(&mut self, updated: T) -> InfuResult<()> {
-    if !self.map.contains_key(updated.get_id()) {
-      return Err(format!("Entry with id {} does not exist.", updated.get_id()).into());
-    }
-    let update_record = T::serialize_update(self.map.get(updated.get_id()).ok_or(format!("Entry with id {} does not exist (internal logic issue).", updated.get_id()))?, &updated)?;
+    let update_record = T::serialize_update(
+      self.map.get(updated.get_id()).ok_or(format!("Entry with id {} does not exist.",
+      updated.get_id()))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     writer.write_all(serde_json::to_string(&update_record)?.as_bytes())?;
@@ -243,7 +242,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
         let u = result
           .get_mut(&String::from(id))
           .ok_or(InfuError::new(&format!("Update record has id '{}', but this is unknown.", id)))?;
-        u.deserialize_update(&kvs)?;
+        u.deserialize_and_apply_update(&kvs)?;
       },
 
       "delete" => {
