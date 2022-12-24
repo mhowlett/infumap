@@ -17,9 +17,11 @@
 */
 
 import { Component } from "solid-js";
+import { command } from "../../command";
 import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
+import { useUserStore } from "../../store/UserStoreProvider";
 import { Colors } from "../../style";
 
 
@@ -33,8 +35,16 @@ const ColorButton: Component<{ col: number, onClick: (col: number) => void }> = 
 }
 
 export const ColorSelector: Component<{ item: Item }> = (props: {item: Item }) => {
+  let userStore = useUserStore();
   let itemStore = useItemStore();
-  const handleClick = (col: number) => itemStore.updateItem(props.item.id, item => asPageItem(item).bgColorIdx = col);
+
+  let itemId = props.item.id;
+
+  const handleClick = (col: number) => {
+    itemStore.updateItem(props.item.id, item => asPageItem(item).backgroundColorIndex = col);
+    command.updateItem(userStore.user, itemStore.getItem(itemId)!);
+  }
+
   return (
     <div>
       <ColorButton col={0} onClick={handleClick} />

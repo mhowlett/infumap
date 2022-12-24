@@ -26,7 +26,7 @@ import { XSizableItem } from './base/x-sizeable-item';
 export interface PageItem extends XSizableItem {
   innerSpatialWidthBl: number;
   naturalAspect: number;
-  bgColorIdx: number;
+  backgroundColorIndex: number;
 
   computed_children: Array<Uid>;
   computed_attachments: Array<Uid>;
@@ -64,7 +64,7 @@ export function clonePageItem(item: PageItem): PageItem {
 
     innerSpatialWidthBl: item.innerSpatialWidthBl,
     naturalAspect: item.naturalAspect,
-    bgColorIdx: item.bgColorIdx,
+    backgroundColorIndex: item.backgroundColorIndex,
 
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
@@ -90,7 +90,7 @@ export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
 
     innerSpatialWidthBl: 60.0,
     naturalAspect: 2.0,
-    bgColorIdx: 0,
+    backgroundColorIndex: 0,
 
     computed_children: [],
     computed_attachments: [],

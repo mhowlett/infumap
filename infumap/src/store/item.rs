@@ -88,8 +88,8 @@ pub struct Item {
   pub inner_spatial_width_bl: Option<f64>,
   #[serde(rename="naturalAspect")]
   pub natural_aspect: Option<f64>,
-  #[serde(rename="bgColorIdx")]
-  pub bg_color_idx: Option<i64>,
+  #[serde(rename="backgroundColorIndex")]
+  pub background_color_index: Option<i64>,
 
   // note
   pub url: Option<String>,
@@ -102,7 +102,7 @@ pub struct Item {
 
 impl Clone for Item {
   fn clone(&self) -> Self {
-    Self { item_type: self.item_type.clone(), owner_id: self.owner_id.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), bg_color_idx: self.bg_color_idx.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
+    Self { item_type: self.item_type.clone(), owner_id: self.owner_id.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), background_color_index: self.background_color_index.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
   }
 }
 
@@ -144,8 +144,8 @@ impl JsonLogSerializable<Item> for Item {
     if let Some(natural_aspect) = self.natural_aspect {
       result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
     }
-    if let Some(bg_color_idx) = self.bg_color_idx {
-      result.insert(String::from("bgColorIdx"), Value::Number(bg_color_idx.into()));
+    if let Some(background_color_index) = self.background_color_index {
+      result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
     }
 
     // note
@@ -186,7 +186,7 @@ impl JsonLogSerializable<Item> for Item {
       // page
       inner_spatial_width_bl: get_json_object_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
       natural_aspect: get_json_object_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
-      bg_color_idx: get_json_object_integer_field(map, "bgColorIdx").ok(), // TODO (LOW): Proper handling of errors.
+      background_color_index: get_json_object_integer_field(map, "backgroundColorIndex").ok(), // TODO (LOW): Proper handling of errors.
 
       // note
       url: get_json_object_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
@@ -241,10 +241,10 @@ impl JsonLogSerializable<Item> for Item {
         result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
       }
     }
-    if option_xor(&old.bg_color_idx, &new.bg_color_idx) { return Err("Attempt was made to add or remove bg_color_idx field in an item update.".into()); }
-    if let Some(bg_color_idx) = new.bg_color_idx {
-      if old.bg_color_idx.unwrap() != bg_color_idx {
-        result.insert(String::from("bgColorIdx"), Value::Number(bg_color_idx.into()));
+    if option_xor(&old.background_color_index, &new.background_color_index) { return Err("Attempt was made to add or remove background_color_index field in an item update.".into()); }
+    if let Some(background_color_index) = new.background_color_index {
+      if old.background_color_index.unwrap() != background_color_index {
+        result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
       }
     }
 
@@ -287,7 +287,7 @@ impl JsonLogSerializable<Item> for Item {
     // page
     if let Ok(v) = get_json_object_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
     if let Ok(v) = get_json_object_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
-    if let Ok(v) = get_json_object_integer_field(map, "bgColorIdx") { self.bg_color_idx = Some(v); }
+    if let Ok(v) = get_json_object_integer_field(map, "backgroundColorIndex") { self.background_color_index = Some(v); }
 
     // note
     if let Ok(v) = get_json_object_string_field(map, "url") { self.url = Some(v); }

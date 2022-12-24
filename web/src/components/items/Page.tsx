@@ -120,7 +120,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
            id={props.item.id}
            class={`absolute border border-slate-700 rounded-sm shadow-lg`}
            style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.986)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 1.0)});`}
+                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.986)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 1.0)});`}
            onMouseDown={mouseDownHandler}>
         <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
           <div class="flex items-center text-center text-xs font-bold text-white">
@@ -139,7 +139,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
          id={props.item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
          style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.386)}, ${hexToRGBA(Colors[props.item.bgColorIdx], 0.364)});`}
+                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.364)});`}
          onMouseDown={mouseDownHandler}>
       <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
         <div class="flex items-center text-center text-xl text-white">

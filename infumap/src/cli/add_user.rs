@@ -123,7 +123,7 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     spatial_width_bl: Some(60.0),
     inner_spatial_width_bl: Some(60.0),
     natural_aspect: Some(2.0),
-    bg_color_idx: Some(0),
+    background_color_index: Some(0),
     url: None,
     original_creation_date: None,
   }
