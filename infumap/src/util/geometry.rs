@@ -17,7 +17,7 @@
 use serde::{Serialize, Deserialize};
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Vector<T> {
   pub x: T,
   pub y: T

@@ -20,7 +20,7 @@ use crate::util::{uid::Uid, geometry::Vector, infu::{InfuResult, InfuError}};
 use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
 
 
-#[derive(PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum RelationshipToParent {
   NoParent,
   Child,
@@ -56,7 +56,7 @@ impl RelationshipToParent {
   }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
   #[serde(rename="type")]
   pub item_type: String,
@@ -199,17 +199,17 @@ impl JsonLogSerializable<Item> for Item {
     if old.owner_id != new.owner_id { return Err("Attempt was made to create an Item update record from instances with non-matching owner_ids.".into()); }
 
     let mut result: Map<String, Value> = Map::new();
-    result.insert(String::from("__recordType"), serde_json::from_str("update")?);
+    result.insert(String::from("__recordType"), Value::String(String::from("update")));
 
     if option_xor(&old.parent_id, &new.parent_id) { return Err("Attempt was made to add or remove a parent_id in an item update.".into()); }
     // TODO (LOW): could make this logic a macro.
     if let Some(parent_id) = &new.parent_id {
       if old.parent_id.as_ref().unwrap() != parent_id {
-        result.insert(String::from("parentId"), serde_json::from_str(parent_id)?);
+        result.insert(String::from("parentId"), Value::String(String::from(parent_id)));
       }
     }
 
-    if old.relationship_to_parent != new.relationship_to_parent { result.insert(String::from("relationshipToParent"), serde_json::from_str(&new.relationship_to_parent.to_string())?); }
+    if old.relationship_to_parent != new.relationship_to_parent { result.insert(String::from("relationshipToParent"), Value::String(String::from(new.relationship_to_parent.to_string()))); }
     if old.creation_date != new.creation_date { return Err("Attempt was made to update item creation_date field.".into()); }
     if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
     if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }

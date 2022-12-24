@@ -25,9 +25,11 @@ import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, RESIZE_BOX_SIZE } from "../../
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
 import { command } from "../../command";
+import { useUserStore } from "../../store/UserStoreProvider";
 
 
 export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
+  const userStore = useUserStore();
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
 
@@ -88,8 +90,8 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.removeEventListener('mouseup', mouseUpHandler);
     if (moving()) {
       itemStore.transitionMovingToFixed();
-      command.updateItem();
     }
+    command.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     startPx = null;
     startPosBl = null;
     startWidthBl = null;

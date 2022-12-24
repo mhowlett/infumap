@@ -111,6 +111,13 @@ impl ItemStore {
     self.connect_item(&item)
   }
 
+  pub fn update(&mut self, item: &Item) -> InfuResult<()> {
+    let store = self.store_by_user_id.get_mut(&item.owner_id)
+      .ok_or(format!("Store has not been loaded for user '{}'.", item.owner_id))?;
+    store.update(item.clone())
+    // TODO: reconnect.
+  }
+
   pub fn get_children(&mut self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = self.owner_id_by_item_id.get(parent_id)
       .ok_or(format!("Unknown item '{}' - corresponding user store may not be loaded.", parent_id))?;

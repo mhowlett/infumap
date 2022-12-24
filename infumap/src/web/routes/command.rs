@@ -141,11 +141,11 @@ fn handle_add_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<Stri
 
 #[derive(Deserialize)]
 pub struct UpdateItemRequest {
-  _item: Item
+  item: Item
 }
 
-fn handle_update_item(_store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
-  let _request: UpdateItemRequest = serde_json::from_str(json)?;
-
+fn handle_update_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
+  let request: UpdateItemRequest = serde_json::from_str(json)?;
+  store.item.update(&request.item)?;
   Ok(serde_json::to_string("")?)
 }

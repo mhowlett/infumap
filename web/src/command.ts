@@ -37,8 +37,8 @@ export const command = {
     await send("add-item", user, { item: createItemForSend(item) });
   },
 
-  updateItem: async (): Promise<void> => {
-
+  updateItem: async (user:User, item: Item): Promise<void> => {
+    await send("update-item", user, { item: createItemForSend(item) });
   }
 }
 

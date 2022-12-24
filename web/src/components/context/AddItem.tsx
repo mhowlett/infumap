@@ -55,7 +55,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newNote = newNoteItem(userStore.user.userId, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
+      let newNote = newNoteItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items, props.contextItem?.id!));
       newNote.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
       command.addItem(userStore.user, newNote);

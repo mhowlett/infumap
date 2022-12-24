@@ -183,14 +183,11 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     self.map.get(id)
   }
 
-  pub fn _update(&mut self, id: &str, updated: T) -> InfuResult<()> {
-    if !self.map.contains_key(id) {
-      return Err(format!("Entry with id {} does not exist.", id).into());
+  pub fn update(&mut self, updated: T) -> InfuResult<()> {
+    if !self.map.contains_key(updated.get_id()) {
+      return Err(format!("Entry with id {} does not exist.", updated.get_id()).into());
     }
-    if id != updated.get_id() {
-      return Err(format!("Updated entry has unexpected id.").into());
-    }
-    let update_record = T::serialize_update(self.map.get(id).ok_or(format!("Entry with id {} does not exist (internal logic issue).", id))?, &updated)?;
+    let update_record = T::serialize_update(self.map.get(updated.get_id()).ok_or(format!("Entry with id {} does not exist (internal logic issue).", updated.get_id()))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
     writer.write_all(serde_json::to_string(&update_record)?.as_bytes())?;
