@@ -20,3 +20,4 @@ pub mod infu;
 pub mod uid;
 pub mod geometry;
 pub mod lang;
+pub mod json;

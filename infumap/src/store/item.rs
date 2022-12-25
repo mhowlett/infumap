@@ -16,12 +16,13 @@
 
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map, Number};
+use crate::util::json;
 use crate::util::uid::Uid;
 use crate::util::geometry::Vector;
 use crate::util::infu::{InfuResult, InfuError};
 use crate::util::lang::option_xor;
 use crate::web::routes::WebApiJsonSerializable;
-use super::kv_store::{JsonLogSerializable, vector_to_object, get_json_object_string_field, get_json_object_integer_field, get_json_object_vector_field, get_json_object_float_field};
+use super::kv_store::JsonLogSerializable;
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -147,7 +148,7 @@ impl JsonLogSerializable<Item> for Item {
     if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
     if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }
     if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
-    if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), vector_to_object(&new.spatial_position_bl)?); }
+    if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), json::vector_to_object(&new.spatial_position_bl)?); }
 
     // x-sizable.
     if option_xor(&old.spatial_width_bl, &new.spatial_width_bl) { return Err("Attempt was made to add or remove spatial_width_bl field in an item update.".into()); }
@@ -197,9 +198,9 @@ impl JsonLogSerializable<Item> for Item {
 
   fn apply_json_update(&mut self, map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
     // TODO (LOW): check for/error on unexepected fields.
-    if let Ok(v) = get_json_object_string_field(map, "parentId") { self.parent_id = Some(v); }
-    if let Ok(v) = get_json_object_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
-    if let Ok(v) = get_json_object_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
+    if let Ok(v) = json::get_string_field(map, "parentId") { self.parent_id = Some(v); }
+    if let Ok(v) = json::get_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
+    if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
     if map.contains_key("ordering") {
       self.ordering = map.get("ordering")
         .unwrap()
@@ -207,19 +208,19 @@ impl JsonLogSerializable<Item> for Item {
         .ok_or(InfuError::new("ordering field was not an array"))?
         .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>();
     }
-    if let Ok(v) = get_json_object_string_field(map, "title") { self.title = v; }
-    if let Ok(v) = get_json_object_vector_field(map, "spatialPositionBl") { self.spatial_position_bl = v; }
+    if let Ok(v) = json::get_string_field(map, "title") { self.title = v; }
+    if let Ok(v) = json::get_vector_field(map, "spatialPositionBl") { self.spatial_position_bl = v; }
 
     // x-sizable
-    if let Ok(v) = get_json_object_float_field(map, "spatialWidthBl") { self.spatial_width_bl = Some(v); }
+    if let Ok(v) = json::get_float_field(map, "spatialWidthBl") { self.spatial_width_bl = Some(v); }
 
     // page
-    if let Ok(v) = get_json_object_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
-    if let Ok(v) = get_json_object_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
-    if let Ok(v) = get_json_object_integer_field(map, "backgroundColorIndex") { self.background_color_index = Some(v); }
+    if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
+    if let Ok(v) = json::get_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
+    if let Ok(v) = json::get_integer_field(map, "backgroundColorIndex") { self.background_color_index = Some(v); }
 
     // note
-    if let Ok(v) = get_json_object_string_field(map, "url") { self.url = Some(v); }
+    if let Ok(v) = json::get_string_field(map, "url") { self.url = Some(v); }
 
     // file
     // TODO (MEDIUM): not complete.
@@ -243,7 +244,7 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   result.insert(String::from("lastModifiedDate"), Value::Number(item.last_modified_date.into()));
   result.insert(String::from("ordering"), Value::Array(item.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>()));
   result.insert(String::from("title"), Value::String(item.title.clone()));
-  result.insert(String::from("spatialPositionBl"), vector_to_object(&item.spatial_position_bl)?);
+  result.insert(String::from("spatialPositionBl"), json::vector_to_object(&item.spatial_position_bl)?);
 
   // x-sizeable
   if let Some(spatial_width_bl) = item.spatial_width_bl {
@@ -279,34 +280,34 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Item> {
   // TODO (LOW): check for/error on unexepected fields.
   Ok(Item {
-    item_type: get_json_object_string_field(map, "itemType")?,
-    id: get_json_object_string_field(map, "id")?,
-    owner_id: get_json_object_string_field(map, "ownerId")?,
-    parent_id: match get_json_object_string_field(map, "parentId") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
-    relationship_to_parent: RelationshipToParent::from_string(&get_json_object_string_field(map, "relationshipToParent")?)?,
-    creation_date: get_json_object_integer_field(map, "creationDate")?,
-    last_modified_date: get_json_object_integer_field(map, "lastModifiedDate")?,
+    item_type: json::get_string_field(map, "itemType")?,
+    id: json::get_string_field(map, "id")?,
+    owner_id: json::get_string_field(map, "ownerId")?,
+    parent_id: match json::get_string_field(map, "parentId") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
+    relationship_to_parent: RelationshipToParent::from_string(&json::get_string_field(map, "relationshipToParent")?)?,
+    creation_date: json::get_integer_field(map, "creationDate")?,
+    last_modified_date: json::get_integer_field(map, "lastModifiedDate")?,
     ordering: map.get("ordering")
       .ok_or(InfuError::new("ordering field was not available"))?
       .as_array()
       .ok_or(InfuError::new("ordering field was not an array"))?
       .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>(), // TODO (LOW): Proper handling of errors.
-    title: get_json_object_string_field(map, "title")?,
-    spatial_position_bl: get_json_object_vector_field(map, "spatialPositionBl")?,
+    title: json::get_string_field(map, "title")?,
+    spatial_position_bl: json::get_vector_field(map, "spatialPositionBl")?,
 
     // x-sizeable
-    spatial_width_bl: get_json_object_float_field(map, "spatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
+    spatial_width_bl: json::get_float_field(map, "spatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
 
     // page
-    inner_spatial_width_bl: get_json_object_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
-    natural_aspect: get_json_object_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
-    background_color_index: get_json_object_integer_field(map, "backgroundColorIndex").ok(), // TODO (LOW): Proper handling of errors.
+    inner_spatial_width_bl: json::get_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
+    natural_aspect: json::get_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
+    background_color_index: json::get_integer_field(map, "backgroundColorIndex").ok(), // TODO (LOW): Proper handling of errors.
 
     // note
-    url: get_json_object_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
+    url: json::get_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
 
     // file
-    original_creation_date: get_json_object_integer_field(map, "originalCreationDate").ok(), // TODO (LOW): Proper handling of errors.
+    original_creation_date: json::get_integer_field(map, "originalCreationDate").ok(), // TODO (LOW): Proper handling of errors.
     // TODO (MEDIUM): not complete.
   })
 }

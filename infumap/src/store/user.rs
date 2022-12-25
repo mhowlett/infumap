@@ -18,7 +18,8 @@ use serde_json::{Map, Value};
 use sha2::{Sha256, Digest};
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
-use super::kv_store::{JsonLogSerializable, get_json_object_string_field};
+use crate::util::json;
+use super::kv_store::JsonLogSerializable;
 
 
 pub struct User {
@@ -66,11 +67,11 @@ impl JsonLogSerializable<User> for User {
   fn from_json(map: &Map<String, Value>) -> InfuResult<User> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(User {
-      id: get_json_object_string_field(map, "id")?,
-      username: get_json_object_string_field(map, "username")?,
-      password_hash: get_json_object_string_field(map, "passwordHash")?,
-      password_salt: get_json_object_string_field(map, "passwordSalt")?,
-      root_page_id: get_json_object_string_field(map, "rootPageId")?,
+      id: json::get_string_field(map, "id")?,
+      username: json::get_string_field(map, "username")?,
+      password_hash: json::get_string_field(map, "passwordHash")?,
+      password_salt: json::get_string_field(map, "passwordSalt")?,
+      root_page_id: json::get_string_field(map, "rootPageId")?,
     })
   }
 
@@ -86,10 +87,10 @@ impl JsonLogSerializable<User> for User {
 
   fn apply_json_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
     // TODO (LOW): check for/error on unexepected fields.
-    if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
-    if let Ok(v) = get_json_object_string_field(map, "passwordHash") { self.password_hash = v; }
-    if let Ok(v) = get_json_object_string_field(map, "passwordSalt") { self.password_salt = v; }
-    if let Ok(v) = get_json_object_string_field(map, "rootPageId") { self.root_page_id = v; }
+    if let Ok(v) = json::get_string_field(map, "username") { self.username = v; }
+    if let Ok(v) = json::get_string_field(map, "passwordHash") { self.password_hash = v; }
+    if let Ok(v) = json::get_string_field(map, "passwordSalt") { self.password_salt = v; }
+    if let Ok(v) = json::get_string_field(map, "rootPageId") { self.root_page_id = v; }
     Ok(())
   }
 }

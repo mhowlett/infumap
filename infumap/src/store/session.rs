@@ -15,9 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use serde_json::{Value, Map};
+use crate::util::json;
 use crate::util::uid::Uid;
 use crate::util::infu::InfuResult;
-use super::kv_store::{JsonLogSerializable, get_json_object_string_field, get_json_object_integer_field};
+use super::kv_store::JsonLogSerializable;
 
 
 pub struct Session {
@@ -53,9 +54,9 @@ impl JsonLogSerializable<Session> for Session {
   fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Session> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(Session {
-      id: get_json_object_string_field(map, "id")?,
-      user_id: get_json_object_string_field(map, "userId")?,
-      expires: get_json_object_integer_field(map, "expires")?,
+      id: json::get_string_field(map, "id")?,
+      user_id: json::get_string_field(map, "userId")?,
+      expires: json::get_integer_field(map, "expires")?,
     })
   }
 

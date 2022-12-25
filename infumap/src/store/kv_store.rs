@@ -25,62 +25,12 @@ use std::io::BufReader;
 
 use serde::ser::SerializeStruct;
 use serde::Serialize;
-use serde_json::{self, Value, Map, Number};
+use serde_json::{self, Value, Map};
 use serde_json::Value::Object;
 
-use crate::util::geometry::Vector;
 use crate::util::infu::{InfuError, InfuResult};
 use crate::util::fs::expand_tilde;
 use crate::util::uid::Uid;
-
-
-pub fn get_json_object_string_field(map: &Map<String, Value>, field: &str) -> InfuResult<String> {
-  Ok(String::from(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
-      .as_str()
-      .ok_or(format!("'{}' field was not of type 'string'.", field))?
-  ))
-}
-
-pub fn get_json_object_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<i64> {
-  Ok(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
-      .as_i64()
-      .ok_or(format!("'{}' field was not of type 'i64'.", field))?
-  )
-}
-
-pub fn get_json_object_float_field(map: &Map<String, Value>, field: &str) -> InfuResult<f64> {
-  Ok(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
-      .as_f64()
-      .ok_or(format!("'{}' field was not of type 'f64'.", field))?
-  )
-}
-
-pub fn get_json_object_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Vector<f64>> {
-  let o = map
-    .get(field).ok_or(format!("'{}' field was not specified", field))?
-    .as_object()
-    .ok_or(format!("'{}' field was not of type 'f64'.", field))?;
-  Ok(Vector {
-    x: get_json_object_float_field(o, "x")?,
-    y: get_json_object_float_field(o, "y")?
-  })
-}
-
-pub fn vector_to_object(v: &Vector<f64>) -> InfuResult<Value> {
-  let mut vec: Map<String, Value> = Map::new();
-  vec.insert(String::from("x"), Value::Number(Number::from_f64(v.x).ok_or(InfuError::new("not a number"))?));
-  vec.insert(String::from("y"), Value::Number(Number::from_f64(v.y).ok_or(InfuError::new("not a number"))?));
-  Ok(Value::Object(vec))
-}
 
 
 pub trait JsonLogSerializable<T> {
