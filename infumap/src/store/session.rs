@@ -21,6 +21,8 @@ use crate::util::infu::InfuResult;
 use super::kv_store::JsonLogSerializable;
 
 
+const ALL_JSON_FIELDS: [&'static str; 4] = ["__recordType", "id", "userId", "expires"];
+
 pub struct Session {
   pub id: Uid,
   pub user_id: Uid,
@@ -52,7 +54,7 @@ impl JsonLogSerializable<Session> for Session {
   }
 
   fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Session> {
-    // TODO (LOW): check for/error on unexepected fields.
+    json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
     Ok(Session {
       id: json::get_string_field(map, "id")?,
       user_id: json::get_string_field(map, "userId")?,

@@ -61,6 +61,11 @@ impl Clone for RelationshipToParent {
   }
 }
 
+const ALL_JSON_FIELDS: [&'static str; 17] = ["__recordType",
+  "itemType", "ownerId", "id", "parentId", "relationshipToParent",
+  "creationDate", "lastModifiedDate", "ordering", "title",
+  "spatialPositionBl", "spatialWidthBl", "innerSpatialWidthBl",
+  "naturalAspect", "backgroundColorIndex", "url", "originalCreationDate"];
 
 pub struct Item {
   pub item_type: String,
@@ -197,7 +202,8 @@ impl JsonLogSerializable<Item> for Item {
   }
 
   fn apply_json_update(&mut self, map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
-    // TODO (LOW): check for/error on unexepected fields.
+    json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
+
     if let Ok(v) = json::get_string_field(map, "parentId") { self.parent_id = Some(v); }
     if let Ok(v) = json::get_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
     if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
@@ -205,7 +211,7 @@ impl JsonLogSerializable<Item> for Item {
       self.ordering = map.get("ordering")
         .unwrap()
         .as_array()
-        .ok_or(InfuError::new("ordering field was not an array"))?
+        .ok_or(InfuError::new("Ordering field was not an array."))?
         .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>();
     }
     if let Ok(v) = json::get_string_field(map, "title") { self.title = v; }
@@ -278,7 +284,8 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
 
 fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Item> {
-  // TODO (LOW): check for/error on unexepected fields.
+  json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
+
   Ok(Item {
     item_type: json::get_string_field(map, "itemType")?,
     id: json::get_string_field(map, "id")?,

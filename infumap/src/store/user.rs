@@ -22,6 +22,8 @@ use crate::util::json;
 use super::kv_store::JsonLogSerializable;
 
 
+const ALL_JSON_FIELDS: [&'static str; 6] = ["__recordType", "id", "username", "passwordHash", "passwordSalt", "rootPageId"];
+
 pub struct User {
   pub id: String,
   pub username: Uid,
@@ -65,7 +67,7 @@ impl JsonLogSerializable<User> for User {
   }
 
   fn from_json(map: &Map<String, Value>) -> InfuResult<User> {
-    // TODO (LOW): check for/error on unexepected fields.
+    json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
     Ok(User {
       id: json::get_string_field(map, "id")?,
       username: json::get_string_field(map, "username")?,
@@ -86,7 +88,7 @@ impl JsonLogSerializable<User> for User {
   }
 
   fn apply_json_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
-    // TODO (LOW): check for/error on unexepected fields.
+    json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
     if let Ok(v) = json::get_string_field(map, "username") { self.username = v; }
     if let Ok(v) = json::get_string_field(map, "passwordHash") { self.password_hash = v; }
     if let Ok(v) = json::get_string_field(map, "passwordSalt") { self.password_salt = v; }

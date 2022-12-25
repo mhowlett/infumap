@@ -23,7 +23,7 @@ pub fn get_string_field(map: &Map<String, Value>, field: &str) -> InfuResult<Str
   Ok(String::from(
     map
       .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
+      .ok_or(format!("'{}' field was not specified.", field))?
       .as_str()
       .ok_or(format!("'{}' field was not of type 'string'.", field))?
   ))
@@ -33,7 +33,7 @@ pub fn get_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<i6
   Ok(
     map
       .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
+      .ok_or(format!("'{}' field was not specified.", field))?
       .as_i64()
       .ok_or(format!("'{}' field was not of type 'i64'.", field))?
   )
@@ -51,7 +51,7 @@ pub fn get_float_field(map: &Map<String, Value>, field: &str) -> InfuResult<f64>
 
 pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Vector<f64>> {
   let o = map
-    .get(field).ok_or(format!("'{}' field was not specified", field))?
+    .get(field).ok_or(format!("'{}' field was not specified.", field))?
     .as_object()
     .ok_or(format!("'{}' field was not of type 'f64'.", field))?;
   Ok(Vector {
@@ -62,7 +62,16 @@ pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Vec
 
 pub fn vector_to_object(v: &Vector<f64>) -> InfuResult<Value> {
   let mut vec: Map<String, Value> = Map::new();
-  vec.insert(String::from("x"), Value::Number(Number::from_f64(v.x).ok_or(InfuError::new("not a number"))?));
-  vec.insert(String::from("y"), Value::Number(Number::from_f64(v.y).ok_or(InfuError::new("not a number"))?));
+  vec.insert(String::from("x"), Value::Number(Number::from_f64(v.x).ok_or(InfuError::new("Vector x coordinate is not a number."))?));
+  vec.insert(String::from("y"), Value::Number(Number::from_f64(v.y).ok_or(InfuError::new("Vector y coordinate is not a number."))?));
   Ok(Value::Object(vec))
+}
+
+pub fn validate_map_fields(map: &serde_json::Map<String, serde_json::Value>, all_fields: &[&str]) -> InfuResult<()> {
+  for (k, _v) in map {
+    if all_fields.iter().find(|v| v == &k).is_none() {
+      return Err(format!("Map contains unexpected key '{}'.", k).into());
+    }
+  }
+  Ok(())
 }
