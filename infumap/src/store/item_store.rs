@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
-use super::kv_store::KVStore;
+use super::kv_store::{KVStore, JsonLogSerializable};
 use super::item::Item;
 
 
@@ -27,6 +27,8 @@ use super::item::Item;
 pub struct ItemStore {
   data_dir: String,
   store_by_user_id: HashMap<Uid, KVStore<Item>>,
+
+  // indexes
   owner_id_by_item_id: HashMap<Uid, Uid>,
   children_of: HashMap<Uid, Vec<Uid>>,
   attachments_of: HashMap<Uid, Vec<Uid>>,
@@ -37,8 +39,6 @@ impl ItemStore {
     ItemStore {
       data_dir: String::from(data_dir),
       store_by_user_id: HashMap::new(),
-
-      // indexes
       owner_id_by_item_id: HashMap::new(),
       children_of: HashMap::new(),
       attachments_of: HashMap::new()
@@ -155,6 +155,16 @@ impl ItemStore {
   }
 
   pub fn update(&mut self, item: &Item) -> InfuResult<()> {
+    // TODO (LOW): implement PartialEq would be better.
+    let old_item = self.store_by_user_id.get(&item.owner_id)
+      .ok_or(format!("Item store has not been loaded for user '{}'.", item.owner_id))?
+      .get(&item.id)
+      .ok_or(format!("Attempt was made to update item '{}', but it does not exist.", item.id))?;
+    if Item::create_json_update(old_item, item)?.len() == 2 {
+      // "__recordType" and "id" and nothing else.
+      return Err(format!("Attempt was made to update item '{}', but nothing has changed", item.id).into());
+    }
+
     self.remove_from_indexes(&item)?;
     self.store_by_user_id.get_mut(&item.owner_id)
       .ok_or(format!("Item store has not been loaded for user '{}'.", item.owner_id))?

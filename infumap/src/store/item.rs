@@ -192,7 +192,7 @@ impl JsonLogSerializable<Item> for Item {
       if old.original_creation_date.unwrap() != original_creation_date { return Err("Attempt was made to update item original_creation_date field.".into()); }
     }
     // TODO (MEDIUM): not complete.
-
+  
     Ok(result)
   }
 
