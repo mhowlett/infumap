@@ -16,10 +16,11 @@
 
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map, Number};
+
 use crate::util::json;
 use crate::util::uid::Uid;
 use crate::util::geometry::Vector;
-use crate::util::infu::{InfuResult, InfuError};
+use crate::util::infu::InfuResult;
 use crate::util::lang::option_xor;
 use crate::web::routes::WebApiJsonSerializable;
 use super::kv_store::JsonLogSerializable;
@@ -46,7 +47,7 @@ impl RelationshipToParent {
       "attachment" => Ok(RelationshipToParent::Attachment),
       "child" => Ok(RelationshipToParent::Child),
       "no-parent" => Ok(RelationshipToParent::NoParent),
-      other => Err(format!("invalid relationship-to-parent value: '{}'.", other).into())
+      other => Err(format!("Invalid RelationshipToParent value: '{}'.", other).into())
     }
   }
 }
@@ -60,6 +61,7 @@ impl Clone for RelationshipToParent {
     }
   }
 }
+
 
 const ALL_JSON_FIELDS: [&'static str; 17] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
@@ -97,7 +99,24 @@ pub struct Item {
 
 impl Clone for Item {
   fn clone(&self) -> Self {
-    Self { item_type: self.item_type.clone(), owner_id: self.owner_id.clone(), id: self.id.clone(), parent_id: self.parent_id.clone(), relationship_to_parent: self.relationship_to_parent.clone(), creation_date: self.creation_date.clone(), last_modified_date: self.last_modified_date.clone(), ordering: self.ordering.clone(), title: self.title.clone(), spatial_position_bl: self.spatial_position_bl.clone(), spatial_width_bl: self.spatial_width_bl.clone(), inner_spatial_width_bl: self.inner_spatial_width_bl.clone(), natural_aspect: self.natural_aspect.clone(), background_color_index: self.background_color_index.clone(), url: self.url.clone(), original_creation_date: self.original_creation_date.clone() }
+    Self {
+      item_type: self.item_type.clone(),
+      owner_id: self.owner_id.clone(),
+      id: self.id.clone(),
+      parent_id: self.parent_id.clone(),
+      relationship_to_parent: self.relationship_to_parent.clone(),
+      creation_date: self.creation_date.clone(),
+      last_modified_date: self.last_modified_date.clone(),
+      ordering: self.ordering.clone(),
+      title: self.title.clone(),
+      spatial_position_bl: self.spatial_position_bl.clone(),
+      spatial_width_bl: self.spatial_width_bl.clone(),
+      inner_spatial_width_bl: self.inner_spatial_width_bl.clone(),
+      natural_aspect: self.natural_aspect.clone(),
+      background_color_index: self.background_color_index.clone(),
+      url: self.url.clone(),
+      original_creation_date: self.original_creation_date.clone()
+    }
   }
 }
 
@@ -133,15 +152,24 @@ impl JsonLogSerializable<Item> for Item {
   }
 
   fn create_json_update(old: &Item, new: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
-    if old.id != new.id { return Err("Attempt was made to create an Item update record from instances with non-matching ids.".into()); }
-    if old.owner_id != new.owner_id { return Err("Attempt was made to create an Item update record from instances with non-matching owner_ids.".into()); }
+    fn nan_err(field_name: &str, item_id: &str) -> String {
+      format!("Could not serialize the '{}' field of item '{}' to an update record because it is not a number.", field_name, item_id)
+    }
+    fn add_or_remove_err(field_name: &str, item_id: &str) -> InfuResult<()> {
+      Err(format!("An attempt was made to create an item update that adds or removes the field '{}' of item '{}', but this is not allowed.", field_name, item_id).into())
+    }
+    fn cannot_modify_err(field_name: &str, item_id: &str) -> InfuResult<()> {
+      Err(format!("An attempt was made to create an item update that modifies the field '{}' of item '{}', but this is not allowed.", field_name, item_id).into())
+    }
+
+    if old.id != new.id { return Err("An attempt was made to create an item update from instances with non-matching ids.".into()); }
+    if old.owner_id != new.owner_id { return Err("An attempt was made to create an item update from instances with non-matching owner_ids.".into()); }
 
     let mut result: Map<String, Value> = Map::new();
     result.insert(String::from("__recordType"), Value::String(String::from("update")));
     result.insert(String::from("id"), Value::String(new.id.clone()));
 
-    if option_xor(&old.parent_id, &new.parent_id) { return Err("Attempt was made to add or remove a parent_id in an item update.".into()); }
-    // TODO (LOW): could make this logic a macro.
+    if option_xor(&old.parent_id, &new.parent_id) { add_or_remove_err("parentId", &old.id)?; }
     if let Some(parent_id) = &new.parent_id {
       if old.parent_id.as_ref().unwrap() != parent_id {
         result.insert(String::from("parentId"), Value::String(String::from(parent_id)));
@@ -149,34 +177,34 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     if old.relationship_to_parent != new.relationship_to_parent { result.insert(String::from("relationshipToParent"), Value::String(String::from(new.relationship_to_parent.to_string()))); }
-    if old.creation_date != new.creation_date { return Err("Attempt was made to update item creation_date field.".into()); }
+    if old.creation_date != new.creation_date { cannot_modify_err("creationDate", &old.id)?; }
     if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
     if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }
     if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
     if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), json::vector_to_object(&new.spatial_position_bl)?); }
 
     // x-sizable.
-    if option_xor(&old.spatial_width_bl, &new.spatial_width_bl) { return Err("Attempt was made to add or remove spatial_width_bl field in an item update.".into()); }
+    if option_xor(&old.spatial_width_bl, &new.spatial_width_bl) { add_or_remove_err("spatialWidthBl", &old.id)?; }
     if let Some(spatial_width_bl) = new.spatial_width_bl {
       if old.spatial_width_bl.unwrap() != spatial_width_bl {
-        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(nan_err("spatialWidthBl", &old.id))?));
       }
     }
 
     // page
-    if option_xor(&old.inner_spatial_width_bl, &new.inner_spatial_width_bl) { return Err("Attempt was made to add or remove inner_spatial_width_bl field in an item update.".into()); }
+    if option_xor(&old.inner_spatial_width_bl, &new.inner_spatial_width_bl) { add_or_remove_err("innerSpatialWidthBl", &old.id)?; }
     if let Some(inner_spatial_width_bl) = new.inner_spatial_width_bl {
       if old.inner_spatial_width_bl.unwrap() != inner_spatial_width_bl {
-        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &old.id))?));
       }
     }
-    if option_xor(&old.natural_aspect, &new.natural_aspect) { return Err("Attempt was made to add or remove natural_aspect field in an item update.".into()); }
+    if option_xor(&old.natural_aspect, &new.natural_aspect) { add_or_remove_err("naturalAspect", &old.id)?; }
     if let Some(natural_aspect) = new.natural_aspect {
       if old.natural_aspect.unwrap() != natural_aspect {
-        result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
+        result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(nan_err("naturalAspect", &old.id))?));
       }
     }
-    if option_xor(&old.background_color_index, &new.background_color_index) { return Err("Attempt was made to add or remove background_color_index field in an item update.".into()); }
+    if option_xor(&old.background_color_index, &new.background_color_index) { add_or_remove_err("backgroundColorIndex", &old.id)?; }
     if let Some(background_color_index) = new.background_color_index {
       if old.background_color_index.unwrap() != background_color_index {
         result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
@@ -184,7 +212,10 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // note
-    if option_xor(&old.url, &new.url) { return Err("Attempt was made to add or remove url field in an item update.".into()); }
+    if option_xor(&old.url, &new.url) {
+      // no url is encoded as "", not null.
+      add_or_remove_err("url", &old.id)?;
+    }
     if let Some(url) = &new.url {
       if old.url.as_ref().unwrap() != url {
         result.insert(String::from("url"), Value::String(url.clone()));
@@ -192,9 +223,11 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // file
-    if option_xor(&old.original_creation_date, &new.original_creation_date) { return Err("Attempt was made to add or remove original_creation_date field in an item update.".into()); }
+    if option_xor(&old.original_creation_date, &new.original_creation_date) { add_or_remove_err("originalCreationDate", &old.id)?; }
     if let Some(original_creation_date) = new.original_creation_date {
-      if old.original_creation_date.unwrap() != original_creation_date { return Err("Attempt was made to update item original_creation_date field.".into()); }
+      if old.original_creation_date.unwrap() != original_creation_date {
+        cannot_modify_err("originalCreationDate", &old.id)?;
+      }
     }
     // TODO (MEDIUM): not complete.
   
@@ -202,19 +235,29 @@ impl JsonLogSerializable<Item> for Item {
   }
 
   fn apply_json_update(&mut self, map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
+    fn cannot_update_err(field_name: &str, item_id: &str) -> InfuResult<()> {
+      Err(format!("An attempt was made to apply an update to the '{}' field of item '{}', but this is not allowed.", field_name, item_id).into())
+    }
+
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
 
-    if let Ok(_) = json::get_string_field(map, "itemType") { return Err(format!("Attempt was made to update itemType field for item '{}'.", self.id).into()); }
-    if let Ok(_) = json::get_string_field(map, "ownerId") { return Err(format!("Attempt was made to update ownerId field for item '{}'.", self.id).into()); }
-    if let Ok(v) = json::get_string_field(map, "parentId") { self.parent_id = Some(v); }
+    if let Ok(_) = json::get_string_field(map, "itemType") { cannot_update_err("itemType", &self.id)?; }
+    if let Ok(_) = json::get_string_field(map, "ownerId") { cannot_update_err("ownerId", &self.id)?; }
+    
+    if let Ok(v) = json::get_string_field(map, "parentId") {
+      if self.parent_id.is_none() {
+        return Err(format!("An attempt was made to apply an update to item '{}' that sets the 'parentId' field, where this was not previously set.", self.id).into());
+      }
+      self.parent_id = Some(v);
+    }
     if let Ok(v) = json::get_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
-    if let Ok(_) = json::get_integer_field(map, "creationDate") { return Err(format!("Attempt was made to update creationDate field for item '{}'.", self.id).into()); }
+    if let Ok(_) = json::get_integer_field(map, "creationDate") { cannot_update_err("creationDate", &self.id)?; }
     if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
     if map.contains_key("ordering") {
       self.ordering = map.get("ordering")
         .unwrap()
         .as_array()
-        .ok_or(InfuError::new("Ordering field was not an array."))?
+        .ok_or(format!("Ordering field for item '{}' is not an array.", self.id))?
         .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>();
     }
     if let Ok(v) = json::get_string_field(map, "title") { self.title = v; }
@@ -232,7 +275,7 @@ impl JsonLogSerializable<Item> for Item {
     if let Ok(v) = json::get_string_field(map, "url") { self.url = Some(v); }
 
     // file
-    if let Ok(_) = json::get_integer_field(map, "originalCreationDate") { return Err(format!("Attempt was made to update originalCreationDate field for item '{}'.", self.id).into()); }
+    if let Ok(_) = json::get_integer_field(map, "originalCreationDate") { cannot_update_err("originalCreationDate", &self.id)?; }
     // TODO (MEDIUM): not complete.
 
     Ok(())
@@ -241,6 +284,10 @@ impl JsonLogSerializable<Item> for Item {
 
 
 fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
+  fn nan_err(field_name: &str, item_id: &str) -> String {
+    format!("Could not serialize the '{}' field of item '{}' because it is not a number.", field_name, item_id)
+  }
+
   let mut result = Map::new();
   result.insert(String::from("itemType"), Value::String(item.item_type.clone()));
   result.insert(String::from("id"), Value::String(item.id.clone()));
@@ -258,15 +305,21 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
   // x-sizeable
   if let Some(spatial_width_bl) = item.spatial_width_bl {
-    result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+    result.insert(
+      String::from("spatialWidthBl"),
+      Value::Number(Number::from_f64(spatial_width_bl).ok_or(nan_err("spatialWidthBl", &item.id))?));
   }
 
   // page
   if let Some(inner_spatial_width_bl) = item.inner_spatial_width_bl {
-    result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(InfuError::new("not a number"))?));
+    result.insert(
+      String::from("innerSpatialWidthBl"),
+      Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &item.id))?));
   }
   if let Some(natural_aspect) = item.natural_aspect {
-    result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(InfuError::new("not a number"))?));
+    result.insert(
+      String::from("naturalAspect"),
+      Value::Number(Number::from_f64(natural_aspect).ok_or(nan_err("naturalAspect", &item.id))?));
   }
   if let Some(background_color_index) = item.background_color_index {
     result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
@@ -290,19 +343,22 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Item> {
   json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
 
+  let id = json::get_string_field(map, "id")?;
+
   Ok(Item {
     item_type: json::get_string_field(map, "itemType")?,
-    id: json::get_string_field(map, "id")?,
+    id: id.clone(),
     owner_id: json::get_string_field(map, "ownerId")?,
-    parent_id: match json::get_string_field(map, "parentId") { Ok(s) => Some(s), Err(_) => None }, // TODO (LOW): Proper handling of errors.
+    parent_id: json::get_string_field(map, "parentId").ok(), // TODO (LOW): Proper handling of errors.
     relationship_to_parent: RelationshipToParent::from_string(&json::get_string_field(map, "relationshipToParent")?)?,
     creation_date: json::get_integer_field(map, "creationDate")?,
     last_modified_date: json::get_integer_field(map, "lastModifiedDate")?,
     ordering: map.get("ordering")
-      .ok_or(InfuError::new("ordering field was not available"))?
+      .ok_or(format!("'ordering' field was not available for item '{}'.", &id))?
       .as_array()
-      .ok_or(InfuError::new("ordering field was not an array"))?
-      .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>(), // TODO (LOW): Proper handling of errors.
+      .ok_or(format!("'ordering' field for item '{}' was not of type 'array'.", &id))?
+      .iter().map(|v| match v.as_i64() { Some(v) => Some(v as u8), None => None })
+      .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field for item '{}' was invalid.", &id))?,
     title: json::get_string_field(map, "title")?,
     spatial_position_bl: json::get_vector_field(map, "spatialPositionBl")?,
 

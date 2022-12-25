@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::HashMap;
+
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use super::item::RelationshipToParent;
@@ -93,7 +94,7 @@ impl ItemStore {
       },
       None => {
         if item.relationship_to_parent != RelationshipToParent::NoParent {
-          return Err(format!("Relationship to parent for root item '{}' must be 'no-parent', not '{}'", item.id, item.relationship_to_parent.to_string()).into());
+          return Err(format!("Relationship to parent for root page item '{}' must be 'no-parent', not '{}'.", item.id, item.relationship_to_parent.to_string()).into());
         }
         // By convention, root level items are children of themselves.
         match self.children_of.get_mut(&item.id) {
@@ -106,7 +107,7 @@ impl ItemStore {
   }
 
   fn remove_from_indexes(&mut self, item: &Item) -> InfuResult<()> {
-    self.owner_id_by_item_id.remove(&item.id).ok_or(format!("Item '{}' is missing from owner_id_by_item_id map.", item.id))?;
+    self.owner_id_by_item_id.remove(&item.id).ok_or(format!("Item '{}' is missing in the owner_id_by_item_id map.", item.id))?;
     match &item.parent_id {
       Some(parent_id) => {
         match item.relationship_to_parent {
@@ -133,7 +134,7 @@ impl ItemStore {
       },
       None => {
         if item.relationship_to_parent != RelationshipToParent::NoParent {
-          return Err(format!("Relationship to parent for root item '{}' must be 'no-parent', not '{}'", item.id, item.relationship_to_parent.to_string()).into());
+          return Err(format!("Relationship to parent for root page item '{}' must be 'no-parent', not '{}'.", item.id, item.relationship_to_parent.to_string()).into());
         }
         // By convention, root level items are children of themselves.
         let list = self.children_of.remove(&item.id)
@@ -162,7 +163,7 @@ impl ItemStore {
       .ok_or(format!("Attempt was made to update item '{}', but it does not exist.", item.id))?;
     if Item::create_json_update(old_item, item)?.len() == 2 {
       // "__recordType" and "id" and nothing else.
-      return Err(format!("Attempt was made to update item '{}', but nothing has changed", item.id).into());
+      return Err(format!("Attempt was made to update item '{}', but nothing has changed.", item.id).into());
     }
 
     self.remove_from_indexes(&item)?;

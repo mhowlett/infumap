@@ -16,6 +16,7 @@
 
 use serde_json::{Map, Value};
 use sha2::{Sha256, Digest};
+
 use crate::util::infu::InfuResult;
 use crate::util::uid::Uid;
 use crate::util::json;
@@ -42,7 +43,13 @@ impl User {
 
 impl Clone for User {
   fn clone(&self) -> Self {
-    Self { id: self.id.clone(), username: self.username.clone(), password_hash: self.password_hash.clone(), password_salt: self.password_salt.clone(), root_page_id: self.root_page_id.clone() }
+    Self {
+      id: self.id.clone(),
+      username: self.username.clone(),
+      password_hash: self.password_hash.clone(),
+      password_salt: self.password_salt.clone(),
+      root_page_id: self.root_page_id.clone()
+    }
   }
 }
 
