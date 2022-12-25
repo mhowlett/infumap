@@ -204,8 +204,11 @@ impl JsonLogSerializable<Item> for Item {
   fn apply_json_update(&mut self, map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
 
+    if let Ok(_) = json::get_string_field(map, "itemType") { return Err(format!("Attempt was made to update itemType field for item '{}'.", self.id).into()); }
+    if let Ok(_) = json::get_string_field(map, "ownerId") { return Err(format!("Attempt was made to update ownerId field for item '{}'.", self.id).into()); }
     if let Ok(v) = json::get_string_field(map, "parentId") { self.parent_id = Some(v); }
     if let Ok(v) = json::get_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
+    if let Ok(_) = json::get_integer_field(map, "creationDate") { return Err(format!("Attempt was made to update creationDate field for item '{}'.", self.id).into()); }
     if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
     if map.contains_key("ordering") {
       self.ordering = map.get("ordering")
@@ -229,6 +232,7 @@ impl JsonLogSerializable<Item> for Item {
     if let Ok(v) = json::get_string_field(map, "url") { self.url = Some(v); }
 
     // file
+    if let Ok(_) = json::get_integer_field(map, "originalCreationDate") { return Err(format!("Attempt was made to update originalCreationDate field for item '{}'.", self.id).into()); }
     // TODO (MEDIUM): not complete.
 
     Ok(())
