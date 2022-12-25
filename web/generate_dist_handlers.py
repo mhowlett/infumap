@@ -61,7 +61,8 @@ use rocket::response::content::{RawJavaScript, RawCss, RawHtml};
 use super::responders::{RawPngImage, RawIcoImage};
 
 
-#[get("/")] fn index() -> RawHtml<&'static str> { RawHtml(include_str!("../../../web/dist/index.html")) }"""
+#[get("/")] fn index() -> RawHtml<&'static str> { RawHtml(include_str!("../../../web/dist/index.html")) }
+"""
 
 def fn_name(filename):
     return filename.replace(".", "_")
