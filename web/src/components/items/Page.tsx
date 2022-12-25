@@ -21,7 +21,7 @@ import { add, clientPosVector as clientPxFromMouseEvent, subtract, Vector } from
 import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/items/page-item";
-import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, RESIZE_BOX_SIZE } from "../../constants";
+import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, MOUSE_MOVE_AMBIGUOUS_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
 import { server } from "../../server";
@@ -35,9 +35,10 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
 
   let outerDiv: HTMLDivElement | undefined;
 
-  let startPx: Vector | null;
-  let startPosBl: Vector | null;
-  let startWidthBl: number | null;
+  let startPx: Vector | null = null;
+  let startPosBl: Vector | null = null;
+  let startWidthBl: number | null = null;
+  let dragStarted: boolean = false;
 
   let moving = () => { return startPosBl != null; }
 
@@ -46,13 +47,12 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     document.addEventListener('mouseup', mouseUpHandler);
     let rect = outerDiv!.getBoundingClientRect();
     startPx = clientPxFromMouseEvent(ev);
-    if (rect.right - startPx.x < RESIZE_BOX_SIZE && rect.bottom - startPx.y < RESIZE_BOX_SIZE) {
+    if (rect.right - startPx.x < RESIZE_BOX_SIZE_PX && rect.bottom - startPx.y < RESIZE_BOX_SIZE_PX) {
       startPosBl = null;
       startWidthBl = props.item.spatialWidthBl;
     } else {
       startWidthBl = null;
       startPosBl = props.item.spatialPositionBl;
-      itemStore.transitionToMove(props.item.id);
     }
   };
 
@@ -60,24 +60,29 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     if (startPx == null) { return; }
 
     let deltaPx = subtract(clientPxFromMouseEvent(ev), startPx);
-    let deltaBl = { x: NaN, y: NaN };
+    if (Math.abs(deltaPx.x) > MOUSE_MOVE_AMBIGUOUS_PX || Math.abs(deltaPx.y) > MOUSE_MOVE_AMBIGUOUS_PX) {
+      if (!dragStarted && moving()) {
+        itemStore.transitionToMove(props.item.id);
+      }
+      dragStarted = true;
+    }
 
+    let deltaBl = { x: NaN, y: NaN };
     let wPx = props.item.computed_boundsPx!.w;
     let wCo = props.item.spatialWidthBl * GRID_SIZE;
     deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
-
     let hPx = props.item.computed_boundsPx!.h;
     let hCo = calcPageSizeForSpatialBl(props.item).h * GRID_SIZE;
     deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
 
-    if (moving()) {
+    if (moving() && dragStarted) {
       let newPosBl = add(startPosBl!, deltaBl);
       newPosBl.x = Math.round(newPosBl.x * 2.0) / 2.0;
       newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
       if (newPosBl.x < 0.0) { newPosBl.x = 0.0; }
       if (newPosBl.y < 0.0) { newPosBl.y = 0.0; }
       itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
-    } else {
+    } else if (dragStarted) {
       let newWidthBl = startWidthBl! + deltaBl.x;
       newWidthBl = Math.round(newWidthBl);
       if (newWidthBl < 1) { newWidthBl = 1.0; }
@@ -88,13 +93,16 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
   let mouseUpHandler = () => {
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
-    if (moving()) {
-      itemStore.transitionMovingToFixed();
+    if (dragStarted) {
+      if (moving()) {
+        itemStore.transitionMovingToFixed();
+      }
+      server.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     }
-    server.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
     startPx = null;
     startPosBl = null;
     startWidthBl = null;
+    dragStarted = false;
   };
 
   let lPx = props.item.computed_boundsPx!.x;
@@ -128,7 +136,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
           </div>
         </div>
         <div class={`absolute opacity-0 cursor-nwse-resize`}
-             style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: ${RESIZE_BOX_SIZE}px; height: ${RESIZE_BOX_SIZE}px;`}></div>
+             style={`left: ${wPx-RESIZE_BOX_SIZE_PX}px; top: ${hPx-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
       </div>
     );
   }
@@ -147,7 +155,7 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
         </div>
       </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
-           style={`left: ${wPx-RESIZE_BOX_SIZE}px; top: ${hPx-RESIZE_BOX_SIZE}px; width: ${RESIZE_BOX_SIZE}px; height: ${RESIZE_BOX_SIZE}px;`}></div>
+           style={`left: ${wPx-RESIZE_BOX_SIZE_PX}px; top: ${hPx-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
     </div>
   );
 }
