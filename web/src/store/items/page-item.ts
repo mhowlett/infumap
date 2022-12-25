@@ -39,17 +39,17 @@ export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {
 
 export function isPageItem(item: Item | null): boolean {
   if (item == null) { return false; }
-  return item.type == "page";
+  return item.itemType == "page";
 }
 
 export function asPageItem(item: Item): PageItem {
-  if (item.type == "page") { return item as PageItem; }
+  if (item.itemType == "page") { return item as PageItem; }
   panic();
 }
 
 export function clonePageItem(item: PageItem): PageItem {
   return {
-    type: "page",
+    itemType: "page",
     ownerId: item.ownerId,
     id: item.id,
     parentId: item.parentId,
@@ -75,7 +75,7 @@ export function clonePageItem(item: PageItem): PageItem {
 
 export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): PageItem {
   return {
-    type: "page",
+    itemType: "page",
     ownerId,
     id: newUid(),
     parentId,

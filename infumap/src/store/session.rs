@@ -41,7 +41,7 @@ impl JsonLogSerializable<Session> for Session {
     &self.id
   }
 
-  fn serialize_entry(&self) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
+  fn to_json(&self) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
     let mut result = Map::new();
     result.insert(String::from("__recordType"), Value::String(String::from("entry")));
     result.insert(String::from("id"), Value::String(self.id.clone()));
@@ -50,7 +50,7 @@ impl JsonLogSerializable<Session> for Session {
     Ok(result)
   }
 
-  fn deserialize_entry(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Session> {
+  fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Session> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(Session {
       id: get_json_object_string_field(map, "id")?,
@@ -59,12 +59,12 @@ impl JsonLogSerializable<Session> for Session {
     })
   }
 
-  fn serialize_update(_old: &Session, _new: &Session) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
+  fn create_json_update(_old: &Session, _new: &Session) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
     // Never used.
     panic!();
   }
 
-  fn deserialize_and_apply_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
+  fn apply_json_update(&mut self, _map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<()> {
     // Never used.
     panic!()
   }

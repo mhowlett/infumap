@@ -35,11 +35,11 @@ export const server = {
   },
 
   addItem: async (user: User, item: Item): Promise<void> => {
-    await send("add-item", user, { item: createItemForSend(item) });
+    await send("add-item", user, createItemForSend(item));
   },
 
   updateItem: async (user:User, item: Item): Promise<void> => {
-    await send("update-item", user, { item: createItemForSend(item) });
+    await send("update-item", user, createItemForSend(item));
   }
 }
 

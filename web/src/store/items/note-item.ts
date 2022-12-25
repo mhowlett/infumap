@@ -50,17 +50,17 @@ export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
 
 export function isNoteItem(item: Item | null): boolean {
   if (item == null) { return false; }
-  return item.type == "note";
+  return item.itemType == "note";
 }
 
 export function asNoteItem(item: Item): NoteItem {
-  if (item.type == "note") { return item as NoteItem; }
+  if (item.itemType == "note") { return item as NoteItem; }
   panic();
 }
 
 export function cloneNoteItem(item: NoteItem): NoteItem {
   return {
-    type: "note",
+    itemType: "note",
     ownerId: item.ownerId,
     id: item.id,
     parentId: item.parentId,
@@ -83,7 +83,7 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
 
 export function newNoteItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): NoteItem {
   return {
-    type: "note",
+    itemType: "note",
     ownerId,
     id: newUid(),
     parentId,

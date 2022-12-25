@@ -16,7 +16,7 @@
 
 mod responders;
 mod dist_handlers;
-mod routes;
+pub mod routes;
 use std::sync::Mutex;
 
 use rocket::{Rocket, Build};

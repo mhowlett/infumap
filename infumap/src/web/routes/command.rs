@@ -21,6 +21,8 @@ use serde::{Deserialize, Serialize};
 use crate::store::Store;
 use crate::store::item::Item;
 use crate::util::infu::InfuResult;
+use super::WebApiJsonSerializable;
+
 
 
 #[derive(Deserialize)]
@@ -109,7 +111,10 @@ pub struct GetChildrenRequest {
 
 fn handle_get_children(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
   let request: GetChildrenRequest = serde_json::from_str(json)?;
-  let children = store.item.get_children(&request.parent_id)?;
+  let children = store.item
+    .get_children(&request.parent_id)?.iter()
+    .map(|v| v.to_api_json().ok())
+    .collect::<Option<Vec<serde_json::Map<String, serde_json::Value>>>>();
   Ok(serde_json::to_string(&children)?)
 }
 
@@ -122,30 +127,31 @@ pub struct GetAttachmentsRequest {
 
 fn handle_get_attachments(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
   let request: GetAttachmentsRequest = serde_json::from_str(json)?;
-  let attachments = store.item.get_attachments(&request.parent_id)?;
+  let attachments = store.item
+    .get_attachments(&request.parent_id)?.iter()
+    .map(|v| v.to_api_json().ok())
+    .collect::<Option<Vec<serde_json::Map<String, serde_json::Value>>>>();
   Ok(serde_json::to_string(&attachments)?)
 }
 
 
-#[derive(Deserialize)]
-pub struct AddItemRequest {
-  item: Item
-}
-
 fn handle_add_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
-  let request: AddItemRequest = serde_json::from_str(json)?;
-  store.item.add(request.item)?;
+  let deserializer = serde_json::Deserializer::from_str(json);
+  let mut iterator = deserializer.into_iter::<serde_json::Value>();
+  let item_map_maybe = iterator.next().ok_or("Add item request has no item")??;
+  let item_map = item_map_maybe.as_object().ok_or("Add item request body is not a JSON object")?;
+  let item: Item = Item::from_api_json(item_map)?;
+  store.item.add(item)?;
   Ok(serde_json::to_string("")?)
 }
 
 
-#[derive(Deserialize)]
-pub struct UpdateItemRequest {
-  item: Item
-}
-
 fn handle_update_item(store: &mut MutexGuard<Store>, json: &str) -> InfuResult<String> {
-  let request: UpdateItemRequest = serde_json::from_str(json)?;
-  store.item.update(&request.item)?;
+  let deserializer = serde_json::Deserializer::from_str(json);
+  let mut iterator = deserializer.into_iter::<serde_json::Value>();
+  let item_map_maybe = iterator.next().ok_or("Update item request has no item")??;
+  let item_map = item_map_maybe.as_object().ok_or("Update item request body is not a JSON object")?;
+  let item: Item = Item::from_api_json(item_map)?;
+  store.item.update(&item)?;
   Ok(serde_json::to_string("")?)
 }

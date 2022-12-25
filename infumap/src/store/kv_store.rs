@@ -88,11 +88,11 @@ pub trait JsonLogSerializable<T> {
 
   fn get_id(&self) -> &Uid;
 
-  fn serialize_entry(&self) -> InfuResult<Map<String, Value>>;
-  fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<T>;
+  fn to_json(&self) -> InfuResult<Map<String, Value>>;
+  fn from_json(map: &Map<String, Value>) -> InfuResult<T>;
 
-  fn serialize_update(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
-  fn deserialize_and_apply_update(&mut self, map: &Map<String, Value>) -> InfuResult<()>;
+  fn create_json_update(old: &T, new: &T) -> InfuResult<Map<String, Value>>;
+  fn apply_json_update(&mut self, map: &Map<String, Value>) -> InfuResult<()>;
 }
 
 
@@ -157,7 +157,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     }
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
     let mut writer = BufWriter::new(file);
-    writer.write_all(serde_json::to_string(&entry.serialize_entry()?)?.as_bytes())?;
+    writer.write_all(serde_json::to_string(&entry.to_json()?)?.as_bytes())?;
     writer.write_all("\n".as_bytes())?;
     self.map.insert(entry.get_id().clone(), entry);
     Ok(())
@@ -185,7 +185,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
   }
 
   pub fn update(&mut self, updated: T) -> InfuResult<()> {
-    let update_record = T::serialize_update(
+    let update_record = T::create_json_update(
       self.map.get(updated.get_id()).ok_or(format!("Entry with id {} does not exist.",
       updated.get_id()))?, &updated)?;
     let file = OpenOptions::new().append(true).open(&self.log_path)?;
@@ -226,7 +226,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
 
       "entry" => {
         // Log record is a full specification of an entry value.
-        let u = T::deserialize_entry(&kvs)?;
+        let u = T::from_json(&kvs)?;
         if result.contains_key(u.get_id()) {
           return Err(format!("Entry log record has id '{}', but an entry with this id already exists.", u.get_id()).into());
         }
@@ -243,7 +243,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
         let u = result
           .get_mut(&String::from(id))
           .ok_or(InfuError::new(&format!("Update record has id '{}', but this is unknown.", id)))?;
-        u.deserialize_and_apply_update(&kvs)?;
+        u.apply_json_update(&kvs)?;
       },
 
       "delete" => {

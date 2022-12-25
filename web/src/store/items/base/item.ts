@@ -25,7 +25,7 @@ import { asPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from 
 
 
 export interface Item {
-  type: string,
+  itemType: string,
   ownerId: Uid,
   id: Uid,
   parentId: Uid | null,
@@ -43,13 +43,13 @@ export interface Item {
 export function cloneItem(item: Item): Item {
   if (isPageItem(item)) { return clonePageItem(asPageItem(item)); }
   if (isNoteItem(item)) { return cloneNoteItem(asNoteItem(item)); }
-  throwExpression(`Unknown item type: ${item.type}`);
+  throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
 export function calcSizeForSpatialBl(item: Item): Dimensions {
   if (isPageItem(item)) { return calcPageSizeForSpatialBl(asPageItem(item)); }
   if (isNoteItem(item)) { return calcNoteSizeForSpatialBl(asNoteItem(item)); }
-  throwExpression(`Unknown item type: ${item.type}`);
+  throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
 export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {

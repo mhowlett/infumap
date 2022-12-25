@@ -52,7 +52,7 @@ impl JsonLogSerializable<User> for User {
     &self.id
   }
 
-  fn serialize_entry(&self) -> InfuResult<Map<String, Value>> {
+  fn to_json(&self) -> InfuResult<Map<String, Value>> {
     let mut result = Map::new();
     result.insert(String::from("__recordType"), Value::String(String::from("entry")));
     result.insert(String::from("id"), Value::String(self.id.clone()));
@@ -63,7 +63,7 @@ impl JsonLogSerializable<User> for User {
     Ok(result)
   }
 
-  fn deserialize_entry(map: &Map<String, Value>) -> InfuResult<User> {
+  fn from_json(map: &Map<String, Value>) -> InfuResult<User> {
     // TODO (LOW): check for/error on unexepected fields.
     Ok(User {
       id: get_json_object_string_field(map, "id")?,
@@ -74,7 +74,7 @@ impl JsonLogSerializable<User> for User {
     })
   }
 
-  fn serialize_update(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
+  fn create_json_update(old: &User, new: &User) -> InfuResult<Map<String, Value>> {
     if old.id != new.id { return Err("Attempt was made to create a User update record from instances with non-matching ids.".into()); }
     let mut result: Map<String, Value> = Map::new();
     result.insert(String::from("__recordType"), serde_json::from_str("update")?);
@@ -84,7 +84,7 @@ impl JsonLogSerializable<User> for User {
     Ok(result)
   }
 
-  fn deserialize_and_apply_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
+  fn apply_json_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
     // TODO (LOW): check for/error on unexepected fields.
     if let Ok(v) = get_json_object_string_field(map, "username") { self.username = v; }
     if let Ok(v) = get_json_object_string_field(map, "passwordHash") { self.password_hash = v; }

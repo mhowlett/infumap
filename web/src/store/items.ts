@@ -44,10 +44,10 @@ export function findItemInArray(items: Array<Item>, id: Uid): Item {
 export function setDefaultComputed(item: Item) {
   item.computed_boundsPx = null;
   item.computed_fromParentIdMaybe = null;
-  if (item.type == "page") {
+  if (item.itemType == "page") {
     (item as PageItem).computed_children = [];
     (item as PageItem).computed_attachments = [];
-  } else if (item.type == "note") {
+  } else if (item.itemType == "note") {
     (item as NoteItem).computed_attachments = [];
   }
   return item;
