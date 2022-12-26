@@ -51,6 +51,8 @@ impl ItemStore {
   }
 
   pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
+    info!("Loading items for user {}{}", user_id, if creating { " (creating)" } else { "" });
+
     let log_filename = String::from("items_") + &user_id + ".json";
 
     if creating {
@@ -107,24 +109,28 @@ impl ItemStore {
   }
 
   fn remove_from_indexes(&mut self, item: &Item) -> InfuResult<()> {
-    self.owner_id_by_item_id.remove(&item.id).ok_or(format!("Item '{}' is missing in the owner_id_by_item_id map.", item.id))?;
+    self.owner_id_by_item_id.remove(&item.id)
+      .ok_or(format!("Item '{}' is missing in the owner_id_by_item_id map.", item.id))?;
+
     match &item.parent_id {
       Some(parent_id) => {
         match item.relationship_to_parent {
           RelationshipToParent::Child => {
-            let list = self.children_of.remove(parent_id)
-              .ok_or(format!("Item '{}' parent '{}' is missing a children index.", item.id, parent_id))?;
-            if list.len() > 0 {
-              self.children_of.insert(parent_id.clone(),
-                list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+            let child_list = self.children_of.remove(parent_id)
+              .ok_or(format!("Item '{}' parent '{}' is missing a children_of index.", item.id, parent_id))?;
+            let updated_child_list = child_list.iter()
+              .filter(|el| **el != item.id).map(|v| v.clone()).collect::<Vec<String>>();
+            if updated_child_list.len() > 0 {
+              self.children_of.insert(parent_id.clone(), updated_child_list);
             }
           },
           RelationshipToParent::Attachment => {
-            let list = self.attachments_of.remove(parent_id)
-              .ok_or(format!("Item '{}' parent '{}' is missing an attachment index.", item.id, parent_id))?;
-            if list.len() > 0 {
-              self.attachments_of.insert(parent_id.clone(),
-                list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+            let attachment_list = self.attachments_of.remove(parent_id)
+              .ok_or(format!("Item '{}' parent '{}' is missing a attachment_of index.", item.id, parent_id))?;
+            let updated_attachment_list = attachment_list.iter()
+              .filter(|el| **el != item.id).map(|v| v.clone()).collect::<Vec<String>>();
+            if updated_attachment_list.len() > 0 {
+              self.attachments_of.insert(parent_id.clone(), updated_attachment_list);
             }
           },
           RelationshipToParent::NoParent => {
@@ -137,14 +143,16 @@ impl ItemStore {
           return Err(format!("Relationship to parent for root page item '{}' must be 'no-parent', not '{}'.", item.id, item.relationship_to_parent.to_string()).into());
         }
         // By convention, root level items are children of themselves.
-        let list = self.children_of.remove(&item.id)
-          .ok_or(format!("Root item '{}' is missing a children index.", item.id))?;
-        if list.len() > 0 {
-          self.children_of.insert(item.id.clone(),
-            list.iter().filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>());
+        let child_list = self.children_of.remove(&item.id)
+          .ok_or(format!("Root item '{}' is missing a children_of index.", item.id))?;
+        let updated_child_list = child_list.iter()
+          .filter(|el| **el == item.id).map(|v| v.clone()).collect::<Vec<String>>();
+        if updated_child_list.len() > 0 {
+          self.children_of.insert(item.id.clone(), updated_child_list);
         }
       }
     }
+
     Ok(())
   }
 
@@ -156,7 +164,7 @@ impl ItemStore {
   }
 
   pub fn update(&mut self, item: &Item) -> InfuResult<()> {
-    // TODO (LOW): implement PartialEq would be better.
+    // TODO (LOW): implementation of PartialEq would be better.
     let old_item = self.store_by_user_id.get(&item.owner_id)
       .ok_or(format!("Item store has not been loaded for user '{}'.", item.owner_id))?
       .get(&item.id)
