@@ -124,6 +124,9 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     inner_spatial_width_bl: Some(60.0),
     natural_aspect: Some(2.0),
     background_color_index: Some(0),
+    popup_position_bl: Some(Vector { x: 30.0, y: 15.0 }),
+    popup_alignment_point: Some(crate::store::item::AlignmentPoint::Center),
+    popup_width_bl: Some(10.0),
     url: None,
     original_creation_date: None,
   }

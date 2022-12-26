@@ -51,7 +51,7 @@ impl ItemStore {
   }
 
   pub fn load_user_items(&mut self, user_id: &str, creating: bool) -> InfuResult<()> {
-    info!("Loading items for user {}{}", user_id, if creating { " (creating)" } else { "" });
+    info!("Loading items for user {}{}.", user_id, if creating { " (creating)" } else { "" });
 
     let log_filename = String::from("items_") + &user_id + ".json";
 

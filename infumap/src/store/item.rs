@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map, Number};
 
 use crate::util::json;
@@ -26,7 +25,7 @@ use crate::web::routes::WebApiJsonSerializable;
 use super::kv_store::JsonLogSerializable;
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq)]
 pub enum RelationshipToParent {
   NoParent,
   Child,
@@ -63,11 +62,74 @@ impl Clone for RelationshipToParent {
 }
 
 
-const ALL_JSON_FIELDS: [&'static str; 17] = ["__recordType",
+#[derive(Debug, PartialEq)]
+pub enum AlignmentPoint {
+  Center,
+  LeftCenter,
+  TopCenter,
+  RightCenter,
+  BottomCenter,
+  TopLeft,
+  TopRight,
+  BottomRight,
+  BottomLeft,
+}
+
+impl Clone for AlignmentPoint {
+  fn clone(&self) -> Self {
+    match self {
+      Self::Center => Self::Center,
+      Self::LeftCenter => Self::LeftCenter,
+      Self::TopCenter => Self::TopCenter,
+      Self::RightCenter => Self::RightCenter,
+      Self::BottomCenter => Self::BottomCenter,
+      Self::TopLeft => Self::TopLeft,
+      Self::TopRight => Self::TopRight,
+      Self::BottomRight => Self::BottomRight,
+      Self::BottomLeft => Self::BottomLeft,
+    }
+  }
+}
+
+impl AlignmentPoint {
+  pub fn to_string(&self) -> &'static str {
+    match self {
+        AlignmentPoint::Center => "center",
+        AlignmentPoint::LeftCenter => "left-center",
+        AlignmentPoint::TopCenter => "top-center",
+        AlignmentPoint::RightCenter => "right-center",
+        AlignmentPoint::BottomCenter => "bottom-center",
+        AlignmentPoint::TopLeft => "top-left",
+        AlignmentPoint::TopRight => "top-right",
+        AlignmentPoint::BottomRight => "bottom-right",
+        AlignmentPoint::BottomLeft => "bottom-left",
+    }
+  }
+
+  pub fn from_string(s: &str) -> InfuResult<AlignmentPoint> {
+    match s {
+      "center" => Ok(AlignmentPoint::Center),
+      "left-center" => Ok(AlignmentPoint::LeftCenter),
+      "top-center" => Ok(AlignmentPoint::TopCenter),
+      "right-center" => Ok(AlignmentPoint::RightCenter),
+      "bottom-center" => Ok(AlignmentPoint::BottomCenter),
+      "top-left" => Ok(AlignmentPoint::TopLeft),
+      "top-right" => Ok(AlignmentPoint::TopRight),
+      "bottom-right" => Ok(AlignmentPoint::BottomRight),
+      "bottom-left" => Ok(AlignmentPoint::BottomLeft),
+      other => Err(format!("Invalid FixedPoint value: '{}'.", other).into())
+    }
+  }
+}
+
+
+const ALL_JSON_FIELDS: [&'static str; 20] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
   "spatialPositionBl", "spatialWidthBl", "innerSpatialWidthBl",
-  "naturalAspect", "backgroundColorIndex", "url", "originalCreationDate"];
+  "naturalAspect", "backgroundColorIndex", "popupPositionBl",
+  "popupAlignmentPoint", "popupWidthBl", "url",
+  "originalCreationDate"];
 
 pub struct Item {
   pub item_type: String,
@@ -88,6 +150,9 @@ pub struct Item {
   pub inner_spatial_width_bl: Option<f64>,
   pub natural_aspect: Option<f64>,
   pub background_color_index: Option<i64>,
+  pub popup_position_bl: Option<Vector<f64>>,
+  pub popup_alignment_point: Option<AlignmentPoint>,
+  pub popup_width_bl: Option<f64>,
 
   // note
   pub url: Option<String>,
@@ -114,6 +179,9 @@ impl Clone for Item {
       inner_spatial_width_bl: self.inner_spatial_width_bl.clone(),
       natural_aspect: self.natural_aspect.clone(),
       background_color_index: self.background_color_index.clone(),
+      popup_position_bl: self.popup_position_bl.clone(),
+      popup_alignment_point: self.popup_alignment_point.clone(),
+      popup_width_bl: self.popup_width_bl.clone(),
       url: self.url.clone(),
       original_creation_date: self.original_creation_date.clone()
     }
@@ -210,6 +278,24 @@ impl JsonLogSerializable<Item> for Item {
         result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
       }
     }
+    if option_xor(&old.popup_position_bl, &new.popup_position_bl) { add_or_remove_err("popupPositionBl", &old.id)?; }
+    if let Some(popup_position_bl) = &new.popup_position_bl {
+      if old.popup_position_bl.as_ref().unwrap() != popup_position_bl {
+        result.insert(String::from("popupPositionBl"), json::vector_to_object(&popup_position_bl)?);
+      }
+    }
+    if option_xor(&old.popup_alignment_point, &new.popup_alignment_point) { add_or_remove_err("popupAlignmentPoint", &old.id)?; }
+    if let Some(popup_alignment_point) = &new.popup_alignment_point {
+      if old.popup_alignment_point.as_ref().unwrap() != popup_alignment_point {
+        result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(popup_alignment_point.to_string())));
+      }
+    }
+    if option_xor(&old.popup_width_bl, &new.popup_width_bl) { add_or_remove_err("popupWidthBl", &old.id)?; }
+    if let Some(popup_width_bl) = new.popup_width_bl {
+      if old.popup_width_bl.unwrap() != popup_width_bl {
+        result.insert(String::from("popupWidthBl"), Value::Number(Number::from_f64(popup_width_bl).ok_or(nan_err("popupWidthBl", &old.id))?));
+      }
+    }
 
     // note
     if option_xor(&old.url, &new.url) {
@@ -270,6 +356,9 @@ impl JsonLogSerializable<Item> for Item {
     if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
     if let Ok(v) = json::get_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
     if let Ok(v) = json::get_integer_field(map, "backgroundColorIndex") { self.background_color_index = Some(v); }
+    if let Ok(v) = json::get_vector_field(map, "popupPositionBl") { self.popup_position_bl = Some(v); }
+    if let Ok(v) = json::get_string_field(map, "popupAlignmentPoint") { self.popup_alignment_point = Some(AlignmentPoint::from_string(&v)?); }
+    if let Ok(v) = json::get_float_field(map, "popupWidthBl") { self.popup_width_bl = Some(v); }
 
     // note
     if let Ok(v) = json::get_string_field(map, "url") { self.url = Some(v); }
@@ -324,6 +413,17 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   if let Some(background_color_index) = item.background_color_index {
     result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
   }
+  if let Some(popup_position_bl) = &item.popup_position_bl {
+    result.insert(String::from("popupPositionBl"), json::vector_to_object(&popup_position_bl)?);
+  }
+  if let Some(popup_alignment_point) = &item.popup_alignment_point {
+    result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(popup_alignment_point.to_string())));
+  }
+  if let Some(popup_width_bl) = item.popup_width_bl {
+    result.insert(
+      String::from("popupWidthBl"),
+      Value::Number(Number::from_f64(popup_width_bl).ok_or(nan_err("popupWidthBl", &item.id))?));
+  }
 
   // note
   if let Some(url) = &item.url {
@@ -369,6 +469,9 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     inner_spatial_width_bl: json::get_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
     natural_aspect: json::get_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
     background_color_index: json::get_integer_field(map, "backgroundColorIndex").ok(), // TODO (LOW): Proper handling of errors.
+    popup_position_bl: json::get_vector_field(map, "popupPositionBl").ok(), // TODO (LOW): Proper handling of errors.
+    popup_alignment_point: AlignmentPoint::from_string(&json::get_string_field(map, "popupAlignmentPoint")?).ok(), // TODO (LOW): Proper handling of errors.
+    popup_width_bl: json::get_float_field(map, "popupWidthBl").ok(), // TODO (LOW): Proper handling of errors.
 
     // note
     url: json::get_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.

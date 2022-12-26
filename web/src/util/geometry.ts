@@ -38,6 +38,14 @@ export interface Vector {
     y: number;
 }
 
+export function cloneVector(vector: Vector | null): Vector | null {
+  if (vector == null) { return null; }
+  return {
+    x: vector.x,
+    y: vector.y
+  };
+}
+
 export interface Dimensions {
   w: number;
   h: number;

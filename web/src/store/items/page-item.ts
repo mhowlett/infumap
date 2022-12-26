@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { cloneBoundingBox, Dimensions } from '../../util/geometry';
+import { cloneBoundingBox, cloneVector, Dimensions, Vector } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -27,6 +27,9 @@ export interface PageItem extends XSizableItem {
   innerSpatialWidthBl: number;
   naturalAspect: number;
   backgroundColorIndex: number;
+  popupPositionBl: Vector;
+  popupAlignmentPoint: string,
+  popupWidthBl: number;
 
   computed_children: Array<Uid>;
   computed_attachments: Array<Uid>;
@@ -58,13 +61,16 @@ export function clonePageItem(item: PageItem): PageItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    spatialPositionBl: item.spatialPositionBl,
+    spatialPositionBl: cloneVector(item.spatialPositionBl)!,
 
     spatialWidthBl: item.spatialWidthBl,
 
     innerSpatialWidthBl: item.innerSpatialWidthBl,
     naturalAspect: item.naturalAspect,
     backgroundColorIndex: item.backgroundColorIndex,
+    popupPositionBl: cloneVector(item.popupPositionBl)!,
+    popupAlignmentPoint: item.popupAlignmentPoint,
+    popupWidthBl: item.popupWidthBl,
 
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
@@ -91,6 +97,9 @@ export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     innerSpatialWidthBl: 60.0,
     naturalAspect: 2.0,
     backgroundColorIndex: 0,
+    popupPositionBl: { x: 30.0, y: 15.0 },
+    popupAlignmentPoint: "center",
+    popupWidthBl: 10.0,
 
     computed_children: [],
     computed_attachments: [],
