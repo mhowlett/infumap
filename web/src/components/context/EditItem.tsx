@@ -25,12 +25,12 @@ import { EditPage } from "./EditPage";
 export const EditItem: Component<{item: Item}> = (props: {item: Item}) => {
   return (
     <div class="border rounded w-[300px] h-[150px] bg-slate-50">
-      <div class="text-slate-800 text-sm ml-1">Edit {props.item.type} <span class="ml-4 font-mono text-slate-400">{`${props.item.id}`}</span> <i class={`fa fa-copy text-slate-400`} /></div>
+      <div class="text-slate-800 text-sm ml-1">Edit {props.item.itemType} <span class="ml-4 font-mono text-slate-400">{`${props.item.id}`}</span> <i class={`fa fa-copy text-slate-400`} /></div>
       <Switch fallback={<div>Not Found</div>}>
-        <Match when={props.item.type == "page"}>
+        <Match when={props.item.itemType == "page"}>
           <EditPage item={props.item} />
         </Match>
-        <Match when={props.item.type == "note"}>
+        <Match when={props.item.itemType == "note"}>
           <EditNote item={props.item} />
         </Match>
       </Switch>
