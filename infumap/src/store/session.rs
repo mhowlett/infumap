@@ -57,9 +57,9 @@ impl JsonLogSerializable<Session> for Session {
   fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Session> {
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
     Ok(Session {
-      id: json::get_string_field(map, "id")?,
-      user_id: json::get_string_field(map, "userId")?,
-      expires: json::get_integer_field(map, "expires")?,
+      id: json::get_string_field(map, "id")?.ok_or("'id' field was missing.")?,
+      user_id: json::get_string_field(map, "userId")?.ok_or("'userId' field was missing.")?,
+      expires: json::get_integer_field(map, "expires")?.ok_or("'expires' field was missing.")?,
     })
   }
 

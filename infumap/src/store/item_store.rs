@@ -66,7 +66,9 @@ impl ItemStore {
     }
 
     let store: KVStore<Item> = KVStore::init(&self.data_dir, &log_filename)?;
-    for (_id, item) in store.get_iter() { self.add_to_indexes(item)?; }
+    for (_id, item) in store.get_iter() {
+      self.add_to_indexes(item)?;
+    }
     self.store_by_user_id.insert(String::from(user_id), store);
 
     Ok(())

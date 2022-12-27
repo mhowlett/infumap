@@ -19,45 +19,29 @@ use super::infu::{InfuResult, InfuError};
 use super::geometry::Vector;
 
 
-pub fn get_string_field(map: &Map<String, Value>, field: &str) -> InfuResult<String> {
-  Ok(String::from(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified.", field))?
-      .as_str()
-      .ok_or(format!("'{}' field was not of type 'string'.", field))?
-  ))
+pub fn get_string_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<String>> {
+  let v = match map.get(field) { None => return Ok(None), Some(s) => s };
+  if v.is_null() { return Ok(None); }
+  Ok(Some(String::from(v.as_str().ok_or(format!("'{}' field was not of type 'string'.", field))?)))
 }
 
-pub fn get_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<i64> {
-  Ok(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified.", field))?
-      .as_i64()
-      .ok_or(format!("'{}' field was not of type 'i64'.", field))?
-  )
+pub fn get_integer_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<i64>> {
+  let v = match map.get(field) { None => return Ok(None), Some(s) => s };
+  Ok(Some(v.as_i64().ok_or(format!("'{}' field was not of type 'i64'.", field))?))
 }
 
-pub fn get_float_field(map: &Map<String, Value>, field: &str) -> InfuResult<f64> {
-  Ok(
-    map
-      .get(field)
-      .ok_or(format!("'{}' field was not specified", field))?
-      .as_f64()
-      .ok_or(format!("'{}' field was not of type 'f64'.", field))?
-  )
+pub fn get_float_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<f64>> {
+  let v = match map.get(field) { None => return Ok(None), Some(s) => s };
+  Ok(Some(v.as_f64().ok_or(format!("'{}' field was not of type 'f64'.", field))?))
 }
 
-pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Vector<f64>> {
-  let o = map
-    .get(field).ok_or(format!("'{}' field was not specified.", field))?
-    .as_object()
-    .ok_or(format!("'{}' field was not of type 'f64'.", field))?;
-  Ok(Vector {
-    x: get_float_field(o, "x")?,
-    y: get_float_field(o, "y")?
-  })
+pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<Vector<f64>>> {
+  let v = match map.get(field) { None => return Ok(None), Some(s) => s };
+  let o = v.as_object().ok_or(format!("'{}' field was not of type 'object'.", field))?;
+  Ok(Some(Vector {
+    x: get_float_field(o, "x")?.ok_or("Vector field 'x' was missing.")?,
+    y: get_float_field(o, "y")?.ok_or("Vector field 'y' was missing.")?
+  }))
 }
 
 pub fn vector_to_object(v: &Vector<f64>) -> InfuResult<Value> {

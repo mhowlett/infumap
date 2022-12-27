@@ -76,11 +76,11 @@ impl JsonLogSerializable<User> for User {
   fn from_json(map: &Map<String, Value>) -> InfuResult<User> {
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
     Ok(User {
-      id: json::get_string_field(map, "id")?,
-      username: json::get_string_field(map, "username")?,
-      password_hash: json::get_string_field(map, "passwordHash")?,
-      password_salt: json::get_string_field(map, "passwordSalt")?,
-      root_page_id: json::get_string_field(map, "rootPageId")?,
+      id: json::get_string_field(map, "id")?.ok_or("'id' field was missing.")?,
+      username: json::get_string_field(map, "username")?.ok_or("'username' field was missing.")?,
+      password_hash: json::get_string_field(map, "passwordHash")?.ok_or("'passwordHash' field was missing.")?,
+      password_salt: json::get_string_field(map, "passwordSalt")?.ok_or("'passwordSalt' field was missing.")?,
+      root_page_id: json::get_string_field(map, "rootPageId")?.ok_or("'rootPageId' field was missing.")?,
     })
   }
 
@@ -96,10 +96,10 @@ impl JsonLogSerializable<User> for User {
 
   fn apply_json_update(&mut self, map: &Map<String, Value>) -> InfuResult<()> {
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
-    if let Ok(v) = json::get_string_field(map, "username") { self.username = v; }
-    if let Ok(v) = json::get_string_field(map, "passwordHash") { self.password_hash = v; }
-    if let Ok(v) = json::get_string_field(map, "passwordSalt") { self.password_salt = v; }
-    if let Ok(v) = json::get_string_field(map, "rootPageId") { self.root_page_id = v; }
+    if let Ok(v) = json::get_string_field(map, "username") { if let Some(u) = v { self.username = u; } }
+    if let Ok(v) = json::get_string_field(map, "passwordHash") { if let Some(u) = v { self.password_hash = u; } }
+    if let Ok(v) = json::get_string_field(map, "passwordSalt") { if let Some(u) = v { self.password_salt = u; } }
+    if let Ok(v) = json::get_string_field(map, "rootPageId") { if let Some(u) = v { self.root_page_id = u; } }
     Ok(())
   }
 }

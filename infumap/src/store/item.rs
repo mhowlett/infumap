@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use log::warn;
 use serde_json::{Value, Map, Number};
 
 use crate::util::json;
 use crate::util::uid::Uid;
 use crate::util::geometry::Vector;
-use crate::util::infu::InfuResult;
+use crate::util::infu::{InfuResult, InfuError};
 use crate::util::lang::option_xor;
 use crate::web::routes::WebApiJsonSerializable;
 use super::kv_store::JsonLogSerializable;
@@ -122,6 +123,9 @@ impl AlignmentPoint {
   }
 }
 
+const ITEM_TYPE_PAGE: &'static str = "page";
+const ITEM_TYPE_NOTE: &'static str = "note";
+const ITEM_TYPE_FILE: &'static str = "file";
 
 const ALL_JSON_FIELDS: [&'static str; 20] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
@@ -131,6 +135,7 @@ const ALL_JSON_FIELDS: [&'static str; 20] = ["__recordType",
   "popupAlignmentPoint", "popupWidthBl", "url",
   "originalCreationDate"];
 
+#[derive(Debug)]
 pub struct Item {
   pub item_type: String,
   pub owner_id: Uid,
@@ -252,66 +257,62 @@ impl JsonLogSerializable<Item> for Item {
     if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), json::vector_to_object(&new.spatial_position_bl)?); }
 
     // x-sizable.
-    if option_xor(&old.spatial_width_bl, &new.spatial_width_bl) { add_or_remove_err("spatialWidthBl", &old.id)?; }
-    if let Some(spatial_width_bl) = new.spatial_width_bl {
-      if old.spatial_width_bl.unwrap() != spatial_width_bl {
-        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(spatial_width_bl).ok_or(nan_err("spatialWidthBl", &old.id))?));
+    if let Some(new_spatial_width_bl) = new.spatial_width_bl {
+      if match old.spatial_width_bl { Some(o) => o != new_spatial_width_bl, None => { true } } {
+        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(new_spatial_width_bl).ok_or(nan_err("spatialWidthBl", &old.id))?));
       }
     }
 
     // page
-    if option_xor(&old.inner_spatial_width_bl, &new.inner_spatial_width_bl) { add_or_remove_err("innerSpatialWidthBl", &old.id)?; }
-    if let Some(inner_spatial_width_bl) = new.inner_spatial_width_bl {
-      if old.inner_spatial_width_bl.unwrap() != inner_spatial_width_bl {
-        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &old.id))?));
+    if let Some(new_inner_spatial_width_bl) = new.inner_spatial_width_bl {
+      if match old.inner_spatial_width_bl { Some(o) => o != new_inner_spatial_width_bl, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("innerSpatialWidthBl", &old.id)?; }
+        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(new_inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &old.id))?));
       }
     }
-    if option_xor(&old.natural_aspect, &new.natural_aspect) { add_or_remove_err("naturalAspect", &old.id)?; }
-    if let Some(natural_aspect) = new.natural_aspect {
-      if old.natural_aspect.unwrap() != natural_aspect {
-        result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(natural_aspect).ok_or(nan_err("naturalAspect", &old.id))?));
+    if let Some(new_natural_aspect) = new.natural_aspect {
+      if match old.natural_aspect { Some(o) => o != new_natural_aspect, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("naturalAspect", &old.id)?; }
+        result.insert(String::from("naturalAspect"), Value::Number(Number::from_f64(new_natural_aspect).ok_or(nan_err("naturalAspect", &old.id))?));
       }
     }
-    if option_xor(&old.background_color_index, &new.background_color_index) { add_or_remove_err("backgroundColorIndex", &old.id)?; }
-    if let Some(background_color_index) = new.background_color_index {
-      if old.background_color_index.unwrap() != background_color_index {
-        result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
+    if let Some(new_background_color_index) = new.background_color_index {
+      if match old.background_color_index { Some(o) => o != new_background_color_index, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("backgroundColorIndex", &old.id)?; }
+        result.insert(String::from("backgroundColorIndex"), Value::Number(new_background_color_index.into()));
       }
     }
-    if option_xor(&old.popup_position_bl, &new.popup_position_bl) { add_or_remove_err("popupPositionBl", &old.id)?; }
-    if let Some(popup_position_bl) = &new.popup_position_bl {
-      if old.popup_position_bl.as_ref().unwrap() != popup_position_bl {
-        result.insert(String::from("popupPositionBl"), json::vector_to_object(&popup_position_bl)?);
+    if let Some(new_popup_position_bl) = &new.popup_position_bl {
+      if match &old.popup_position_bl { Some(o) => o != new_popup_position_bl, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupPositionBl", &old.id)?; }
+        result.insert(String::from("popupPositionBl"), json::vector_to_object(&new_popup_position_bl)?);
       }
     }
-    if option_xor(&old.popup_alignment_point, &new.popup_alignment_point) { add_or_remove_err("popupAlignmentPoint", &old.id)?; }
-    if let Some(popup_alignment_point) = &new.popup_alignment_point {
-      if old.popup_alignment_point.as_ref().unwrap() != popup_alignment_point {
-        result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(popup_alignment_point.to_string())));
+    if let Some(new_popup_alignment_point) = &new.popup_alignment_point {
+      if match &old.popup_alignment_point { Some(o) => o != new_popup_alignment_point, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupAlignmentPoint", &old.id)?; }
+        result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(new_popup_alignment_point.to_string())));
       }
     }
-    if option_xor(&old.popup_width_bl, &new.popup_width_bl) { add_or_remove_err("popupWidthBl", &old.id)?; }
-    if let Some(popup_width_bl) = new.popup_width_bl {
-      if old.popup_width_bl.unwrap() != popup_width_bl {
-        result.insert(String::from("popupWidthBl"), Value::Number(Number::from_f64(popup_width_bl).ok_or(nan_err("popupWidthBl", &old.id))?));
+    if let Some(new_popup_width_bl) = new.popup_width_bl {
+      if match old.popup_width_bl { Some(o) => o != new_popup_width_bl, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupWidthBl", &old.id)?; }
+        result.insert(String::from("popupWidthBl"), Value::Number(Number::from_f64(new_popup_width_bl)
+          .ok_or(nan_err("popupWidthBl", &old.id))?));
       }
     }
 
     // note
-    if option_xor(&old.url, &new.url) {
-      // no url is encoded as "", not null.
-      add_or_remove_err("url", &old.id)?;
-    }
-    if let Some(url) = &new.url {
-      if old.url.as_ref().unwrap() != url {
-        result.insert(String::from("url"), Value::String(url.clone()));
+    if let Some(new_url) = &new.url {
+      if match &old.url { Some(o) => o != new_url, None => { true } } {
+        if old.item_type != ITEM_TYPE_NOTE { cannot_modify_err("url", &old.id)?; }
+        result.insert(String::from("url"), Value::String(new_url.clone()));
       }
     }
 
     // file
-    if option_xor(&old.original_creation_date, &new.original_creation_date) { add_or_remove_err("originalCreationDate", &old.id)?; }
-    if let Some(original_creation_date) = new.original_creation_date {
-      if old.original_creation_date.unwrap() != original_creation_date {
+    if let Some(new_original_creation_date) = new.original_creation_date {
+      if match old.original_creation_date { Some(o) => o != new_original_creation_date, None => { true } } {
         cannot_modify_err("originalCreationDate", &old.id)?;
       }
     }
@@ -324,47 +325,96 @@ impl JsonLogSerializable<Item> for Item {
     fn cannot_update_err(field_name: &str, item_id: &str) -> InfuResult<()> {
       Err(format!("An attempt was made to apply an update to the '{}' field of item '{}', but this is not allowed.", field_name, item_id).into())
     }
+    fn not_applicable_err(field_name: &str, item_type: &str) -> InfuResult<()> {
+      Err(InfuError::new(&format!("'{}' field is not valid for item type '{}' - cannot update.", field_name, item_type)))
+    }
 
     json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
 
-    if let Ok(_) = json::get_string_field(map, "itemType") { cannot_update_err("itemType", &self.id)?; }
-    if let Ok(_) = json::get_string_field(map, "ownerId") { cannot_update_err("ownerId", &self.id)?; }
-    
+    if let Ok(v) = json::get_string_field(map, "itemType") { if v.is_some() { cannot_update_err("itemType", &self.id)?; } }
+    if let Ok(v) = json::get_string_field(map, "ownerId") { if v.is_some() { cannot_update_err("ownerId", &self.id)?; } }
+
     if let Ok(v) = json::get_string_field(map, "parentId") {
-      if self.parent_id.is_none() {
-        return Err(format!("An attempt was made to apply an update to item '{}' that sets the 'parentId' field, where this was not previously set.", self.id).into());
+      if self.parent_id.is_none() && v.is_some() {
+        return Err(format!("An attempt was made to apply an update to item '{}' that sets the 'parentId' field, where this was not previously set, but this is not allowed.", self.id).into());
       }
-      self.parent_id = Some(v);
+      let map_value_is_null = match map.get("parentId") { Some(v) => v.is_null(), None => false }; // get_string_field doesn't differentiate between null and unset.
+      if self.parent_id.is_some() && map_value_is_null {
+        return Err(format!("An attempt was made to apply an update to item '{}' that unsets the 'parentId' field where this was previously set, but this is not allowed.", self.id).into());
+      }
+      if v.is_some() { self.parent_id = v; }
     }
-    if let Ok(v) = json::get_string_field(map, "relationshipToParent") { self.relationship_to_parent = RelationshipToParent::from_string(&v)?; }
-    if let Ok(_) = json::get_integer_field(map, "creationDate") { cannot_update_err("creationDate", &self.id)?; }
-    if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { self.last_modified_date = v; }
+    if let Ok(v) = json::get_string_field(map, "relationshipToParent") { if let Some(u) = v { self.relationship_to_parent = RelationshipToParent::from_string(&u)?; } }
+    if let Ok(v) = json::get_integer_field(map, "creationDate") { if v.is_some() { cannot_update_err("creationDate", &self.id)?; } }
+    if let Ok(v) = json::get_integer_field(map, "lastModifiedDate") { if let Some(u) = v { self.last_modified_date = u; } }
     if map.contains_key("ordering") {
       self.ordering = map.get("ordering")
         .unwrap()
         .as_array()
-        .ok_or(format!("Ordering field for item '{}' is not an array.", self.id))?
-        .iter().map(|v| v.as_i64().unwrap() as u8).collect::<Vec<_>>();
+        .ok_or(format!("'ordering' field for item '{}' is not an array.", self.id))?
+        .iter().map(|v| match v.as_i64() {
+          Some(v) => if v >= 0 && v <= 255 { Some(v as u8) } else { None },
+          None => None })
+        .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field in an update for item '{}' was invalid.", &self.id))?;
     }
-    if let Ok(v) = json::get_string_field(map, "title") { self.title = v; }
-    if let Ok(v) = json::get_vector_field(map, "spatialPositionBl") { self.spatial_position_bl = v; }
+    if let Ok(v) = json::get_string_field(map, "title") { if let Some(u) = v { self.title = u; } }
+    if let Ok(v) = json::get_vector_field(map, "spatialPositionBl") { if let Some(u) = v { self.spatial_position_bl = u; } }
 
     // x-sizable
-    if let Ok(v) = json::get_float_field(map, "spatialWidthBl") { self.spatial_width_bl = Some(v); }
+    if let Ok(v) = json::get_float_field(map, "spatialWidthBl") {
+      if let Some(u) = v { self.spatial_width_bl = Some(u); }
+    }
 
     // page
-    if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") { self.inner_spatial_width_bl = Some(v); }
-    if let Ok(v) = json::get_float_field(map, "naturalAspect") { self.natural_aspect = Some(v); }
-    if let Ok(v) = json::get_integer_field(map, "backgroundColorIndex") { self.background_color_index = Some(v); }
-    if let Ok(v) = json::get_vector_field(map, "popupPositionBl") { self.popup_position_bl = Some(v); }
-    if let Ok(v) = json::get_string_field(map, "popupAlignmentPoint") { self.popup_alignment_point = Some(AlignmentPoint::from_string(&v)?); }
-    if let Ok(v) = json::get_float_field(map, "popupWidthBl") { self.popup_width_bl = Some(v); }
+    if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("innerSpatialWidthBl", ITEM_TYPE_PAGE)?; }
+        self.inner_spatial_width_bl = Some(u);
+      }
+    }
+    if let Ok(v) = json::get_float_field(map, "naturalAspect") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("naturalAspect", ITEM_TYPE_PAGE)?; }
+        self.natural_aspect = Some(u);
+      }
+    }
+    if let Ok(v) = json::get_integer_field(map, "backgroundColorIndex") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("backgroundColorIndex", ITEM_TYPE_PAGE)?; }
+        self.background_color_index = Some(u);
+      }
+    }
+    if let Ok(v) = json::get_vector_field(map, "popupPositionBl") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupPositionBl", ITEM_TYPE_PAGE)?; }
+        self.popup_position_bl = Some(u);
+      }
+    }
+    if let Ok(v) = json::get_string_field(map, "popupAlignmentPoint") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupAlignmentPoint", ITEM_TYPE_PAGE)?; }
+        self.popup_alignment_point = Some(AlignmentPoint::from_string(&u)?);
+      }
+    }
+    if let Ok(v) = json::get_float_field(map, "popupWidthBl") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupWidthBl", ITEM_TYPE_PAGE)?; }
+        self.popup_width_bl = Some(u);
+      }
+    }
 
     // note
-    if let Ok(v) = json::get_string_field(map, "url") { self.url = Some(v); }
+    if let Ok(v) = json::get_string_field(map, "url") {
+      if let Some(u) = v {
+        if self.item_type == ITEM_TYPE_PAGE { self.url = Some(u); }
+        else { not_applicable_err("url", ITEM_TYPE_PAGE)?; }
+      }
+    }
 
     // file
-    if let Ok(_) = json::get_integer_field(map, "originalCreationDate") { cannot_update_err("originalCreationDate", &self.id)?; }
+    if let Ok(v) = json::get_integer_field(map, "originalCreationDate") {
+      if v.is_some() { cannot_update_err("originalCreationDate", &self.id)?; }
+    }
     // TODO (MEDIUM): not complete.
 
     Ok(())
@@ -375,6 +425,9 @@ impl JsonLogSerializable<Item> for Item {
 fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>> {
   fn nan_err(field_name: &str, item_id: &str) -> String {
     format!("Could not serialize the '{}' field of item '{}' because it is not a number.", field_name, item_id)
+  }
+  fn unexpected_field_err(field_name: &str, item_id: &str, item_type: &str) -> InfuResult<()> {
+    Err(InfuError::new(&format!("'{}' field cannot be set for item '{}' of type {}.", field_name, item_id, item_type)))
   }
 
   let mut result = Map::new();
@@ -401,25 +454,31 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
   // page
   if let Some(inner_spatial_width_bl) = item.inner_spatial_width_bl {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("innerSpatialWidthBl", &item.id, &item.item_type)? }
     result.insert(
       String::from("innerSpatialWidthBl"),
       Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &item.id))?));
   }
   if let Some(natural_aspect) = item.natural_aspect {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("naturalAspect", &item.id, &item.item_type)? }
     result.insert(
       String::from("naturalAspect"),
       Value::Number(Number::from_f64(natural_aspect).ok_or(nan_err("naturalAspect", &item.id))?));
   }
   if let Some(background_color_index) = item.background_color_index {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("backgroundColorIndex", &item.id, &item.item_type)? }
     result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
   }
   if let Some(popup_position_bl) = &item.popup_position_bl {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupPositionBl", &item.id, &item.item_type)? }
     result.insert(String::from("popupPositionBl"), json::vector_to_object(&popup_position_bl)?);
   }
   if let Some(popup_alignment_point) = &item.popup_alignment_point {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("positionAlignmentPoint", &item.id, &item.item_type)? }
     result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(popup_alignment_point.to_string())));
   }
   if let Some(popup_width_bl) = item.popup_width_bl {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupWidthBl", &item.id, &item.item_type)? }
     result.insert(
       String::from("popupWidthBl"),
       Value::Number(Number::from_f64(popup_width_bl).ok_or(nan_err("popupWidthBl", &item.id))?));
@@ -427,11 +486,13 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
   // note
   if let Some(url) = &item.url {
+    if item.item_type != ITEM_TYPE_NOTE { unexpected_field_err("url", &item.id, &item.item_type)? }
     result.insert(String::from("url"), Value::String(url.clone()));
   }
 
   // file
   if let Some(original_creation_date) = item.original_creation_date {
+    if item.item_type != ITEM_TYPE_FILE { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
     result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
   }
   // TODO (MEDIUM): not complete.
@@ -441,43 +502,113 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
 
 fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Item> {
+  fn not_applicable_err(field_name: &str, item_type: &str) -> InfuError {
+    InfuError::new(&format!("'{}' field is not valid for item type '{}'.", field_name, item_type))
+  }
+  fn expected_for_err(field_name: &str, item_type: &str) -> InfuError {
+    InfuError::new(&format!("'{}' field is expected for item type '{}'.", field_name, item_type))
+  }
+
   json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
 
-  let id = json::get_string_field(map, "id")?;
+  let id = json::get_string_field(map, "id")?.ok_or("'id' field was missing.")?;
+  let item_type = json::get_string_field(map, "itemType")?.ok_or("'itemType' field was missing.")?;
 
   Ok(Item {
-    item_type: json::get_string_field(map, "itemType")?,
+    item_type: item_type.clone(),
     id: id.clone(),
-    owner_id: json::get_string_field(map, "ownerId")?,
-    parent_id: json::get_string_field(map, "parentId").ok(), // TODO (LOW): Proper handling of errors.
-    relationship_to_parent: RelationshipToParent::from_string(&json::get_string_field(map, "relationshipToParent")?)?,
-    creation_date: json::get_integer_field(map, "creationDate")?,
-    last_modified_date: json::get_integer_field(map, "lastModifiedDate")?,
+    owner_id: json::get_string_field(map, "ownerId")?.ok_or("'owner_id' field was missing.")?,
+    parent_id: match map.get("parentId").ok_or(InfuError::new("'parentId' field was missing, and must always be set, even if null."))? {
+      Value::Null => None,
+      Value::String(s) => Some(s.clone()),
+      _ => return Err(InfuError::new("'parentId' field was not of type 'string'."))
+    },
+    relationship_to_parent: RelationshipToParent::from_string(
+      &json::get_string_field(map, "relationshipToParent")?.ok_or("'relationshipToParent' field is missing.")?)?,
+    creation_date: json::get_integer_field(map, "creationDate")?.ok_or("'creationDate' field was missing.")?,
+    last_modified_date: json::get_integer_field(map, "lastModifiedDate")?.ok_or("'lastModifiedDate' field was missing.")?,
     ordering: map.get("ordering")
-      .ok_or(format!("'ordering' field was not available for item '{}'.", &id))?
+      .ok_or(format!("'ordering' field for item '{}' was missing.", &id))?
       .as_array()
       .ok_or(format!("'ordering' field for item '{}' was not of type 'array'.", &id))?
-      .iter().map(|v| match v.as_i64() { Some(v) => Some(v as u8), None => None })
+      .iter().map(|v| match v.as_i64() {
+        Some(v) => if v >= 0 && v <= 255 { Some(v as u8) } else { None },
+        None => None
+      })
       .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field for item '{}' was invalid.", &id))?,
-    title: json::get_string_field(map, "title")?,
-    spatial_position_bl: json::get_vector_field(map, "spatialPositionBl")?,
+    title: json::get_string_field(map, "title")?.ok_or("'title' field was missing.")?,
+    spatial_position_bl: json::get_vector_field(map, "spatialPositionBl")?.ok_or("'spatialPositionBl' field was missing.")?,
 
     // x-sizeable
-    spatial_width_bl: json::get_float_field(map, "spatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
+    spatial_width_bl: match json::get_float_field(map, "spatialWidthBl")? {
+      Some(v) => { Ok(Some(v)) },
+      None => { Err(InfuError::new("'spatialWidthBl' field is expected for all current item types.")) }
+    }?,
 
     // page
-    inner_spatial_width_bl: json::get_float_field(map, "innerSpatialWidthBl").ok(), // TODO (LOW): Proper handling of errors.
-    natural_aspect: json::get_float_field(map, "naturalAspect").ok(), // TODO (LOW): Proper handling of errors.
-    background_color_index: json::get_integer_field(map, "backgroundColorIndex").ok(), // TODO (LOW): Proper handling of errors.
-    popup_position_bl: json::get_vector_field(map, "popupPositionBl").ok(), // TODO (LOW): Proper handling of errors.
-    popup_alignment_point: AlignmentPoint::from_string(&json::get_string_field(map, "popupAlignmentPoint")?).ok(), // TODO (LOW): Proper handling of errors.
-    popup_width_bl: json::get_float_field(map, "popupWidthBl").ok(), // TODO (LOW): Proper handling of errors.
+    inner_spatial_width_bl: match json::get_float_field(map, "innerSpatialWidthBl")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("innerSpatialWidthBl", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("innerSpatialWidthBl", &item_type)) } else { Ok(None) } }
+    }?,
+    natural_aspect: match json::get_float_field(map, "naturalAspect")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("naturalAspect", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("naturalAspect", &item_type)) } else { Ok(None) } }
+    }?,
+    background_color_index: match json::get_integer_field(map, "backgroundColorIndex")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("backgroundColorIndex", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("backgroundColorIndex", &item_type)) } else { Ok(None) } }
+    }?,
+    popup_position_bl: match json::get_vector_field(map, "popupPositionBl")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupPositionBl", &item_type)) } },
+      None => {
+        if item_type == ITEM_TYPE_PAGE {
+          // TODO (LOW): remove.
+          warn!("popupPositionBl was not specified for item '{}', using default (0,0).", id);
+          Ok(Some(Vector { x: 0.0, y: 0.0 }))
+        } else {
+          Ok(None)
+        }
+      }
+    }?,
+    popup_alignment_point: match &json::get_string_field(map, "popupAlignmentPoint")? {
+      Some(v) => {
+          if item_type == ITEM_TYPE_PAGE { Ok(Some(AlignmentPoint::from_string(v)?)) }
+          else { Err(not_applicable_err("popupAlignmentPoint", &item_type)) } },
+      None => {
+        if item_type == ITEM_TYPE_PAGE {
+          // TODO (LOW): remove.
+          warn!("popupAlignmentPoint was not specified for item '{}', using default (TopLeft).", id);
+          Ok(Some(AlignmentPoint::TopLeft))
+        } else {
+          Ok(None)
+        }
+      }
+    }?,
+    popup_width_bl: match json::get_float_field(map, "popupWidthBl")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupWidthBl", &item_type)) } },
+      None => {
+        if item_type == ITEM_TYPE_PAGE {
+          // TODO (LOW): remove.
+          warn!("popupWidthBl was not specified for item '{}', using default (10.0).", id);
+          Ok(Some(10.0))
+        } else {
+          Ok(None)
+        }
+      }
+    }?,
 
     // note
-    url: json::get_string_field(map, "url").ok(), // TODO (LOW): Proper handling of errors.
+    url: match json::get_string_field(map, "url")? {
+      Some(v) => { if item_type == ITEM_TYPE_NOTE { Ok(Some(v)) } else { Err(not_applicable_err("url", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_NOTE { Err(expected_for_err("url", &item_type)) } else { Ok(None) } }
+    }?,
 
     // file
-    original_creation_date: json::get_integer_field(map, "originalCreationDate").ok(), // TODO (LOW): Proper handling of errors.
+    original_creation_date: match json::get_integer_field(map, "originalCreationDate")? {
+      Some(v) => { if item_type == ITEM_TYPE_FILE { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_FILE { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
+    }?,
     // TODO (MEDIUM): not complete.
+
   })
 }
