@@ -31,7 +31,7 @@ export interface ItemStoreContextModel {
   items: Items
 
   setRoot: (id: Uid) => void,
-  setChildItems: (items: Array<Item>) => void,
+  setChildItems: (parentId: Uid, items: Array<Item>) => void,
   setAttachmentItems: (items: Array<Item>) => void
   updateItem: (id: Uid, f: (item: Item) => void) => void,
   getItem: (id: Uid) => Item | null,
@@ -108,18 +108,20 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
   };
 
   // Note: the items array contains the container item itself, in addition to the children, if the container is the root.
-  const setChildItems = (itms: Array<Item>): void => {
-    itms.forEach(item => {
-      setItems("fixed", produce(items => { items[item.id] = item; }));
+  const setChildItems = (parentId: Uid, childItems: Array<Item>): void => {
+    childItems.forEach(childItem => {
+      setItems("fixed", produce(itms => { itms[childItem.id] = childItem; }));
     });
-
-    itms.forEach(item => {
-      if (item.parentId == null) {
-        if (item.relationshipToParent != NoParent) { panic(); }
+    childItems.forEach(childItem => {
+      if (childItem.parentId == null) {
+        if (childItem.relationshipToParent != NoParent) { panic(); }
       } else {
-        updateItem(item.parentId, parentItem => {
+        if (childItem.parentId != parentId) {
+          throwExpression(`Child item had parent '${childItem.parentId}', but '${parentId}' was expected.`);
+        }
+        updateItem(childItem.parentId, parentItem => {
           if (!isPageItem(parentItem)) { panic(); }
-          (parentItem as PageItem).computed_children.push(item.id);
+          (parentItem as PageItem).computed_children.push(childItem.id);
         });
       }
     });

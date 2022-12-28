@@ -64,6 +64,7 @@ function createItemForSend(item: Item): Item {
   delete result.computed_fromParentIdMaybe;
   delete result.computed_children;
   delete result.computed_attachments;
+  delete result.children_loaded;
   result.ordering = Array.from(item.ordering);
   return result;
 }

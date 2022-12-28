@@ -28,43 +28,61 @@ import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../const
 import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
 import { clientPosVector, subtract } from "../util/geometry";
+import { useUserStore } from "../store/UserStoreProvider";
+import { server } from "../server";
 
 
 export const Desktop: Component = () => {
+  const userStore = useUserStore();
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  function getFixedItems(currentPage: PageItem | null): Array<Item> {
+  function getFixedItems(page: PageItem | null): Array<Item> {
     if (layoutStore.layout.currentPageId == null) { return []; }
 
-    if (currentPage == null) {
-      currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
-      itemStore.updateItem(currentPage.id, item => {
+    if (page == null) {
+      page = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
+      itemStore.updateItem(page.id, item => {
         asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
       });
     }
 
     let innerDimensionsCo = {
-      w: currentPage.innerSpatialWidthBl * GRID_SIZE,
-      h: Math.floor(currentPage.innerSpatialWidthBl / currentPage.naturalAspect) * GRID_SIZE
+      w: page.innerSpatialWidthBl * GRID_SIZE,
+      h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
     };
 
-    let r = [currentPage.id];
+    let result = [page.id];
 
-    currentPage.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
-      itemStore.updateItem(child.id, item => { updateBounds(item, currentPage!.computed_boundsPx!, innerDimensionsCo); });
-      r.push(child.id);
+    page.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
+      itemStore.updateItem(child.id, item => { updateBounds(item, page!.computed_boundsPx!, innerDimensionsCo); });
+      result.push(child.id);
       if (isPageItem(child)) {
         let childPage = asPageItem(child);
         if (childPage.spatialWidthBl >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          getFixedItems(childPage).forEach(c => r.push(c.id));
+          if (childPage.children_loaded) {
+            getFixedItems(childPage).forEach(c => result.push(c.id));
+          } else {
+            itemStore.updateItem(childPage.id, parentItem => { (parentItem as PageItem).children_loaded = true; });
+            server.fetchChildItems(userStore.user, childPage.id)
+              .catch(e => {
+                console.log(`Error occurred feching items for child page '${childPage.id}'.`);
+              })
+              .then(children => {
+                if (children != null) {
+                  itemStore.setChildItems(childPage.id, children);
+                } else {
+                  console.log(`No items were fetched for child page '${childPage.id}'.`);
+                }
+              });
+          }
         }
       }
     });
 
-    return r.map(a => cloneItem(itemStore.getItem(a)!));
+    return result.map(a => cloneItem(itemStore.getItem(a)!));
   };
 
   function getMovingItems(): Array<Item> {
@@ -75,15 +93,15 @@ export const Desktop: Component = () => {
       h: Math.floor(currentPage.innerSpatialWidthBl / currentPage.naturalAspect) * GRID_SIZE
     };
   
-    let r: Array<string> = [];
+    let result: Array<string> = [];
     itemStore.items.moving.forEach(itm => {
       if (itm.parentId == layoutStore.layout.currentPageId) {
         itemStore.updateItem(itm.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
-        r.push(itm.id);
+        result.push(itm.id);
       }
     });
 
-    return r.map(a => cloneItem(itemStore.getItem(a)!));
+    return result.map(a => cloneItem(itemStore.getItem(a)!));
   }
 
   const keyListener = (ev: KeyboardEvent) => {
@@ -102,7 +120,11 @@ export const Desktop: Component = () => {
 
   const mouseDownHandler = (_ev: MouseEvent) => { layoutStore.hideContextMenu(); }
 
-  const mouseMoveListener = (ev: MouseEvent) => { lastMouseMoveEvent = ev; }
+  const mouseMoveListener = (ev: MouseEvent) => {
+    let currentPage = itemStore.items.fixed[layoutStore.layout.currentPageId!];
+
+    lastMouseMoveEvent = ev;
+  }
 
   const windowResizeListener = () => { layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize())); }
 

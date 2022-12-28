@@ -31,6 +31,8 @@ export interface PageItem extends XSizableItem {
   popupAlignmentPoint: string,
   popupWidthBl: number;
 
+  children_loaded: boolean,
+
   computed_children: Array<Uid>;
   computed_attachments: Array<Uid>;
 }
@@ -72,6 +74,8 @@ export function clonePageItem(item: PageItem): PageItem {
     popupAlignmentPoint: item.popupAlignmentPoint,
     popupWidthBl: item.popupWidthBl,
 
+    children_loaded: item.children_loaded,
+
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
     computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
@@ -100,6 +104,8 @@ export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     popupPositionBl: { x: 30.0, y: 15.0 },
     popupAlignmentPoint: "center",
     popupWidthBl: 10.0,
+
+    children_loaded: false,
 
     computed_children: [],
     computed_attachments: [],
