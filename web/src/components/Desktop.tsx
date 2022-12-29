@@ -87,6 +87,7 @@ export const Desktop: Component = () => {
 
   function getMovingItems(): Array<Item> {
     if (layoutStore.layout.currentPageId == null) { return []; }
+
     let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
     let innerDimensionsCo = {
       w: currentPage.innerSpatialWidthBl * GRID_SIZE,
@@ -118,7 +119,9 @@ export const Desktop: Component = () => {
     }));
   };
 
-  const mouseDownHandler = (_ev: MouseEvent) => { layoutStore.hideContextMenu(); }
+  const mouseDownHandler = (_ev: MouseEvent) => {
+    layoutStore.hideContextMenu();
+  }
 
   const mouseMoveListener = (ev: MouseEvent) => {
     let currentPage = itemStore.items.fixed[layoutStore.layout.currentPageId!];

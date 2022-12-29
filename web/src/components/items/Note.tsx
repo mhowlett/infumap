@@ -115,6 +115,7 @@ export const Note: Component<{ item: NoteItem }> = (props: { item: NoteItem }) =
 
   let scale = Math.min(heightScale, widthScale);
 
+  console.log("draw note.");
   return (
     <div ref={outerDiv}
          id={props.item.id}
