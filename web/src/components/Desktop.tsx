@@ -42,7 +42,7 @@ export const Desktop: Component = () => {
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  function calculateItemGeometryUnder(pageId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+  function calculateItemGeometry(pageId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
     if (pageId == null) { return []; }
 
     let page = asPageItem(itemStore.items.fixed[pageId]);
@@ -52,16 +52,16 @@ export const Desktop: Component = () => {
       h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
     };
 
-    let result: Array<any> = [];
+    let result: Array<ItemGeometry> = [];
 
     page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(child => {
-      let hitbox = calcItemGeometry(child, boundsPx, innerDimensionsCo, level);
-      result.push(hitbox);
+      let itemGeometry = calcItemGeometry(child, boundsPx, innerDimensionsCo, level);
+      result.push(itemGeometry);
       if (isPageItem(child)) {
         let childPage = asPageItem(child);
         if (childPage.spatialWidthBl >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
           if (layoutStore.childrenLoaded(childPage.id)) {
-            calculateItemGeometryUnder(childPage.id, hitbox.boundsPx, level+1).forEach(c => result.push(c));
+            calculateItemGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
           } else {
             layoutStore.setChildrenLoaded(childPage.id);
             server.fetchChildItems(userStore.user, childPage.id)
@@ -70,11 +70,12 @@ export const Desktop: Component = () => {
               })
               .then(children => {
                 if (children != null) {
-                  console.log("loaded");
                   itemStore.setChildItems(childPage.id, children);
                 } else {
                   console.log(`No items were fetched for child page '${childPage.id}'.`);
                 }
+                // invalidate the item-geometry calc.
+                itemStore.replaceWithClone(layoutStore.currentPageId()!);
               });
           }
         }
@@ -84,21 +85,13 @@ export const Desktop: Component = () => {
     return result;
   }
 
-  // const getItemGeometryMemo = createMemo(() => {
-  //   const boundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
-  //   const currentPageId = layoutStore.currentPageId();
-  //   if (currentPageId == null) { return []; }
-  //   const rootPageGeometry = calcRootPageItemGeometry(asPageItem(itemStore.items.fixed[currentPageId!]), boundsPx);
-  //   return [rootPageGeometry, ...calculateItemGeometryUnder(currentPageId, boundsPx, 1)];
-  // });
-
-  const getItemGeometryMemo = () => {
+  const getItemGeometryMemo = createMemo(() => {
     const boundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) { return []; }
     const rootPageGeometry = calcRootPageItemGeometry(asPageItem(itemStore.items.fixed[currentPageId!]), boundsPx);
-    return [rootPageGeometry, ...calculateItemGeometryUnder(currentPageId, boundsPx, 1)];
-  };
+    return [rootPageGeometry, ...calculateItemGeometry(currentPageId, boundsPx, 1)];
+  });
 
   const keyListener = (ev: KeyboardEvent) => {
     // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.

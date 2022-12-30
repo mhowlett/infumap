@@ -38,6 +38,7 @@ export interface ItemStoreContextModel {
   transitionToMove: (id: Uid) => void,
   transitionMovingToFixed: () => void,
   addItem: (item: Item) => void,
+  replaceWithClone: (pageId: Uid) => void,
 }
 
 export interface ItemStoreContextProps {
@@ -143,7 +144,14 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     }
   }
 
-  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, getItem, transitionToMove, transitionMovingToFixed, addItem };
+  const replaceWithClone = (currentPageId: Uid): void => {
+    setItems("fixed", produce(items => {
+      items[currentPageId] = { ...items[currentPageId] };
+      return items;
+    }));
+  };
+
+  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, getItem, transitionToMove, transitionMovingToFixed, addItem, replaceWithClone };
 
   return (
     <ItemStoreContext.Provider value={value}>
