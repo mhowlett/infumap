@@ -121,7 +121,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
         }
         updateItem(childItem.parentId, parentItem => {
           if (!isPageItem(parentItem)) { panic(); }
-          (parentItem as PageItem).computed_children.push(childItem.id);
+          (parentItem as PageItem).computed_children = [...(parentItem as PageItem).computed_children, childItem.id];
         });
       }
     });
@@ -136,7 +136,7 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     if (item.relationshipToParent == Child) {
       updateItem(item.parentId!, parentItem => {
         if (!isPageItem(parentItem)) { panic(); }
-        (parentItem as PageItem).computed_children.push(item.id);
+        (parentItem as PageItem).computed_children = [...(parentItem as PageItem).computed_children, item.id];
       })
     } else {
       throwExpression("only support child relationships currently");

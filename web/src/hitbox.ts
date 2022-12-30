@@ -16,20 +16,14 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { panic } from "../../../util/lang";
-import { Item } from "./item";
+import { BoundingBox } from "./util/geometry";
 
-
-export interface XSizableItem extends Item {
-  spatialWidthBl: number
+export enum HitboxType {
+  Move,
+  Resize,
 }
 
-export function isXSizableItem(item: Item | null): boolean {
-  if (item == null) { return false; }
-  return item.itemType == "page" || item.itemType == "note";
-}
-
-export function asXSizableItem(item: Item): XSizableItem {
-  if (item.itemType == "page" || item.itemType == "note") { return item as XSizableItem; }
-  panic();
+export interface Hitbox {
+  type: HitboxType,
+  boundsPx: BoundingBox,
 }

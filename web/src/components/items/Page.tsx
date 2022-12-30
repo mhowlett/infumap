@@ -17,107 +17,27 @@
 */
 
 import { Component } from "solid-js";
-import { add, clientPosVector as clientPxFromMouseEvent, subtract, Vector } from "../../util/geometry";
-import { useItemStore } from "../../store/ItemStoreProvider";
+import { BoundingBox } from "../../util/geometry";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
-import { asPageItem, calcPageSizeForSpatialBl, PageItem } from "../../store/items/page-item";
+import { PageItem } from "../../store/items/page-item";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, MOUSE_MOVE_AMBIGUOUS_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
-import { server } from "../../server";
-import { useUserStore } from "../../store/UserStoreProvider";
 
 
-export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) => {
-  const userStore = useUserStore();
-  const itemStore = useItemStore();
+export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props: { item: PageItem, boundsPx: BoundingBox }) => {
   const layoutStore = useLayoutStore();
 
   let outerDiv: HTMLDivElement | undefined;
 
-  let startPx: Vector | null = null;
-  let startPosBl: Vector | null = null;
-  let startWidthBl: number | null = null;
-  let dragStarted: boolean = false;
-
-  let moving = () => { return startPosBl != null; }
-
-  let mouseDownHandler = (ev: MouseEvent) => {
-    document.addEventListener('mousemove', mouseMoveHandler);
-    document.addEventListener('mouseup', mouseUpHandler);
-    let rect = outerDiv!.getBoundingClientRect();
-    startPx = clientPxFromMouseEvent(ev);
-    if (rect.right - startPx.x < RESIZE_BOX_SIZE_PX && rect.bottom - startPx.y < RESIZE_BOX_SIZE_PX) {
-      startPosBl = null;
-      startWidthBl = props.item.spatialWidthBl;
-    } else {
-      startWidthBl = null;
-      startPosBl = props.item.spatialPositionBl;
-    }
-  };
-
-  let mouseMoveHandler = (ev: MouseEvent) => {
-    if (startPx == null) { return; }
-
-    let deltaPx = subtract(clientPxFromMouseEvent(ev), startPx);
-    if (Math.abs(deltaPx.x) > MOUSE_MOVE_AMBIGUOUS_PX || Math.abs(deltaPx.y) > MOUSE_MOVE_AMBIGUOUS_PX) {
-      if (!dragStarted && moving()) {
-        itemStore.transitionToMove(props.item.id);
-      }
-      dragStarted = true;
-    }
-
-    let deltaBl = { x: NaN, y: NaN };
-    let wPx = props.item.computed_boundsPx!.w;
-    let wCo = props.item.spatialWidthBl * GRID_SIZE;
-    deltaBl.x = deltaPx.x * (wCo / GRID_SIZE) / wPx;
-    let hPx = props.item.computed_boundsPx!.h;
-    let hCo = calcPageSizeForSpatialBl(props.item).h * GRID_SIZE;
-    deltaBl.y = deltaPx.y * (hCo / GRID_SIZE) / hPx;
-
-    if (moving() && dragStarted) {
-      let newPosBl = add(startPosBl!, deltaBl);
-      newPosBl.x = Math.round(newPosBl.x * 2.0) / 2.0;
-      newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
-      if (newPosBl.x < 0.0) { newPosBl.x = 0.0; }
-      if (newPosBl.y < 0.0) { newPosBl.y = 0.0; }
-      itemStore.updateItem(props.item.id, item => { item.spatialPositionBl = newPosBl; });
-    } else if (dragStarted) {
-      let newWidthBl = startWidthBl! + deltaBl.x;
-      newWidthBl = Math.round(newWidthBl);
-      if (newWidthBl < 1) { newWidthBl = 1.0; }
-      itemStore.updateItem(props.item.id, item => { asPageItem(item).spatialWidthBl = newWidthBl; });
-    }
-  };
-
-  let mouseUpHandler = () => {
-    document.removeEventListener('mousemove', mouseMoveHandler);
-    document.removeEventListener('mouseup', mouseUpHandler);
-    if (dragStarted) {
-      if (moving()) {
-        itemStore.transitionMovingToFixed();
-      }
-      server.updateItem(userStore.user, itemStore.getItem(props.item.id)!);
-    }
-    startPx = null;
-    startPosBl = null;
-    startWidthBl = null;
-    dragStarted = false;
-  };
-
-  let lPx = props.item.computed_boundsPx!.x;
-  let tPx = props.item.computed_boundsPx!.y;
-  let wPx = props.item.computed_boundsPx!.w;
-  let hPx = props.item.computed_boundsPx!.h;
-
   // Current top page.
-  if (props.item.id == layoutStore.layout.currentPageId) {
+  if (props.item.id == layoutStore.currentPageId()) {
     console.log("draw page (1).");
     return (
       <div ref={outerDiv}
            id={props.item.id}
            class={`absolute`}
-           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px;`}>
+           style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
       </div>
     );
   }
@@ -129,16 +49,15 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
       <div ref={outerDiv}
            id={props.item.id}
            class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-           style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.986)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 1.0)});`}
-           onMouseDown={mouseDownHandler}>
-        <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
+           style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; ` +
+                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.986)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 1.0)});`}>
+        <div class="flex items-center justify-center" style={`width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
           <div class="flex items-center text-center text-xs font-bold text-white">
             {props.item.title}
           </div>
         </div>
         <div class={`absolute opacity-0 cursor-nwse-resize`}
-             style={`left: ${wPx-RESIZE_BOX_SIZE_PX}px; top: ${hPx-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
+             style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
       </div>
     );
   }
@@ -149,16 +68,15 @@ export const Page: Component<{ item: PageItem }> = (props: { item: PageItem }) =
     <div ref={outerDiv}
          id={props.item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-         style={`left: ${lPx}px; top: ${tPx}px; width: ${wPx}px; height: ${hPx}px; ` +
-                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.364)});`}
-         onMouseDown={mouseDownHandler}>
-      <div class="flex items-center justify-center" style={`width: ${wPx}px; height: ${hPx}px;`}>
+         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; ` +
+                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.364)});`}>
+      <div class="flex items-center justify-center" style={`width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
         <div class="flex items-center text-center text-xl text-white">
           {props.item.title}
         </div>
       </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
-           style={`left: ${wPx-RESIZE_BOX_SIZE_PX}px; top: ${hPx-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
+           style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
     </div>
   );
 }

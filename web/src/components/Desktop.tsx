@@ -16,20 +16,23 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
-import { cloneItem, Item, updateBounds } from "../store/items/base/item";
+import { calcItemGeometry } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
-import { asPageItem, isPageItem, PageItem } from "../store/items/page-item";
+import { asPageItem, calcRootPageItemGeometry, isPageItem, PageItem } from "../store/items/page-item";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
-import { clientPosVector, subtract } from "../util/geometry";
+import { BoundingBox, clientPxFromMouseEvent, desktopPxFromMouseEvent } from "../util/geometry";
 import { useUserStore } from "../store/UserStoreProvider";
 import { server } from "../server";
+import { Uid } from "../util/uid";
+import { ItemGeometry } from "../item-geometry";
+import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
 
 
 export const Desktop: Component = () => {
@@ -39,39 +42,35 @@ export const Desktop: Component = () => {
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  function getFixedItems(page: PageItem | null): Array<Item> {
-    if (layoutStore.layout.currentPageId == null) { return []; }
+  function calculateItemGeometryUnder(pageId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+    if (pageId == null) { return []; }
 
-    if (page == null) {
-      page = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
-      itemStore.updateItem(page.id, item => {
-        asPageItem(item).computed_boundsPx = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
-      });
-    }
+    let page = asPageItem(itemStore.items.fixed[pageId]);
 
     let innerDimensionsCo = {
       w: page.innerSpatialWidthBl * GRID_SIZE,
       h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
     };
 
-    let result = [page.id];
+    let result: Array<any> = [];
 
-    page.computed_children.map(c => itemStore.items.fixed[c]).forEach(child => {
-      itemStore.updateItem(child.id, item => { updateBounds(item, page!.computed_boundsPx!, innerDimensionsCo); });
-      result.push(child.id);
+    page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(child => {
+      let hitbox = calcItemGeometry(child, boundsPx, innerDimensionsCo, level);
+      result.push(hitbox);
       if (isPageItem(child)) {
         let childPage = asPageItem(child);
         if (childPage.spatialWidthBl >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          if (childPage.children_loaded) {
-            getFixedItems(childPage).forEach(c => result.push(c.id));
+          if (layoutStore.childrenLoaded(childPage.id)) {
+            calculateItemGeometryUnder(childPage.id, hitbox.boundsPx, level+1).forEach(c => result.push(c));
           } else {
-            itemStore.updateItem(childPage.id, parentItem => { (parentItem as PageItem).children_loaded = true; });
+            layoutStore.setChildrenLoaded(childPage.id);
             server.fetchChildItems(userStore.user, childPage.id)
               .catch(e => {
-                console.log(`Error occurred feching items for child page '${childPage.id}'.`);
+                console.log(`Error occurred feching items for child page '${childPage.id}': ${e}.`);
               })
               .then(children => {
                 if (children != null) {
+                  console.log("loaded");
                   itemStore.setChildItems(childPage.id, children);
                 } else {
                   console.log(`No items were fetched for child page '${childPage.id}'.`);
@@ -82,78 +81,74 @@ export const Desktop: Component = () => {
       }
     });
 
-    return result.map(a => cloneItem(itemStore.getItem(a)!));
-  };
-
-  function getMovingItems(): Array<Item> {
-    if (layoutStore.layout.currentPageId == null) { return []; }
-
-    let currentPage = asPageItem(itemStore.items.fixed[layoutStore.layout.currentPageId]);
-    let innerDimensionsCo = {
-      w: currentPage.innerSpatialWidthBl * GRID_SIZE,
-      h: Math.floor(currentPage.innerSpatialWidthBl / currentPage.naturalAspect) * GRID_SIZE
-    };
-  
-    let result: Array<string> = [];
-    itemStore.items.moving.forEach(itm => {
-      if (itm.parentId == layoutStore.layout.currentPageId) {
-        itemStore.updateItem(itm.id, item => { updateBounds(item, currentPage.computed_boundsPx!, innerDimensionsCo); });
-        result.push(itm.id);
-      }
-    });
-
-    return result.map(a => cloneItem(itemStore.getItem(a)!));
+    return result;
   }
+
+  // const getItemGeometryMemo = createMemo(() => {
+  //   const boundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+  //   const currentPageId = layoutStore.currentPageId();
+  //   if (currentPageId == null) { return []; }
+  //   const rootPageGeometry = calcRootPageItemGeometry(asPageItem(itemStore.items.fixed[currentPageId!]), boundsPx);
+  //   return [rootPageGeometry, ...calculateItemGeometryUnder(currentPageId, boundsPx, 1)];
+  // });
+
+  const getItemGeometryMemo = () => {
+    const boundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+    const currentPageId = layoutStore.currentPageId();
+    if (currentPageId == null) { return []; }
+    const rootPageGeometry = calcRootPageItemGeometry(asPageItem(itemStore.items.fixed[currentPageId!]), boundsPx);
+    return [rootPageGeometry, ...calculateItemGeometryUnder(currentPageId, boundsPx, 1)];
+  };
 
   const keyListener = (ev: KeyboardEvent) => {
     // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.
     if (ev.code != "Slash") { return; }
 
     layoutStore.setLayout(produce(state => {
-      let lastPos = clientPosVector(lastMouseMoveEvent!);
-      state.contextMenuPosPx = subtract(lastPos, { x: TOOLBAR_WIDTH, y: 0 });
-      let el = document.elementsFromPoint(lastPos.x, lastPos.y)!.find(e => e.id != null && e.id != "");
+      state.contextMenuPosPx = desktopPxFromMouseEvent(lastMouseMoveEvent!);
+      let lastClientPx = clientPxFromMouseEvent(lastMouseMoveEvent!);
+      let el = document.elementsFromPoint(lastClientPx.x, lastClientPx.y)!.find(e => e.id != null && e.id != "");
       if (el == null) { return; }
       let item = itemStore.items.fixed[el.id];
       state.contexMenuItem = item;
     }));
   };
 
-  const mouseDownHandler = (_ev: MouseEvent) => {
-    layoutStore.hideContextMenu();
-  }
-
+  const mouseDownListener = (ev: MouseEvent) => { mouseDownHandler(itemStore, layoutStore, getItemGeometryMemo(), ev); }
   const mouseMoveListener = (ev: MouseEvent) => {
-    let currentPage = itemStore.items.fixed[layoutStore.layout.currentPageId!];
-
     lastMouseMoveEvent = ev;
+    mouseMoveHandler(itemStore, layoutStore, getItemGeometryMemo(), ev);
   }
+  const mouseUpListener = (ev: MouseEvent) => { mouseUpHandler(userStore, itemStore, layoutStore, getItemGeometryMemo(), ev); }
 
   const windowResizeListener = () => { layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize())); }
 
   onMount(() => {
     // TODO (MEDIUM): attach to desktopDiv?. need tab index.
+    document.addEventListener('mousedown', mouseDownListener);
     document.addEventListener('mousemove', mouseMoveListener);
-    document.addEventListener('mousedown', mouseDownHandler);
+    document.addEventListener('mouseup', mouseUpListener);
     document.addEventListener('keypress', keyListener);
     window.addEventListener('resize', windowResizeListener);
   });
 
   onCleanup(() => {
+    document.removeEventListener('mousedown', mouseDownListener);
     document.removeEventListener('mousemove', mouseMoveListener);
-    document.removeEventListener('mousedown', mouseDownHandler);
+    document.removeEventListener('mouseup', mouseUpListener);
     document.removeEventListener('keypress', keyListener);
     window.removeEventListener('resize', windowResizeListener);
   });
 
-  function drawItems(items: Array<Item>) {
-    return <For each={items}>{item =>
+  function drawItems(hitboxes: Array<ItemGeometry>) {
+    let toDrawItems = hitboxes.map(hitbox => ({ item: itemStore.items.fixed[hitbox.itemId], boundsPx: hitbox.boundsPx }));
+    return <For each={toDrawItems}>{toDrawItem =>
       <Switch fallback={<div>Not Found</div>}>
-        <Match when={isPageItem(item)}>
-          <Page item={item as PageItem} />
+        <Match when={isPageItem(toDrawItem.item)}>
+          <Page item={toDrawItem.item as PageItem} boundsPx={toDrawItem.boundsPx} />
         </Match>
-        <Match when={isNoteItem(item)}>
-          <Note item={item as NoteItem} />
+        <Match when={isNoteItem(toDrawItem.item)}>
+          <Note item={toDrawItem.item as NoteItem} boundsPx={toDrawItem.boundsPx} />
         </Match>
       </Switch>
     }</For>
@@ -162,8 +157,7 @@ export const Desktop: Component = () => {
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
-      {drawItems(getFixedItems(null))}
-      {drawItems(getMovingItems())}
+      { drawItems(getItemGeometryMemo()) }
       <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
         <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
       </Show>

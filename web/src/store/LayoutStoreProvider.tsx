@@ -16,20 +16,21 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { createContext, useContext } from "solid-js";
+import { Accessor, createContext, createSignal, Setter, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore, produce, SetStoreFunction } from "solid-js/store";
 import { TOOLBAR_WIDTH } from "../constants";
-import { Dimensions, Vector } from "../util/geometry";
+import { BoundingBox, Dimensions, Vector } from "../util/geometry";
 import { panic } from "../util/lang";
 import { Uid } from "../util/uid";
 import { Item } from "./items/base/item";
 
 export type Layout = {
-  currentPageId: Uid | null,
   desktopPx: Dimensions,
   contextMenuPosPx: Vector | null,
-  contexMenuItem: Item | null
+  contexMenuItem: Item | null,
+  childrenLoaded: { [id: Uid]: boolean }
+  visibleItemBoundsPx: { [id: Uid]: BoundingBox },
 }
 
 export function currentDesktopSize(): Dimensions {
@@ -38,9 +39,15 @@ export function currentDesktopSize(): Dimensions {
 }
 
 export interface LayoutStoreContextModel {
+  currentPageId: Accessor<Uid | null>,
+  setCurrentPageId: Setter<Uid | null>,
+
   layout: Layout,
   setLayout: SetStoreFunction<Layout>,
-  hideContextMenu: () => void
+
+  hideContextMenu: () => void,
+  childrenLoaded: (id: Uid) => boolean,
+  setChildrenLoaded: (id: Uid) => void
 }
 
 export interface LayoutStoreContextProps {
@@ -50,18 +57,29 @@ export interface LayoutStoreContextProps {
 const LayoutStoreContext = createContext<LayoutStoreContextModel>();
 
 export function LayoutStoreProvider(props: LayoutStoreContextProps) {
+  const [currentPageId, setCurrentPageId] = createSignal<Uid | null>(null);
+
   const [layout, setLayout] = createStore<Layout>({
-    currentPageId: null,
     desktopPx: currentDesktopSize(),
     contextMenuPosPx: null,
-    contexMenuItem: null
+    contexMenuItem: null,
+    childrenLoaded: {},
+    visibleItemBoundsPx: {}
   });
 
   const hideContextMenu = () => {
     setLayout(produce(state => { state.contexMenuItem = null; state.contextMenuPosPx = null; }));
   };
 
-  const value: LayoutStoreContextModel = { layout, setLayout, hideContextMenu };
+  const childrenLoaded = (id: Uid) => {
+    return layout.childrenLoaded.hasOwnProperty(id);
+  }
+
+  const setChildrenLoaded = (id: Uid) => {
+    setLayout(produce(state => { state.childrenLoaded[id] = true; }));
+  }
+
+  const value: LayoutStoreContextModel = { currentPageId, setCurrentPageId, layout, setLayout, hideContextMenu, childrenLoaded, setChildrenLoaded };
 
   return (
     <LayoutStoreContext.Provider value={value}>

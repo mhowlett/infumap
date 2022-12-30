@@ -42,7 +42,6 @@ export function findItemInArray(items: Array<Item>, id: Uid): Item {
 }
 
 export function setDefaultComputed(item: Item) {
-  item.computed_boundsPx = null;
   item.computed_fromParentIdMaybe = null;
   if (item.itemType == "page") {
     (item as PageItem).computed_children = [];

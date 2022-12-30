@@ -35,8 +35,10 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const layoutStore = useLayoutStore();
 
   const calcBlockPosition = (page: PageItem, clickPosXPx: number, clickPosYPs: number): Vector => {
-    let propX = (clickPosXPx - page.computed_boundsPx?.x!) / page.computed_boundsPx?.w!;
-    let propY = (clickPosYPs - page.computed_boundsPx?.y!) / page.computed_boundsPx?.h!;
+    // let propX = (clickPosXPx - page.computed_boundsPx?.x!) / page.computed_boundsPx?.w!;
+    // let propY = (clickPosYPs - page.computed_boundsPx?.y!) / page.computed_boundsPx?.h!;
+    const propX = 0.0;
+    const propY = 0.0;
     return {
       x: Math.floor(page.innerSpatialWidthBl * propX * 2.0) / 2.0,
       y: Math.floor(page.innerSpatialWidthBl / page.naturalAspect * propY * 2.0) / 2.0

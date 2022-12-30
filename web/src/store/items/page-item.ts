@@ -16,7 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { cloneBoundingBox, cloneVector, Dimensions, Vector } from '../../util/geometry';
+import { GRID_SIZE, RESIZE_BOX_SIZE_PX } from '../../constants';
+import { HitboxType } from '../../hitbox';
+import { ItemGeometry } from '../../item-geometry';
+import { BoundingBox, cloneVector, Dimensions, Vector } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -31,8 +34,6 @@ export interface PageItem extends XSizableItem {
   popupAlignmentPoint: string,
   popupWidthBl: number;
 
-  children_loaded: boolean,
-
   computed_children: Array<Uid>;
   computed_attachments: Array<Uid>;
 }
@@ -40,6 +41,35 @@ export interface PageItem extends XSizableItem {
 export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {
   let bh = Math.round(item.spatialWidthBl / item.naturalAspect * 2.0) / 2.0;
   return { w: item.spatialWidthBl, h: bh < 0.5 ? 0.5 : bh };
+}
+
+export function calcPageItemGeometry(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+  const boundsPx = {
+    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcPageSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
+    h: calcPageSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
+  };
+  return {
+    itemId: item.id,
+    boundsPx,
+    hitboxes: level != 1 ? [] : [
+      { type: HitboxType.Move, boundsPx },
+      { type: HitboxType.Resize,
+        boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
+                    w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
+    ],
+    level
+  };
+}
+
+export function calcRootPageItemGeometry(item: PageItem, desktopBoundsPx: BoundingBox): ItemGeometry {
+  return {
+    itemId: item.id,
+    boundsPx: desktopBoundsPx,
+    hitboxes: [],
+    level: 0
+  };
 }
 
 export function isPageItem(item: Item | null): boolean {
@@ -74,11 +104,8 @@ export function clonePageItem(item: PageItem): PageItem {
     popupAlignmentPoint: item.popupAlignmentPoint,
     popupWidthBl: item.popupWidthBl,
 
-    children_loaded: item.children_loaded,
-
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
-    computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
     computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
   };
 }
@@ -105,11 +132,8 @@ export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     popupAlignmentPoint: "center",
     popupWidthBl: 10.0,
 
-    children_loaded: false,
-
     computed_children: [],
     computed_attachments: [],
-    computed_boundsPx: null,
     computed_fromParentIdMaybe: null,
   };
 }

@@ -16,12 +16,12 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { GRID_SIZE } from '../../../constants';
+import { ItemGeometry } from '../../../item-geometry';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
-import { asNoteItem, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
-import { asPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
+import { asNoteItem, calcNoteItemGeometry, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
+import { asPageItem, calcPageItemGeometry, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
 
 
 export interface Item {
@@ -36,8 +36,7 @@ export interface Item {
   title: string,
   spatialPositionBl: Vector,
 
-  computed_boundsPx: BoundingBox | null,
-  computed_fromParentIdMaybe: Uid | null // when moving.
+  computed_fromParentIdMaybe: Uid | null, // when moving.
 }
 
 export function cloneItem(item: Item): Item {
@@ -52,13 +51,10 @@ export function calcSizeForSpatialBl(item: Item): Dimensions {
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
-export function updateBounds(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions): void {
-  item.computed_boundsPx = {
-    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-    w: calcSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
-    h: calcSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
-  }
+export function calcItemGeometry(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+  if (isPageItem(item)) { return calcPageItemGeometry(asPageItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+  if (isNoteItem(item)) { return calcNoteItemGeometry(asNoteItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+  throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
 export function setFromParentId(item: Item, fromParentId: Uid): void {

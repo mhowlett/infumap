@@ -16,6 +16,9 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { TOOLBAR_WIDTH } from "../constants";
+
+
 export interface BoundingBox {
     x: number;
     y: number;
@@ -31,6 +34,13 @@ export function cloneBoundingBox(boundingBox: BoundingBox | null): BoundingBox |
     w: boundingBox.w,
     h: boundingBox.h
   };
+}
+
+export function isInside(point: Vector, boundingBox: BoundingBox): boolean {
+  return point.x > boundingBox.x &&
+         point.x < boundingBox.x + boundingBox.w &&
+         point.y > boundingBox.y &&
+         point.y < boundingBox.y + boundingBox.h;
 }
 
 export interface Vector {
@@ -51,8 +61,12 @@ export interface Dimensions {
   h: number;
 }
 
-export function clientPosVector(e: MouseEvent): Vector {
-  return { x: e.clientX, y: e.clientY };
+export function clientPxFromMouseEvent(ev: MouseEvent): Vector {
+  return { x: ev.clientX, y: ev.clientY };
+}
+
+export function desktopPxFromMouseEvent(ev: MouseEvent): Vector {
+  return subtract(clientPxFromMouseEvent(ev), { x: TOOLBAR_WIDTH, y: 0 });
 }
 
 export function subtract(a: Vector, b: Vector): Vector {

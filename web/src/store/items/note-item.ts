@@ -16,8 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { LINE_HEIGHT_PX, NOTE_PADDING_PX } from '../../constants';
-import { cloneBoundingBox, Dimensions } from '../../util/geometry';
+import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from '../../constants';
+import { HitboxType } from '../../hitbox';
+import { ItemGeometry } from '../../item-geometry';
+import { BoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { Item } from './base/item';
@@ -48,6 +50,26 @@ export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
   return { w: item.spatialWidthBl, h: lineCount };
 }
 
+export function calcNoteItemGeometry(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+  const boundsPx = {
+    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcNoteSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
+    h: calcNoteSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
+  };
+  return {
+    itemId: item.id,
+    boundsPx,
+    hitboxes: level != 1 ? [] : [
+      { type: HitboxType.Move, boundsPx },
+      { type: HitboxType.Resize,
+        boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
+                    w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
+    ],
+    level
+  }
+}
+
 export function isNoteItem(item: Item | null): boolean {
   if (item == null) { return false; }
   return item.itemType == "note";
@@ -76,7 +98,6 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     url: item.url,
 
     computed_attachments: [...item.computed_attachments],
-    computed_boundsPx: cloneBoundingBox(item.computed_boundsPx),
     computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
   };
 }
@@ -99,7 +120,6 @@ export function newNoteItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     url: "",
 
     computed_attachments: [],
-    computed_boundsPx: null,
     computed_fromParentIdMaybe: null,
   };
 }
