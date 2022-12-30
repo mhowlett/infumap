@@ -31,9 +31,9 @@ export type Items = {
   // Also need some way to keep track of parent pages that haven't been loaded yet.
 }
 
-export function newOrderingAtEndOfChildren(items: Items, parentId: Uid): Uint8Array {
-  let parent = asPageItem(items.fixed[parentId]);
-  let children = parent.computed_children.map(c => items.fixed[c].ordering);
+export function newOrderingAtEndOfChildren(fixedItems: { [id: Uid]: Item }, parentId: Uid): Uint8Array {
+  let parent = asPageItem(fixedItems[parentId]);
+  let children = parent.computed_children.map(c => fixedItems[c].ordering);
   return newOrderingAtEnd(children);
 }
 
