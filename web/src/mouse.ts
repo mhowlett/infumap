@@ -23,6 +23,7 @@ import { server } from "./server";
 import { calcSizeForSpatialBl, Item } from "./store/items/base/item";
 import { asXSizableItem } from "./store/items/base/x-sizeable-item";
 import { asYSizableItem, isYSizableItem } from "./store/items/base/y-sizeable-item";
+import { isPageItem } from "./store/items/page-item";
 import { ItemStoreContextModel } from "./store/ItemStoreProvider";
 import { LayoutStoreContextModel } from "./store/LayoutStoreProvider";
 import { UserStoreContextModel } from "./store/UserStoreProvider";
@@ -204,7 +205,9 @@ export function mouseUpHandler(
 
   switch (mouseAction) {
     case MouseAction.Ambiguous:
-      layoutStore.setCurrentPageId(activeItem!.id);
+      if (isPageItem(activeItem!)) {
+        layoutStore.setCurrentPageId(activeItem!.id);
+      }
       break;
     case MouseAction.Moving:
       itemStore.transitionMovingToFixed();
