@@ -86,11 +86,9 @@ export const Desktop: Component = () => {
   const calcFixedGeometryMemoized = createMemo((): Array<ItemGeometry> => {
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) { return []; }
-
     const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
     const currentPage = asPageItem(itemStore.items.fixed[currentPageId!]);
     const rootPageGeometry = calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx);
-
     return [rootPageGeometry, ...calcNestedGeometry(currentPageId, currentPageBoundsPx, 1)];
   });
 
@@ -131,20 +129,27 @@ export const Desktop: Component = () => {
   };
 
   const mouseDownListener = (ev: MouseEvent) => {
+    ev.preventDefault();
     mouseDownHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
   }
 
   const mouseMoveListener = (ev: MouseEvent) => {
+    ev.preventDefault();
     lastMouseMoveEvent = ev;
     mouseMoveHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
   }
 
   const mouseUpListener = (ev: MouseEvent) => {
+    ev.preventDefault();
     mouseUpHandler(userStore, itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
   }
 
   const windowResizeListener = () => {
     layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize()));
+  }
+
+  const contextMenuListener = (ev: Event) => {
+    ev.preventDefault();
   }
 
   onMount(() => {
@@ -153,6 +158,7 @@ export const Desktop: Component = () => {
     document.addEventListener('mousemove', mouseMoveListener);
     document.addEventListener('mouseup', mouseUpListener);
     document.addEventListener('keypress', keyListener);
+    document.addEventListener('contextmenu', contextMenuListener);
     window.addEventListener('resize', windowResizeListener);
   });
 
@@ -161,6 +167,7 @@ export const Desktop: Component = () => {
     document.removeEventListener('mousemove', mouseMoveListener);
     document.removeEventListener('mouseup', mouseUpListener);
     document.removeEventListener('keypress', keyListener);
+    document.removeEventListener('contextmenu', contextMenuListener);
     window.removeEventListener('resize', windowResizeListener);
   });
 

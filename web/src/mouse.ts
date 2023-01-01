@@ -26,7 +26,11 @@ import { ItemStoreContextModel } from "./store/ItemStoreProvider";
 import { LayoutStoreContextModel } from "./store/LayoutStoreProvider";
 import { UserStoreContextModel } from "./store/UserStoreProvider";
 import { add, BoundingBox, desktopPxFromMouseEvent, isInside, subtract, Vector } from "./util/geometry";
+import { panic } from "./util/lang";
 import { Uid } from "./util/uid";
+
+const MOUSE_LEFT = 0;
+const MOUSE_RIGHT = 2;
 
 enum MouseAction {
   Ambiguous,
@@ -75,36 +79,73 @@ function clearState() {
   scale = null;
 }
 
-export function mouseDownHandler(itemStore: ItemStoreContextModel, layoutStore: LayoutStoreContextModel, itemGeometry: Array<ItemGeometry>, ev: MouseEvent) {
+export function mouseDownHandler(
+    itemStore: ItemStoreContextModel,
+    layoutStore: LayoutStoreContextModel,
+    fixedItemGeometry: Array<ItemGeometry>,
+    ev: MouseEvent) {
+  if (ev.button == MOUSE_LEFT) {
+    mouseLeftDownHandler(itemStore, layoutStore, fixedItemGeometry, ev);
+  } else if (ev.button == MOUSE_RIGHT) {
+    mouseRightDownHandler(itemStore, layoutStore, fixedItemGeometry, ev);
+  } else {
+    console.log("unknown button: " + ev.button);
+  }
+}
+
+export function mouseLeftDownHandler(
+    itemStore: ItemStoreContextModel,
+    layoutStore: LayoutStoreContextModel,
+    fixedItemGeometry: Array<ItemGeometry>,
+    ev: MouseEvent) {
   layoutStore.hideContextMenu();
-  let hi = getHitInfo(itemGeometry, desktopPxFromMouseEvent(ev));
-  if (hi == null) {
+
+  let hitInfo = getHitInfo(fixedItemGeometry, desktopPxFromMouseEvent(ev));
+  if (hitInfo == null) {
     clearState();
     return;
   }
 
-  hitboxType = hi.hitbox.type;
-  activeItem = itemStore.items.fixed[hi.itemId];
+  hitboxType = hitInfo.hitbox.type;
+  activeItem = itemStore.items.fixed[hitInfo.itemId];
   mouseAction = MouseAction.Ambiguous;
   startPx = desktopPxFromMouseEvent(ev);
   scale = {
-    x: calcSizeForSpatialBl(activeItem!).w / hi.itemBoundsPx.w,
-    y: calcSizeForSpatialBl(activeItem!).h / hi.itemBoundsPx.h
+    x: calcSizeForSpatialBl(activeItem!).w / hitInfo.itemBoundsPx.w,
+    y: calcSizeForSpatialBl(activeItem!).h / hitInfo.itemBoundsPx.h
   };
 
-  if (hi.hitbox.type == HitboxType.Move) {
+  if (hitInfo.hitbox.type == HitboxType.Move) {
     startWidthBl = null;
-    startPosBl = itemStore.items.fixed[hi.itemId].spatialPositionBl;
-  } else if (hi.hitbox.type == HitboxType.Resize) {
+    startPosBl = itemStore.items.fixed[hitInfo.itemId].spatialPositionBl;
+  } else if (hitInfo.hitbox.type == HitboxType.Resize) {
     startPosBl = null;
-    startWidthBl = asXSizableItem(itemStore.items.fixed[hi.itemId]).spatialWidthBl;
+    startWidthBl = asXSizableItem(itemStore.items.fixed[hitInfo.itemId]).spatialWidthBl;
   }
 }
 
-export function mouseMoveHandler(itemStore: ItemStoreContextModel, _layoutStore: LayoutStoreContextModel, _itemGeometry: Array<ItemGeometry>, ev: MouseEvent) {
-  if (startPx == null) { return; }
+export function mouseRightDownHandler(
+    itemStore: ItemStoreContextModel,
+    layoutStore: LayoutStoreContextModel,
+    fixedItemGeometry: Array<ItemGeometry>,
+    ev: MouseEvent) {
+  layoutStore.hideContextMenu();
 
-  let deltaPx = subtract(desktopPxFromMouseEvent(ev), startPx);
+  let overItem = itemStore.items.fixed[layoutStore.currentPageId()!];
+  let parentId = overItem.parentId;
+  if (parentId != null) {
+    layoutStore.setCurrentPageId(parentId);
+  }
+}
+
+export function mouseMoveHandler(
+    itemStore: ItemStoreContextModel,
+    _layoutStore: LayoutStoreContextModel,
+    _itemGeometry: Array<ItemGeometry>,
+    ev: MouseEvent) {
+  if (mouseAction == null) { return; }
+
+  let deltaPx = subtract(desktopPxFromMouseEvent(ev), startPx!);
   if (Math.abs(deltaPx.x) > MOUSE_MOVE_AMBIGUOUS_PX || Math.abs(deltaPx.y) > MOUSE_MOVE_AMBIGUOUS_PX) {
     if (mouseAction == MouseAction.Ambiguous) {
       if (hitboxType == HitboxType.Move) {
@@ -140,15 +181,29 @@ export function mouseMoveHandler(itemStore: ItemStoreContextModel, _layoutStore:
   }
 }
 
-export function mouseUpHandler(userStore: UserStoreContextModel, itemStore: ItemStoreContextModel, _layoutStore: LayoutStoreContextModel, _itemGeometry: Array<ItemGeometry>, _ev: MouseEvent) {
+export function mouseUpHandler(
+    userStore: UserStoreContextModel,
+    itemStore: ItemStoreContextModel,
+    layoutStore: LayoutStoreContextModel,
+    _itemGeometry: Array<ItemGeometry>,
+    _ev: MouseEvent) {
 
-    if (mouseAction == MouseAction.Moving) {
+  if (mouseAction == null) { return; }
+
+  switch (mouseAction) {
+    case MouseAction.Ambiguous:
+      layoutStore.setCurrentPageId(activeItem!.id);
+      break;
+    case MouseAction.Moving:
       itemStore.transitionMovingToFixed();
-    }
-
-    if (mouseAction != MouseAction.Ambiguous) {
       server.updateItem(userStore.user, itemStore.getItem(activeItem!.id)!);
-    }
+      break;
+    case MouseAction.Resizing:
+      server.updateItem(userStore.user, itemStore.getItem(activeItem!.id)!);
+      break;
+    default:
+      panic();
+  }
 
-    clearState();
+  clearState();
 }
