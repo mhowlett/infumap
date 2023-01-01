@@ -60,7 +60,6 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     if (items.fixed.hasOwnProperty(id)) {
       setItems("fixed", produce(items => {
         f(items[id]);
-        return items;
       }));
     } else {
       setItems("moving", produce(items => {

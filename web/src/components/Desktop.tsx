@@ -19,12 +19,12 @@
 import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
-import { calcItemGeometry } from "../store/items/base/item";
+import { calcGeometryOfItem } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
-import { asPageItem, calcRootPageItemGeometry, isPageItem, PageItem } from "../store/items/page-item";
+import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsCo, isPageItem, PageItem } from "../store/items/page-item";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
-import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
+import { CHILD_ITEMS_VISIBLE_WIDTH_BL, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
 import { BoundingBox, clientPxFromMouseEvent, desktopPxFromMouseEvent } from "../util/geometry";
@@ -42,26 +42,23 @@ export const Desktop: Component = () => {
 
   let lastMouseMoveEvent: MouseEvent | undefined;
 
-  function calculateItemGeometry(pageId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+
+  function calcNestedGeometry(pageId: Uid | null, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
     if (pageId == null) { return []; }
 
-    let page = asPageItem(itemStore.items.fixed[pageId]);
-
-    let innerDimensionsCo = {
-      w: page.innerSpatialWidthBl * GRID_SIZE,
-      h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
-    };
+    let page = asPageItem(itemStore.getItem(pageId)!);
+    let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(page);
 
     let result: Array<ItemGeometry> = [];
 
-    page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(child => {
-      let itemGeometry = calcItemGeometry(child, boundsPx, innerDimensionsCo, level);
+    page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
+      let itemGeometry = calcGeometryOfItem(childItem, pageBoundsPx, pageInnerDimensionsCo, level);
       result.push(itemGeometry);
-      if (isPageItem(child)) {
-        let childPage = asPageItem(child);
+      if (isPageItem(childItem)) {
+        let childPage = asPageItem(childItem);
         if (childPage.spatialWidthBl >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
           if (layoutStore.childrenLoaded(childPage.id)) {
-            calculateItemGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
+            calcNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
           } else {
             layoutStore.setChildrenLoaded(childPage.id);
             server.fetchChildItems(userStore.user, childPage.id)
@@ -85,13 +82,35 @@ export const Desktop: Component = () => {
     return result;
   }
 
-  const getItemGeometryMemo = createMemo(() => {
-    const boundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+
+  const calcFixedGeometryMemoized = createMemo((): Array<ItemGeometry> => {
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) { return []; }
-    const rootPageGeometry = calcRootPageItemGeometry(asPageItem(itemStore.items.fixed[currentPageId!]), boundsPx);
-    return [rootPageGeometry, ...calculateItemGeometry(currentPageId, boundsPx, 1)];
+
+    const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+    const currentPage = asPageItem(itemStore.items.fixed[currentPageId!]);
+    const rootPageGeometry = calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx);
+
+    return [rootPageGeometry, ...calcNestedGeometry(currentPageId, currentPageBoundsPx, 1)];
   });
+
+
+  const calcMovingGeometry = (): Array<ItemGeometry> => {
+    let fixedGeometry = calcFixedGeometryMemoized();
+
+    let result: Array<ItemGeometry> = [];
+    for (let i=0; i<itemStore.items.moving.length; ++i) {
+      let item = itemStore.items.moving[i];
+      let parentGeometry = fixedGeometry.find(a => a.itemId == item.parentId);
+      let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
+      let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(parentPage);
+      let movingItemGeometry = calcGeometryOfItem(item, parentGeometry!.boundsPx, pageInnerDimensionsCo, 1);
+      result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
+    }
+
+    return result;
+  }
+
 
   const keyListener = (ev: KeyboardEvent) => {
     // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.
@@ -107,14 +126,22 @@ export const Desktop: Component = () => {
     }));
   };
 
-  const mouseDownListener = (ev: MouseEvent) => { mouseDownHandler(itemStore, layoutStore, getItemGeometryMemo(), ev); }
+  const mouseDownListener = (ev: MouseEvent) => {
+    mouseDownHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
+  }
+
   const mouseMoveListener = (ev: MouseEvent) => {
     lastMouseMoveEvent = ev;
-    mouseMoveHandler(itemStore, layoutStore, getItemGeometryMemo(), ev);
+    mouseMoveHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
   }
-  const mouseUpListener = (ev: MouseEvent) => { mouseUpHandler(userStore, itemStore, layoutStore, getItemGeometryMemo(), ev); }
 
-  const windowResizeListener = () => { layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize())); }
+  const mouseUpListener = (ev: MouseEvent) => {
+    mouseUpHandler(userStore, itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
+  }
+
+  const windowResizeListener = () => {
+    layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize()));
+  }
 
   onMount(() => {
     // TODO (MEDIUM): attach to desktopDiv?. need tab index.
@@ -133,8 +160,9 @@ export const Desktop: Component = () => {
     window.removeEventListener('resize', windowResizeListener);
   });
 
-  function drawItems(hitboxes: Array<ItemGeometry>) {
-    let toDrawItems = hitboxes.map(hitbox => ({ item: itemStore.items.fixed[hitbox.itemId], boundsPx: hitbox.boundsPx }));
+
+  function drawItems(itemGeometry: Array<ItemGeometry>) {
+    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
     return <For each={toDrawItems}>{toDrawItem =>
       <Switch fallback={<div>Not Found</div>}>
         <Match when={isPageItem(toDrawItem.item)}>
@@ -150,7 +178,8 @@ export const Desktop: Component = () => {
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
-      { drawItems(getItemGeometryMemo()) }
+      { drawItems(calcFixedGeometryMemoized()) }
+      { drawItems(calcMovingGeometry()) }
       <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
         <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
       </Show>

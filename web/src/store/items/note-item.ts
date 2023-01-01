@@ -50,7 +50,7 @@ export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
   return { w: item.spatialWidthBl, h: lineCount };
 }
 
-export function calcNoteItemGeometry(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
     x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
     y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,

@@ -43,7 +43,14 @@ export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {
   return { w: item.spatialWidthBl, h: bh < 0.5 ? 0.5 : bh };
 }
 
-export function calcPageItemGeometry(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+export function calcPageInnerSpatialDimensionsCo(page: PageItem): Dimensions {
+  return {
+    w: page.innerSpatialWidthBl * GRID_SIZE,
+    h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
+  };
+}
+
+export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
     x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
     y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
@@ -63,7 +70,7 @@ export function calcPageItemGeometry(item: PageItem, containerBoundsPx: Bounding
   };
 }
 
-export function calcRootPageItemGeometry(item: PageItem, desktopBoundsPx: BoundingBox): ItemGeometry {
+export function calcCurrentPageItemGeometry(item: PageItem, desktopBoundsPx: BoundingBox): ItemGeometry {
   return {
     itemId: item.id,
     boundsPx: desktopBoundsPx,

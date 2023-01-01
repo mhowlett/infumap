@@ -20,8 +20,8 @@ import { ItemGeometry } from '../../../item-geometry';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
-import { asNoteItem, calcNoteItemGeometry, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
-import { asPageItem, calcPageItemGeometry, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
+import { asNoteItem, calcGeometryOfNoteItem, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
+import { asPageItem, calcGeometryOfPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
 
 
 export interface Item {
@@ -51,9 +51,9 @@ export function calcSizeForSpatialBl(item: Item): Dimensions {
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
-export function calcItemGeometry(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
-  if (isPageItem(item)) { return calcPageItemGeometry(asPageItem(item), containerBoundsPx, containerInnerSizeCo, level); }
-  if (isNoteItem(item)) { return calcNoteItemGeometry(asNoteItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+export function calcGeometryOfItem(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+  if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+  if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeCo, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
