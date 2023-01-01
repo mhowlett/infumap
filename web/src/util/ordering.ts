@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const N = 8;
+const N = 1;
 
 export function newOrderingBefore(start: Uint8Array): Uint8Array {
   let r: Array<number> = [];
