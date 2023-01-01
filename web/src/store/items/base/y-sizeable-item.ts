@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -20,18 +20,18 @@ import { panic } from "../../../util/lang";
 import { Item } from "./item";
 
 
-const ITEM_TYPES = ["page", "note", "table"];
+const ITEM_TYPES = ["table"];
 
-export interface XSizableItem extends Item {
-  spatialWidthBl: number
+export interface YSizableItem extends Item {
+  spatialHeightBl: number
 }
 
-export function isXSizableItem(item: Item | null): boolean {
+export function isYSizableItem(item: Item | null): boolean {
   if (item == null) { return false; }
   return ITEM_TYPES.find(t => t == item.itemType) != null;
 }
 
-export function asXSizableItem(item: Item): XSizableItem {
-  if (isXSizableItem(item)) { return item as XSizableItem; }
+export function asYSizableItem(item: Item): YSizableItem {
+  if (isYSizableItem(item)) { return item as YSizableItem; }
   panic();
 }

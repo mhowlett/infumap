@@ -28,6 +28,7 @@ import ToolbarIcon from "../ToolbarIcon";
 import { ContexMenuProps } from "./ContextMenu";
 import { server } from "../../server";
 import { useUserStore } from "../../store/UserStoreProvider";
+import { newTableItem } from "../../store/items/table-item";
 
 export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const userStore = useUserStore();
@@ -65,11 +66,22 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
     }
   }
 
+  const newTableInContext = () => {
+    if (isPageItem(props.contextItem)) {
+      let newTable = newTableItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new table", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      newTable.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+      itemStore.addItem(newTable);
+      server.addItem(userStore.user, newTable);
+      layoutStore.hideContextMenu();
+    }
+  }
+
   return (
     <div class="border rounded w-[250px] h-[55px] bg-slate-50 mb-1">
       <div class="text-slate-800 text-sm ml-1">Add new item here</div>
       <ToolbarIcon icon="folder" margin={18} clickHandler={newPageInContext} />
-      <ToolbarIcon icon="sticky-note" margin={4} clickHandler={newNoteInContext} />
+      <ToolbarIcon icon="table" margin={4} clickHandler={newTableInContext} />
+      <ToolbarIcon icon="sticky-note" margin={8} clickHandler={newNoteInContext} />
     </div>
   );
 }

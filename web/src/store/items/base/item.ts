@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@ import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
 import { asNoteItem, calcGeometryOfNoteItem, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
 import { asPageItem, calcGeometryOfPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
+import { asTableItem, calcGeometryOfTableItem, calcTableSizeForSpatialBl, cloneTableItem, isTableItem } from '../table-item';
 
 
 export interface Item {
@@ -41,18 +42,21 @@ export interface Item {
 
 export function cloneItem(item: Item): Item {
   if (isPageItem(item)) { return clonePageItem(asPageItem(item)); }
+  if (isTableItem(item)) { return cloneTableItem(asTableItem(item)); }
   if (isNoteItem(item)) { return cloneNoteItem(asNoteItem(item)); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
 export function calcSizeForSpatialBl(item: Item): Dimensions {
   if (isPageItem(item)) { return calcPageSizeForSpatialBl(asPageItem(item)); }
+  if (isTableItem(item)) { return calcTableSizeForSpatialBl(asTableItem(item)); }
   if (isNoteItem(item)) { return calcNoteSizeForSpatialBl(asNoteItem(item)); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
 export function calcGeometryOfItem(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+  if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeCo, level); }
   if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeCo, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }

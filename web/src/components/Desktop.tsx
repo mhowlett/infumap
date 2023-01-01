@@ -33,6 +33,8 @@ import { server } from "../server";
 import { Uid } from "../util/uid";
 import { ItemGeometry } from "../item-geometry";
 import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
+import { isTableItem, TableItem } from "../store/items/table-item";
+import { Table } from "./items/Table";
 
 
 export const Desktop: Component = () => {
@@ -178,6 +180,9 @@ export const Desktop: Component = () => {
       <Switch fallback={<div>Not Found</div>}>
         <Match when={isPageItem(toDrawItem.item)}>
           <Page item={toDrawItem.item as PageItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
+        <Match when={isTableItem(toDrawItem.item)}>
+          <Table item={toDrawItem.item as TableItem} boundsPx={toDrawItem.boundsPx} />
         </Match>
         <Match when={isNoteItem(toDrawItem.item)}>
           <Note item={toDrawItem.item as NoteItem} boundsPx={toDrawItem.boundsPx} />

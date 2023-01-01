@@ -1,0 +1,110 @@
+/*
+  Copyright (C) 2023 Matt Howlett
+  This file is part of Infumap.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { GRID_SIZE, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { HitboxType } from "../../hitbox";
+import { ItemGeometry } from "../../item-geometry";
+import { BoundingBox, cloneVector, Dimensions } from "../../util/geometry";
+import { currentUnixTimeSeconds, panic } from "../../util/lang";
+import { newUid, Uid } from "../../util/uid";
+import { Item } from "./base/item";
+import { XSizableItem } from "./base/x-sizeable-item";
+import { YSizableItem } from "./base/y-sizeable-item";
+
+export interface TableItem extends XSizableItem, YSizableItem {
+  computed_children: Array<Uid>;
+  computed_attachments: Array<Uid>;
+}
+
+export function calcTableSizeForSpatialBl(item: TableItem): Dimensions {
+  return { w: item.spatialWidthBl, h: item.spatialHeightBl };
+}
+
+export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+  const boundsPx = {
+    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcTableSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
+    h: calcTableSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
+  };
+  return {
+    itemId: item.id,
+    boundsPx,
+    hitboxes: level != 1 ? [] : [
+      { type: HitboxType.Move, boundsPx },
+      { type: HitboxType.Resize,
+        boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
+                    w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
+    ],
+    level
+  };
+}
+
+export function isTableItem(item: Item | null): boolean {
+  if (item == null) { return false; }
+  return item.itemType == "table";
+}
+
+export function asTableItem(item: Item): TableItem {
+  if (item.itemType == "table") { return item as TableItem; }
+  panic();
+}
+
+export function cloneTableItem(item: TableItem): TableItem {
+  return {
+    itemType: "table",
+    ownerId: item.ownerId,
+    id: item.id,
+    parentId: item.parentId,
+    relationshipToParent: item.relationshipToParent,
+    creationDate: item.creationDate,
+    lastModifiedDate: item.lastModifiedDate,
+    ordering: item.ordering,
+    title: item.title,
+    spatialPositionBl: cloneVector(item.spatialPositionBl)!,
+
+    spatialWidthBl: item.spatialWidthBl,
+    spatialHeightBl: item.spatialHeightBl,
+
+    computed_children: [...item.computed_children],
+    computed_attachments: [...item.computed_attachments],
+    computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
+  };
+}
+
+export function newTableItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): TableItem {
+  return {
+    itemType: "table",
+    ownerId,
+    id: newUid(),
+    parentId,
+    relationshipToParent,
+    creationDate: currentUnixTimeSeconds(),
+    lastModifiedDate: currentUnixTimeSeconds(),
+    ordering,
+    title,
+    spatialPositionBl: { x: 0.0, y: 0.0 },
+
+    spatialWidthBl: 8.0,
+    spatialHeightBl: 6.0,
+
+    computed_children: [],
+    computed_attachments: [],
+    computed_fromParentIdMaybe: null,
+  };
+}

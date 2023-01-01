@@ -121,6 +121,7 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     title: username.to_string(),
     spatial_position_bl: Vector { x: 0.0, y: 0.0 },
     spatial_width_bl: Some(60.0),
+    spatial_height_bl: None,
     inner_spatial_width_bl: Some(60.0),
     natural_aspect: Some(2.0),
     background_color_index: Some(0),

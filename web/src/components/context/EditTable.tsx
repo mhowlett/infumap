@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,14 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { panic } from "../../../util/lang";
-import { Item } from "./item";
+import { Component } from "solid-js";
+import { Item } from "../../store/items/base/item";
+import { useItemStore } from "../../store/ItemStoreProvider";
+import { useUserStore } from "../../store/UserStoreProvider";
 
+export const EditTable: Component<{item: Item}> = (props: {item: Item}) => {
+  const userStore = useUserStore();
+  const itemStore = useItemStore();
 
-const ITEM_TYPES = ["page", "note", "table"];
-
-export interface XSizableItem extends Item {
-  spatialWidthBl: number
-}
-
-export function isXSizableItem(item: Item | null): boolean {
-  if (item == null) { return false; }
-  return ITEM_TYPES.find(t => t == item.itemType) != null;
-}
-
-export function asXSizableItem(item: Item): XSizableItem {
-  if (isXSizableItem(item)) { return item as XSizableItem; }
-  panic();
+  return <div></div>;
 }

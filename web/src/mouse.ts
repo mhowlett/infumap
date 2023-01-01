@@ -22,6 +22,7 @@ import { ItemGeometry } from "./item-geometry";
 import { server } from "./server";
 import { calcSizeForSpatialBl, Item } from "./store/items/base/item";
 import { asXSizableItem } from "./store/items/base/x-sizeable-item";
+import { asYSizableItem, isYSizableItem } from "./store/items/base/y-sizeable-item";
 import { ItemStoreContextModel } from "./store/ItemStoreProvider";
 import { LayoutStoreContextModel } from "./store/LayoutStoreProvider";
 import { UserStoreContextModel } from "./store/UserStoreProvider";
@@ -66,6 +67,7 @@ let activeItem: Item | null = null;
 let startPx: Vector | null = null;
 let startPosBl: Vector | null = null;
 let startWidthBl: number | null = null;
+let startHeightBl: number | null = null;
 let mouseAction: MouseAction | null = null;
 let scale: Vector | null;
 
@@ -76,6 +78,7 @@ function clearState() {
   mouseAction = null;
   startPosBl = null;
   startWidthBl = null;
+  startHeightBl = null;
   scale = null;
 }
 
@@ -89,7 +92,7 @@ export function mouseDownHandler(
   } else if (ev.button == MOUSE_RIGHT) {
     mouseRightDownHandler(itemStore, layoutStore, fixedItemGeometry, ev);
   } else {
-    console.log("unknown button: " + ev.button);
+    console.log("unknown mouse button: " + ev.button);
   }
 }
 
@@ -117,10 +120,13 @@ export function mouseLeftDownHandler(
 
   if (hitInfo.hitbox.type == HitboxType.Move) {
     startWidthBl = null;
-    startPosBl = itemStore.items.fixed[hitInfo.itemId].spatialPositionBl;
+    startPosBl = activeItem.spatialPositionBl;
   } else if (hitInfo.hitbox.type == HitboxType.Resize) {
     startPosBl = null;
-    startWidthBl = asXSizableItem(itemStore.items.fixed[hitInfo.itemId]).spatialWidthBl;
+    startWidthBl = asXSizableItem(activeItem).spatialWidthBl;
+    if (isYSizableItem(activeItem)) {
+      startHeightBl = asYSizableItem(activeItem).spatialHeightBl;
+    }
   }
 }
 
@@ -178,6 +184,12 @@ export function mouseMoveHandler(
     newWidthBl = Math.round(newWidthBl);
     if (newWidthBl < 1) { newWidthBl = 1.0; }
     itemStore.updateItem(activeItem!.id, item => { asXSizableItem(item).spatialWidthBl = newWidthBl; });
+    if (isYSizableItem(activeItem)) {
+      let newHeightBl = startHeightBl! + deltaBl.y;
+      newHeightBl = Math.round(newHeightBl);
+      if (newHeightBl < 1) { newHeightBl = 1.0; }
+      itemStore.updateItem(activeItem!.id, item => { asYSizableItem(item).spatialHeightBl = newHeightBl; });
+    }
   }
 }
 

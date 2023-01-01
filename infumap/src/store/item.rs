@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Matt Howlett
+// Copyright (C) 2022-2023 Matt Howlett
 // This file is part of Infumap.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -126,14 +126,15 @@ impl AlignmentPoint {
 const ITEM_TYPE_PAGE: &'static str = "page";
 const ITEM_TYPE_NOTE: &'static str = "note";
 const ITEM_TYPE_FILE: &'static str = "file";
+const ITEM_TYPE_TABLE: &'static str = "table";
 
-const ALL_JSON_FIELDS: [&'static str; 20] = ["__recordType",
+const ALL_JSON_FIELDS: [&'static str; 21] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
   "spatialPositionBl", "spatialWidthBl", "innerSpatialWidthBl",
   "naturalAspect", "backgroundColorIndex", "popupPositionBl",
   "popupAlignmentPoint", "popupWidthBl", "url",
-  "originalCreationDate"];
+  "originalCreationDate", "spatialHeightBl"];
 
 #[derive(Debug)]
 pub struct Item {
@@ -151,6 +152,9 @@ pub struct Item {
   // x-sizeable
   pub spatial_width_bl: Option<f64>,
 
+  // y-sizeable
+  pub spatial_height_bl: Option<f64>,
+
   // page
   pub inner_spatial_width_bl: Option<f64>,
   pub natural_aspect: Option<f64>,
@@ -165,6 +169,8 @@ pub struct Item {
   // file
   pub original_creation_date: Option<i64>,
   // TODO: not complete
+
+  // table
 }
 
 impl Clone for Item {
@@ -181,6 +187,7 @@ impl Clone for Item {
       title: self.title.clone(),
       spatial_position_bl: self.spatial_position_bl.clone(),
       spatial_width_bl: self.spatial_width_bl.clone(),
+      spatial_height_bl: self.spatial_height_bl.clone(),
       inner_spatial_width_bl: self.inner_spatial_width_bl.clone(),
       natural_aspect: self.natural_aspect.clone(),
       background_color_index: self.background_color_index.clone(),
@@ -260,6 +267,13 @@ impl JsonLogSerializable<Item> for Item {
     if let Some(new_spatial_width_bl) = new.spatial_width_bl {
       if match old.spatial_width_bl { Some(o) => o != new_spatial_width_bl, None => { true } } {
         result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(new_spatial_width_bl).ok_or(nan_err("spatialWidthBl", &old.id))?));
+      }
+    }
+
+    // y-sizable.
+    if let Some(new_spatial_height_bl) = new.spatial_height_bl {
+      if match old.spatial_height_bl { Some(o) => o != new_spatial_height_bl, None => { true } } {
+        result.insert(String::from("spatialHeightBl"), Value::Number(Number::from_f64(new_spatial_height_bl).ok_or(nan_err("spatialHeightBl", &old.id))?));
       }
     }
 
@@ -365,6 +379,11 @@ impl JsonLogSerializable<Item> for Item {
       if let Some(u) = v { self.spatial_width_bl = Some(u); }
     }
 
+    // y-sizable
+    if let Ok(v) = json::get_float_field(map, "spatialHeightBl") {
+      if let Some(u) = v { self.spatial_height_bl = Some(u); }
+    }
+
     // page
     if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") {
       if let Some(u) = v {
@@ -450,6 +469,13 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
     result.insert(
       String::from("spatialWidthBl"),
       Value::Number(Number::from_f64(spatial_width_bl).ok_or(nan_err("spatialWidthBl", &item.id))?));
+  }
+
+  // y-sizeable
+  if let Some(spatial_height_bl) = item.spatial_height_bl {
+    result.insert(
+      String::from("spatialHeightBl"),
+      Value::Number(Number::from_f64(spatial_height_bl).ok_or(nan_err("spatialHeightBl", &item.id))?));
   }
 
   // page
@@ -543,6 +569,12 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     spatial_width_bl: match json::get_float_field(map, "spatialWidthBl")? {
       Some(v) => { Ok(Some(v)) },
       None => { Err(InfuError::new("'spatialWidthBl' field is expected for all current item types.")) }
+    }?,
+
+    // y-sizeable
+    spatial_height_bl: match json::get_float_field(map, "spatialHeightBl")? {
+      Some(v) => { if item_type == ITEM_TYPE_TABLE { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightBl", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_TABLE { Err(expected_for_err("spatialHeightBl", &item_type)) } else { Ok(None) } }
     }?,
 
     // page
