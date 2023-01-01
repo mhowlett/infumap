@@ -45,6 +45,23 @@ export const Desktop: Component = () => {
   let lastMouseMoveEvent: MouseEvent | undefined;
 
 
+  function loadPageItems(pageId: string) {
+    layoutStore.setChildrenLoaded(pageId);
+    server.fetchChildItems(userStore.user, pageId)
+      .catch(e => {
+        console.log(`Error occurred feching items for child page '${pageId}': ${e}.`);
+      })
+      .then(children => {
+        if (children != null) {
+          itemStore.setChildItems(pageId, children);
+        } else {
+          console.log(`No items were fetched for child page '${pageId}'.`);
+        }
+        // invalidate the item-geometry calc.
+        itemStore.replaceWithClone(layoutStore.currentPageId()!);
+      });
+  }
+
   function calcNestedGeometry(pageId: Uid | null, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
     if (pageId == null) { return []; }
 
@@ -52,6 +69,11 @@ export const Desktop: Component = () => {
     let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(page);
 
     let result: Array<ItemGeometry> = [];
+
+    if (!layoutStore.childrenLoaded(page.id)) {
+      loadPageItems(page.id);
+      return result;
+    }
 
     page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
       let itemGeometry = calcGeometryOfItem(childItem, pageBoundsPx, pageInnerDimensionsCo, level);
@@ -62,20 +84,7 @@ export const Desktop: Component = () => {
           if (layoutStore.childrenLoaded(childPage.id)) {
             calcNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
           } else {
-            layoutStore.setChildrenLoaded(childPage.id);
-            server.fetchChildItems(userStore.user, childPage.id)
-              .catch(e => {
-                console.log(`Error occurred feching items for child page '${childPage.id}': ${e}.`);
-              })
-              .then(children => {
-                if (children != null) {
-                  itemStore.setChildItems(childPage.id, children);
-                } else {
-                  console.log(`No items were fetched for child page '${childPage.id}'.`);
-                }
-                // invalidate the item-geometry calc.
-                itemStore.replaceWithClone(layoutStore.currentPageId()!);
-              });
+            loadPageItems(childPage.id);
           }
         }
       }

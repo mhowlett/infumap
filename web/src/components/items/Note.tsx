@@ -33,7 +33,7 @@ export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props
 
   let scale = Math.min(heightScale, widthScale);
 
-  console.log("draw note.");
+  // console.log("draw note.");
   return (
     <div ref={outerDiv}
          id={props.item.id}

@@ -32,7 +32,7 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
 
   // Current top page.
   if (props.item.id == layoutStore.currentPageId()) {
-    console.log("draw page (1).");
+    // console.log("draw page (1).");
     return (
       <div ref={outerDiv}
            id={props.item.id}
@@ -44,7 +44,7 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
 
   // Too small for inside items to be visible. Opaque.
   if (props.item.spatialWidthBl < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-    console.log("draw page (2).");
+    // console.log("draw page (2).");
     return (
       <div ref={outerDiv}
            id={props.item.id}
@@ -63,7 +63,7 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
   }
 
   // Show child items. Translucent.
-  console.log("draw page (3).");
+  // console.log("draw page (3).");
   return (
     <div ref={outerDiv}
          id={props.item.id}
