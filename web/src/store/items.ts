@@ -19,9 +19,9 @@
 import { throwExpression } from "../util/lang";
 import { newOrderingAtEnd } from "../util/ordering";
 import { Uid } from "../util/uid";
+import { AttachmentsItem, isAttachmentsItem } from "./items/base/attachments-item";
+import { asContainerItem, ContainerItem, isContainerItem } from "./items/base/container-item";
 import { Item } from "./items/base/item";
-import { NoteItem } from "./items/note-item";
-import { asPageItem, PageItem } from "./items/page-item";
 
 
 export type Items = {
@@ -32,7 +32,7 @@ export type Items = {
 }
 
 export function newOrderingAtEndOfChildren(fixedItems: { [id: Uid]: Item }, parentId: Uid): Uint8Array {
-  let parent = asPageItem(fixedItems[parentId]);
+  let parent = asContainerItem(fixedItems[parentId]);
   let children = parent.computed_children.map(c => fixedItems[c].ordering);
   return newOrderingAtEnd(children);
 }
@@ -43,11 +43,11 @@ export function findItemInArray(items: Array<Item>, id: Uid): Item {
 
 export function setDefaultComputed(item: Item) {
   item.computed_fromParentIdMaybe = null;
-  if (item.itemType == "page") {
-    (item as PageItem).computed_children = [];
-    (item as PageItem).computed_attachments = [];
-  } else if (item.itemType == "note") {
-    (item as NoteItem).computed_attachments = [];
+  if (isContainerItem(item)) {
+    (item as ContainerItem).computed_children = [];
+  }
+  if (isAttachmentsItem(item)) {
+    (item as AttachmentsItem).computed_attachments = [];
   }
   return item;
 }

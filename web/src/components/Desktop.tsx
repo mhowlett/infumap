@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
-import { calcGeometryOfItem } from "../store/items/base/item";
+import { calcGeometryOfItemInPage } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsCo, isPageItem, PageItem } from "../store/items/page-item";
 import { Note } from "./items/Note";
@@ -33,8 +33,9 @@ import { server } from "../server";
 import { Uid } from "../util/uid";
 import { ItemGeometry } from "../item-geometry";
 import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
-import { isTableItem, TableItem } from "../store/items/table-item";
+import { asTableItem, isTableItem, TableItem } from "../store/items/table-item";
 import { Table } from "./items/Table";
+import { throwExpression } from "../util/lang";
 
 
 export const Desktop: Component = () => {
@@ -45,38 +46,37 @@ export const Desktop: Component = () => {
   let lastMouseMoveEvent: MouseEvent | undefined;
 
 
-  function loadPageItems(pageId: string) {
-    layoutStore.setChildrenLoaded(pageId);
-    server.fetchChildItems(userStore.user, pageId)
+  function loadChildItems(containerId: string) {
+    layoutStore.setChildrenLoaded(containerId);
+    server.fetchChildItems(userStore.user, containerId)
       .catch(e => {
-        console.log(`Error occurred feching items for child page '${pageId}': ${e}.`);
+        console.log(`Error occurred feching items for '${containerId}': ${e}.`);
       })
       .then(children => {
         if (children != null) {
-          itemStore.setChildItems(pageId, children);
+          itemStore.setChildItems(containerId, children);
         } else {
-          console.log(`No items were fetched for child page '${pageId}'.`);
+          console.log(`No items were fetched for '${containerId}'.`);
         }
         // invalidate the item-geometry calc.
         itemStore.replaceWithClone(layoutStore.currentPageId()!);
       });
   }
 
-  function calcNestedGeometry(pageId: Uid | null, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
-    if (pageId == null) { return []; }
 
+  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
     let page = asPageItem(itemStore.getItem(pageId)!);
     let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(page);
 
     let result: Array<ItemGeometry> = [];
 
     if (!layoutStore.childrenLoaded(page.id)) {
-      loadPageItems(page.id);
+      loadChildItems(page.id);
       return result;
     }
 
     page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
-      let itemGeometry = calcGeometryOfItem(childItem, pageBoundsPx, pageInnerDimensionsCo, level);
+      let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsCo, level);
       result.push(itemGeometry);
       if (isPageItem(childItem)) {
         let childPage = asPageItem(childItem);
@@ -84,13 +84,39 @@ export const Desktop: Component = () => {
           if (layoutStore.childrenLoaded(childPage.id)) {
             calcNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
           } else {
-            loadPageItems(childPage.id);
+            loadChildItems(childPage.id);
           }
+        }
+      }
+      else if (isTableItem(childItem)) {
+        let childTable = asTableItem(childItem);
+        if (layoutStore.childrenLoaded(childTable.id)) {
+          calcNestedGeometry(childTable.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
+        } else {
+          loadChildItems(childTable.id);
         }
       }
     });
 
     return result;
+  }
+
+  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+    let table = asTableItem(itemStore.getItem(tableId)!);
+    console.log(table.title, tableId, tableBoundsPx);
+    return [];
+  }
+
+  function calcNestedGeometry(containerId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+    if (containerId == null) { return []; }
+
+    if (isPageItem(itemStore.getItem(containerId))) {
+      return calcPageNestedGeometry(containerId, boundsPx, level);
+    } else if (isTableItem(itemStore.getItem(containerId))) {
+      return calcTableNestedGeometry(containerId, boundsPx, level);
+    } else {
+      throwExpression("can't calculated nested geometry");
+    }
   }
 
 
@@ -113,7 +139,7 @@ export const Desktop: Component = () => {
       let parentGeometry = fixedGeometry.find(a => a.itemId == item.parentId);
       let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
       let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(parentPage);
-      let movingItemGeometry = calcGeometryOfItem(item, parentGeometry!.boundsPx, pageInnerDimensionsCo, 1);
+      let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsCo, 1);
       if (isPageItem(item)) {
         result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
       } else {

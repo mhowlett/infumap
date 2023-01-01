@@ -22,13 +22,13 @@ import { ItemGeometry } from "../../item-geometry";
 import { BoundingBox, cloneVector, Dimensions } from "../../util/geometry";
 import { currentUnixTimeSeconds, panic } from "../../util/lang";
 import { newUid, Uid } from "../../util/uid";
+import { AttachmentsItem } from "./base/attachments-item";
+import { ContainerItem } from "./base/container-item";
 import { Item } from "./base/item";
 import { XSizableItem } from "./base/x-sizeable-item";
 import { YSizableItem } from "./base/y-sizeable-item";
 
-export interface TableItem extends XSizableItem, YSizableItem {
-  computed_children: Array<Uid>;
-  computed_attachments: Array<Uid>;
+export interface TableItem extends XSizableItem, YSizableItem, ContainerItem, AttachmentsItem {
 }
 
 export function calcTableSizeForSpatialBl(item: TableItem): Dimensions {

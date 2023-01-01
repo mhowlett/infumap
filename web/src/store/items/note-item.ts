@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -22,16 +22,15 @@ import { ItemGeometry } from '../../item-geometry';
 import { BoundingBox, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
+import { AttachmentsItem } from './base/attachments-item';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
-export interface NoteItem extends XSizableItem {
+export interface NoteItem extends XSizableItem, AttachmentsItem {
   url: string,
-
-  computed_attachments: Array<Uid>,
 }
 
 function measureLineCount(s: string, widthBl: number): number {
@@ -123,4 +122,3 @@ export function newNoteItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     computed_fromParentIdMaybe: null,
   };
 }
-

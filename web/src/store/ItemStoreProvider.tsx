@@ -20,11 +20,12 @@ import { JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { panic, throwExpression } from "../util/lang";
-import { asPageItem, isPageItem, PageItem } from "./items/page-item";
+import { asPageItem } from "./items/page-item";
 import { Item, setFromParentId } from "./items/base/item";
 import { Uid } from "../util/uid";
 import { Items } from "./items";
 import { Child, NoParent } from "../relationship-to-parent";
+import { ContainerItem, isContainerItem } from "./items/base/container-item";
 
 
 export interface ItemStoreContextModel {
@@ -120,8 +121,8 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
           throwExpression(`Child item had parent '${childItem.parentId}', but '${parentId}' was expected.`);
         }
         updateItem(childItem.parentId, parentItem => {
-          if (!isPageItem(parentItem)) { panic(); }
-          (parentItem as PageItem).computed_children = [...(parentItem as PageItem).computed_children, childItem.id];
+          if (!isContainerItem(parentItem)) { panic(); }
+          (parentItem as ContainerItem).computed_children = [...(parentItem as ContainerItem).computed_children, childItem.id];
         });
       }
     });
@@ -135,8 +136,8 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     setItems("fixed", produce(items => { items[item.id] = item; }));
     if (item.relationshipToParent == Child) {
       updateItem(item.parentId!, parentItem => {
-        if (!isPageItem(parentItem)) { panic(); }
-        (parentItem as PageItem).computed_children = [...(parentItem as PageItem).computed_children, item.id];
+        if (!isContainerItem(parentItem)) { panic(); }
+        (parentItem as ContainerItem).computed_children = [...(parentItem as ContainerItem).computed_children, item.id];
       })
     } else {
       throwExpression("only support child relationships currently");

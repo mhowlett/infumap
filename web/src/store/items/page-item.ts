@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -22,20 +22,19 @@ import { ItemGeometry } from '../../item-geometry';
 import { BoundingBox, cloneVector, Dimensions, Vector } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
+import { AttachmentsItem } from './base/attachments-item';
+import { ContainerItem } from './base/container-item';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
-export interface PageItem extends XSizableItem {
+export interface PageItem extends XSizableItem, ContainerItem, AttachmentsItem {
   innerSpatialWidthBl: number;
   naturalAspect: number;
   backgroundColorIndex: number;
   popupPositionBl: Vector;
   popupAlignmentPoint: string,
   popupWidthBl: number;
-
-  computed_children: Array<Uid>;
-  computed_attachments: Array<Uid>;
 }
 
 export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {

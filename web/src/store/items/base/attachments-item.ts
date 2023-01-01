@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022-2023 Matt Howlett
+  Copyright (C) 2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,23 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { AttachmentsItem } from "./base/attachments-item";
-import { XSizableItem } from "./base/x-sizeable-item";
+import { panic } from "../../../util/lang";
+import { Uid } from "../../../util/uid";
+import { Item } from "./item";
 
 
-export interface FileItem extends XSizableItem, AttachmentsItem {
-  originalCreationDate: number,
-  // TODO.
+const ITEM_TYPES = ["page", "table", "note", "file"];
+
+export interface AttachmentsItem extends Item {
+  computed_attachments: Array<Uid>;
+}
+
+export function isAttachmentsItem(item: Item | null): boolean {
+  if (item == null) { return false; }
+  return ITEM_TYPES.find(t => t == item.itemType) != null;
+}
+
+export function asAttachmentsItem(item: Item): AttachmentsItem {
+  if (isAttachmentsItem(item)) { return item as AttachmentsItem; }
+  panic();
 }
