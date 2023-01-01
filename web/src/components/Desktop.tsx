@@ -105,7 +105,11 @@ export const Desktop: Component = () => {
       let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
       let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsCo(parentPage);
       let movingItemGeometry = calcGeometryOfItem(item, parentGeometry!.boundsPx, pageInnerDimensionsCo, 1);
-      result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
+      if (isPageItem(item)) {
+        result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
+      } else {
+        result = [...result, movingItemGeometry];
+      }
     }
 
     return result;
