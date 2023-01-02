@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { MOUSE_MOVE_AMBIGUOUS_PX } from "./constants";
+import { GRID_SIZE, MOUSE_MOVE_AMBIGUOUS_PX } from "./constants";
 import { Hitbox, HitboxType } from "./hitbox";
 import { ItemGeometry } from "./item-geometry";
 import { server } from "./server";
@@ -121,12 +121,12 @@ export function mouseLeftDownHandler(
 
   if (hitInfo.hitbox.type == HitboxType.Move) {
     startWidthBl = null;
-    startPosBl = activeItem.spatialPositionBl;
+    startPosBl = { x: activeItem.spatialPositionGr.x / GRID_SIZE, y: activeItem.spatialPositionGr.y / GRID_SIZE };
   } else if (hitInfo.hitbox.type == HitboxType.Resize) {
     startPosBl = null;
-    startWidthBl = asXSizableItem(activeItem).spatialWidthBl;
+    startWidthBl = asXSizableItem(activeItem).spatialWidthGr / GRID_SIZE;
     if (isYSizableItem(activeItem)) {
-      startHeightBl = asYSizableItem(activeItem).spatialHeightBl;
+      startHeightBl = asYSizableItem(activeItem).spatialHeightGr / GRID_SIZE;
     }
   }
 }
@@ -179,17 +179,17 @@ export function mouseMoveHandler(
     newPosBl.y = Math.round(newPosBl.y * 2.0) / 2.0;
     if (newPosBl.x < 0.0) { newPosBl.x = 0.0; }
     if (newPosBl.y < 0.0) { newPosBl.y = 0.0; }
-    itemStore.updateItem(activeItem!.id, item => { item.spatialPositionBl = newPosBl; });
+    itemStore.updateItem(activeItem!.id, item => { item.spatialPositionGr = { x: newPosBl.x * GRID_SIZE, y: newPosBl.y * GRID_SIZE }; });
   } else if (mouseAction == MouseAction.Resizing) {
     let newWidthBl = startWidthBl! + deltaBl.x;
     newWidthBl = Math.round(newWidthBl);
     if (newWidthBl < 1) { newWidthBl = 1.0; }
-    itemStore.updateItem(activeItem!.id, item => { asXSizableItem(item).spatialWidthBl = newWidthBl; });
+    itemStore.updateItem(activeItem!.id, item => { asXSizableItem(item).spatialWidthGr = newWidthBl * GRID_SIZE; });
     if (isYSizableItem(activeItem)) {
       let newHeightBl = startHeightBl! + deltaBl.y;
       newHeightBl = Math.round(newHeightBl);
       if (newHeightBl < 1) { newHeightBl = 1.0; }
-      itemStore.updateItem(activeItem!.id, item => { asYSizableItem(item).spatialHeightBl = newHeightBl; });
+      itemStore.updateItem(activeItem!.id, item => { asYSizableItem(item).spatialHeightGr = newHeightBl * GRID_SIZE; });
     }
   }
 }

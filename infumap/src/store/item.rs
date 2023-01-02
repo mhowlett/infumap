@@ -131,10 +131,10 @@ const ITEM_TYPE_TABLE: &'static str = "table";
 const ALL_JSON_FIELDS: [&'static str; 21] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
-  "spatialPositionBl", "spatialWidthBl", "innerSpatialWidthBl",
-  "naturalAspect", "backgroundColorIndex", "popupPositionBl",
-  "popupAlignmentPoint", "popupWidthBl", "url",
-  "originalCreationDate", "spatialHeightBl"];
+  "spatialPositionGr", "spatialWidthGr", "innerSpatialWidthGr",
+  "naturalAspect", "backgroundColorIndex", "popupPositionGr",
+  "popupAlignmentPoint", "popupWidthGr", "url",
+  "originalCreationDate", "spatialHeightGr"];
 
 #[derive(Debug)]
 pub struct Item {
@@ -147,21 +147,21 @@ pub struct Item {
   pub last_modified_date: i64,
   pub ordering: Vec<u8>,
   pub title: String,
-  pub spatial_position_bl: Vector<f64>,
+  pub spatial_position_gr: Vector<i64>,
 
   // x-sizeable
-  pub spatial_width_bl: Option<f64>,
+  pub spatial_width_gr: Option<i64>,
 
   // y-sizeable
-  pub spatial_height_bl: Option<f64>,
+  pub spatial_height_gr: Option<i64>,
 
   // page
-  pub inner_spatial_width_bl: Option<f64>,
+  pub inner_spatial_width_gr: Option<i64>,
   pub natural_aspect: Option<f64>,
   pub background_color_index: Option<i64>,
-  pub popup_position_bl: Option<Vector<f64>>,
+  pub popup_position_gr: Option<Vector<i64>>,
   pub popup_alignment_point: Option<AlignmentPoint>,
-  pub popup_width_bl: Option<f64>,
+  pub popup_width_gr: Option<i64>,
 
   // note
   pub url: Option<String>,
@@ -185,15 +185,15 @@ impl Clone for Item {
       last_modified_date: self.last_modified_date.clone(),
       ordering: self.ordering.clone(),
       title: self.title.clone(),
-      spatial_position_bl: self.spatial_position_bl.clone(),
-      spatial_width_bl: self.spatial_width_bl.clone(),
-      spatial_height_bl: self.spatial_height_bl.clone(),
-      inner_spatial_width_bl: self.inner_spatial_width_bl.clone(),
+      spatial_position_gr: self.spatial_position_gr.clone(),
+      spatial_width_gr: self.spatial_width_gr.clone(),
+      spatial_height_gr: self.spatial_height_gr.clone(),
+      inner_spatial_width_gr: self.inner_spatial_width_gr.clone(),
       natural_aspect: self.natural_aspect.clone(),
       background_color_index: self.background_color_index.clone(),
-      popup_position_bl: self.popup_position_bl.clone(),
+      popup_position_gr: self.popup_position_gr.clone(),
       popup_alignment_point: self.popup_alignment_point.clone(),
-      popup_width_bl: self.popup_width_bl.clone(),
+      popup_width_gr: self.popup_width_gr.clone(),
       url: self.url.clone(),
       original_creation_date: self.original_creation_date.clone()
     }
@@ -261,27 +261,27 @@ impl JsonLogSerializable<Item> for Item {
     if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
     if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }
     if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
-    if old.spatial_position_bl != new.spatial_position_bl { result.insert(String::from("spatialPositionBl"), json::vector_to_object(&new.spatial_position_bl)?); }
+    if old.spatial_position_gr != new.spatial_position_gr { result.insert(String::from("spatialPositionGr"), json::vector_to_object(&new.spatial_position_gr)?); }
 
     // x-sizable.
-    if let Some(new_spatial_width_bl) = new.spatial_width_bl {
-      if match old.spatial_width_bl { Some(o) => o != new_spatial_width_bl, None => { true } } {
-        result.insert(String::from("spatialWidthBl"), Value::Number(Number::from_f64(new_spatial_width_bl).ok_or(nan_err("spatialWidthBl", &old.id))?));
+    if let Some(new_spatial_width_gr) = new.spatial_width_gr {
+      if match old.spatial_width_gr { Some(o) => o != new_spatial_width_gr, None => { true } } {
+        result.insert(String::from("spatialWidthGr"), Value::Number(new_spatial_width_gr.into()));
       }
     }
 
     // y-sizable.
-    if let Some(new_spatial_height_bl) = new.spatial_height_bl {
-      if match old.spatial_height_bl { Some(o) => o != new_spatial_height_bl, None => { true } } {
-        result.insert(String::from("spatialHeightBl"), Value::Number(Number::from_f64(new_spatial_height_bl).ok_or(nan_err("spatialHeightBl", &old.id))?));
+    if let Some(new_spatial_height_gr) = new.spatial_height_gr {
+      if match old.spatial_height_gr { Some(o) => o != new_spatial_height_gr, None => { true } } {
+        result.insert(String::from("spatialHeightGr"), Value::Number(new_spatial_height_gr.into()));
       }
     }
 
     // page
-    if let Some(new_inner_spatial_width_bl) = new.inner_spatial_width_bl {
-      if match old.inner_spatial_width_bl { Some(o) => o != new_inner_spatial_width_bl, None => { true } } {
-        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("innerSpatialWidthBl", &old.id)?; }
-        result.insert(String::from("innerSpatialWidthBl"), Value::Number(Number::from_f64(new_inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &old.id))?));
+    if let Some(new_inner_spatial_width_gr) = new.inner_spatial_width_gr {
+      if match old.inner_spatial_width_gr { Some(o) => o != new_inner_spatial_width_gr, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("innerSpatialWidthGr", &old.id)?; }
+        result.insert(String::from("innerSpatialWidthGr"), Value::Number(new_inner_spatial_width_gr.into()));
       }
     }
     if let Some(new_natural_aspect) = new.natural_aspect {
@@ -296,10 +296,10 @@ impl JsonLogSerializable<Item> for Item {
         result.insert(String::from("backgroundColorIndex"), Value::Number(new_background_color_index.into()));
       }
     }
-    if let Some(new_popup_position_bl) = &new.popup_position_bl {
-      if match &old.popup_position_bl { Some(o) => o != new_popup_position_bl, None => { true } } {
-        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupPositionBl", &old.id)?; }
-        result.insert(String::from("popupPositionBl"), json::vector_to_object(&new_popup_position_bl)?);
+    if let Some(new_popup_position_gr) = &new.popup_position_gr {
+      if match &old.popup_position_gr { Some(o) => o != new_popup_position_gr, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupPositionGr", &old.id)?; }
+        result.insert(String::from("popupPositionGr"), json::vector_to_object(&new_popup_position_gr)?);
       }
     }
     if let Some(new_popup_alignment_point) = &new.popup_alignment_point {
@@ -308,11 +308,10 @@ impl JsonLogSerializable<Item> for Item {
         result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(new_popup_alignment_point.to_string())));
       }
     }
-    if let Some(new_popup_width_bl) = new.popup_width_bl {
-      if match old.popup_width_bl { Some(o) => o != new_popup_width_bl, None => { true } } {
-        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupWidthBl", &old.id)?; }
-        result.insert(String::from("popupWidthBl"), Value::Number(Number::from_f64(new_popup_width_bl)
-          .ok_or(nan_err("popupWidthBl", &old.id))?));
+    if let Some(new_popup_width_gr) = new.popup_width_gr {
+      if match old.popup_width_gr { Some(o) => o != new_popup_width_gr, None => { true } } {
+        if old.item_type != ITEM_TYPE_PAGE { cannot_modify_err("popupWidthGr", &old.id)?; }
+        result.insert(String::from("popupWidthGr"), Value::Number(new_popup_width_gr.into()));
       }
     }
 
@@ -372,23 +371,23 @@ impl JsonLogSerializable<Item> for Item {
         .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field in an update for item '{}' was invalid.", &self.id))?;
     }
     if let Ok(v) = json::get_string_field(map, "title") { if let Some(u) = v { self.title = u; } }
-    if let Ok(v) = json::get_vector_field(map, "spatialPositionBl") { if let Some(u) = v { self.spatial_position_bl = u; } }
+    if let Ok(v) = json::get_vector_field(map, "spatialPositionGr") { if let Some(u) = v { self.spatial_position_gr = u; } }
 
     // x-sizable
-    if let Ok(v) = json::get_float_field(map, "spatialWidthBl") {
-      if let Some(u) = v { self.spatial_width_bl = Some(u); }
+    if let Ok(v) = json::get_integer_field(map, "spatialWidthGr") {
+      if let Some(u) = v { self.spatial_width_gr = Some(u); }
     }
 
     // y-sizable
-    if let Ok(v) = json::get_float_field(map, "spatialHeightBl") {
-      if let Some(u) = v { self.spatial_height_bl = Some(u); }
+    if let Ok(v) = json::get_integer_field(map, "spatialHeightGr") {
+      if let Some(u) = v { self.spatial_height_gr = Some(u); }
     }
 
     // page
-    if let Ok(v) = json::get_float_field(map, "innerSpatialWidthBl") {
+    if let Ok(v) = json::get_integer_field(map, "innerSpatialWidthGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("innerSpatialWidthBl", ITEM_TYPE_PAGE)?; }
-        self.inner_spatial_width_bl = Some(u);
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("innerSpatialWidthGr", ITEM_TYPE_PAGE)?; }
+        self.inner_spatial_width_gr = Some(u);
       }
     }
     if let Ok(v) = json::get_float_field(map, "naturalAspect") {
@@ -403,10 +402,10 @@ impl JsonLogSerializable<Item> for Item {
         self.background_color_index = Some(u);
       }
     }
-    if let Ok(v) = json::get_vector_field(map, "popupPositionBl") {
+    if let Ok(v) = json::get_vector_field(map, "popupPositionGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupPositionBl", ITEM_TYPE_PAGE)?; }
-        self.popup_position_bl = Some(u);
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupPositionGr", ITEM_TYPE_PAGE)?; }
+        self.popup_position_gr = Some(u);
       }
     }
     if let Ok(v) = json::get_string_field(map, "popupAlignmentPoint") {
@@ -415,10 +414,10 @@ impl JsonLogSerializable<Item> for Item {
         self.popup_alignment_point = Some(AlignmentPoint::from_string(&u)?);
       }
     }
-    if let Ok(v) = json::get_float_field(map, "popupWidthBl") {
+    if let Ok(v) = json::get_integer_field(map, "popupWidthGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupWidthBl", ITEM_TYPE_PAGE)?; }
-        self.popup_width_bl = Some(u);
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupWidthGr", ITEM_TYPE_PAGE)?; }
+        self.popup_width_gr = Some(u);
       }
     }
 
@@ -462,28 +461,28 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   result.insert(String::from("lastModifiedDate"), Value::Number(item.last_modified_date.into()));
   result.insert(String::from("ordering"), Value::Array(item.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>()));
   result.insert(String::from("title"), Value::String(item.title.clone()));
-  result.insert(String::from("spatialPositionBl"), json::vector_to_object(&item.spatial_position_bl)?);
+  result.insert(String::from("spatialPositionGr"), json::vector_to_object(&item.spatial_position_gr)?);
 
   // x-sizeable
-  if let Some(spatial_width_bl) = item.spatial_width_bl {
+  if let Some(spatial_width_gr) = item.spatial_width_gr {
     result.insert(
-      String::from("spatialWidthBl"),
-      Value::Number(Number::from_f64(spatial_width_bl).ok_or(nan_err("spatialWidthBl", &item.id))?));
+      String::from("spatialWidthGr"),
+      Value::Number(spatial_width_gr.into()));
   }
 
   // y-sizeable
-  if let Some(spatial_height_bl) = item.spatial_height_bl {
+  if let Some(spatial_height_gr) = item.spatial_height_gr {
     result.insert(
-      String::from("spatialHeightBl"),
-      Value::Number(Number::from_f64(spatial_height_bl).ok_or(nan_err("spatialHeightBl", &item.id))?));
+      String::from("spatialHeightGr"),
+      Value::Number(spatial_height_gr.into()));
   }
 
   // page
-  if let Some(inner_spatial_width_bl) = item.inner_spatial_width_bl {
-    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("innerSpatialWidthBl", &item.id, &item.item_type)? }
+  if let Some(inner_spatial_width_gr) = item.inner_spatial_width_gr {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("innerSpatialWidthGr", &item.id, &item.item_type)? }
     result.insert(
-      String::from("innerSpatialWidthBl"),
-      Value::Number(Number::from_f64(inner_spatial_width_bl).ok_or(nan_err("innerSpatialWidthBl", &item.id))?));
+      String::from("innerSpatialWidthGr"),
+      Value::Number(inner_spatial_width_gr.into()));
   }
   if let Some(natural_aspect) = item.natural_aspect {
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("naturalAspect", &item.id, &item.item_type)? }
@@ -495,19 +494,19 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("backgroundColorIndex", &item.id, &item.item_type)? }
     result.insert(String::from("backgroundColorIndex"), Value::Number(background_color_index.into()));
   }
-  if let Some(popup_position_bl) = &item.popup_position_bl {
-    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupPositionBl", &item.id, &item.item_type)? }
-    result.insert(String::from("popupPositionBl"), json::vector_to_object(&popup_position_bl)?);
+  if let Some(popup_position_gr) = &item.popup_position_gr {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupPositionGr", &item.id, &item.item_type)? }
+    result.insert(String::from("popupPositionGr"), json::vector_to_object(&popup_position_gr)?);
   }
   if let Some(popup_alignment_point) = &item.popup_alignment_point {
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("positionAlignmentPoint", &item.id, &item.item_type)? }
     result.insert(String::from("popupAlignmentPoint"), Value::String(String::from(popup_alignment_point.to_string())));
   }
-  if let Some(popup_width_bl) = item.popup_width_bl {
-    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupWidthBl", &item.id, &item.item_type)? }
+  if let Some(popup_width_gr) = item.popup_width_gr {
+    if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupWidthGr", &item.id, &item.item_type)? }
     result.insert(
-      String::from("popupWidthBl"),
-      Value::Number(Number::from_f64(popup_width_bl).ok_or(nan_err("popupWidthBl", &item.id))?));
+      String::from("popupWidthGr"),
+      Value::Number(popup_width_gr.into()));
   }
 
   // note
@@ -563,24 +562,24 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
       })
       .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field for item '{}' was invalid.", &id))?,
     title: json::get_string_field(map, "title")?.ok_or("'title' field was missing.")?,
-    spatial_position_bl: json::get_vector_field(map, "spatialPositionBl")?.ok_or("'spatialPositionBl' field was missing.")?,
+    spatial_position_gr: json::get_vector_field(map, "spatialPositionGr")?.ok_or("'spatialPositionGr' field was missing.")?,
 
     // x-sizeable
-    spatial_width_bl: match json::get_float_field(map, "spatialWidthBl")? {
+    spatial_width_gr: match json::get_integer_field(map, "spatialWidthGr")? {
       Some(v) => { Ok(Some(v)) },
-      None => { Err(InfuError::new("'spatialWidthBl' field is expected for all current item types.")) }
+      None => { Err(InfuError::new("'spatialWidthGr' field is expected for all current item types.")) }
     }?,
 
     // y-sizeable
-    spatial_height_bl: match json::get_float_field(map, "spatialHeightBl")? {
-      Some(v) => { if item_type == ITEM_TYPE_TABLE { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightBl", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_TABLE { Err(expected_for_err("spatialHeightBl", &item_type)) } else { Ok(None) } }
+    spatial_height_gr: match json::get_integer_field(map, "spatialHeightGr")? {
+      Some(v) => { if item_type == ITEM_TYPE_TABLE { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightGr", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_TABLE { Err(expected_for_err("spatialHeightGr", &item_type)) } else { Ok(None) } }
     }?,
 
     // page
-    inner_spatial_width_bl: match json::get_float_field(map, "innerSpatialWidthBl")? {
-      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("innerSpatialWidthBl", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("innerSpatialWidthBl", &item_type)) } else { Ok(None) } }
+    inner_spatial_width_gr: match json::get_integer_field(map, "innerSpatialWidthGr")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("innerSpatialWidthGr", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("innerSpatialWidthGr", &item_type)) } else { Ok(None) } }
     }?,
     natural_aspect: match json::get_float_field(map, "naturalAspect")? {
       Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("naturalAspect", &item_type)) } },
@@ -590,13 +589,13 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
       Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("backgroundColorIndex", &item_type)) } },
       None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("backgroundColorIndex", &item_type)) } else { Ok(None) } }
     }?,
-    popup_position_bl: match json::get_vector_field(map, "popupPositionBl")? {
-      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupPositionBl", &item_type)) } },
+    popup_position_gr: match json::get_vector_field(map, "popupPositionGr")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupPositionGr", &item_type)) } },
       None => {
         if item_type == ITEM_TYPE_PAGE {
           // TODO (LOW): remove.
-          warn!("popupPositionBl was not specified for item '{}', using default (0,0).", id);
-          Ok(Some(Vector { x: 0.0, y: 0.0 }))
+          warn!("popupPositionGr was not specified for item '{}', using default (0,0).", id);
+          Ok(Some(Vector { x: 0, y: 0 }))
         } else {
           Ok(None)
         }
@@ -616,13 +615,13 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
         }
       }
     }?,
-    popup_width_bl: match json::get_float_field(map, "popupWidthBl")? {
-      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupWidthBl", &item_type)) } },
+    popup_width_gr: match json::get_integer_field(map, "popupWidthGr")? {
+      Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupWidthGr", &item_type)) } },
       None => {
         if item_type == ITEM_TYPE_PAGE {
           // TODO (LOW): remove.
-          warn!("popupWidthBl was not specified for item '{}', using default (10.0).", id);
-          Ok(Some(10.0))
+          warn!("popupWidthGr was not specified for item '{}', using default (10.0).", id);
+          Ok(Some(10))
         } else {
           Ok(None)
         }

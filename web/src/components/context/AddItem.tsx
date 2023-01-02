@@ -29,27 +29,29 @@ import { ContexMenuProps } from "./ContextMenu";
 import { server } from "../../server";
 import { useUserStore } from "../../store/UserStoreProvider";
 import { newTableItem } from "../../store/items/table-item";
+import { GRID_SIZE } from "../../constants";
 
 export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const userStore = useUserStore();
   const itemStore = useItemStore();
   const layoutStore = useLayoutStore();
 
-  const calcBlockPosition = (page: PageItem, clickPosXPx: number, clickPosYPs: number): Vector => {
+  const calcBlockPositionGr = (page: PageItem, clickPosXPx: number, clickPosYPs: number): Vector => {
     // let propX = (clickPosXPx - page.computed_boundsPx?.x!) / page.computed_boundsPx?.w!;
     // let propY = (clickPosYPs - page.computed_boundsPx?.y!) / page.computed_boundsPx?.h!;
     const propX = 0.0;
     const propY = 0.0;
     return {
-      x: Math.floor(page.innerSpatialWidthBl * propX * 2.0) / 2.0,
-      y: Math.floor(page.innerSpatialWidthBl / page.naturalAspect * propY * 2.0) / 2.0
+      x: Math.floor(page.innerSpatialWidthGr / GRID_SIZE * propX * 2.0) / 2.0,
+      y: Math.floor(page.innerSpatialWidthGr / GRID_SIZE / page.naturalAspect * propY * 2.0) / 2.0
     };
   }
 
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
       let newPage = newPageItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
-      newPage.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+      newPage.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+
       itemStore.addItem(newPage);
       server.addItem(userStore.user, newPage);
       layoutStore.hideContextMenu();
@@ -59,7 +61,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
       let newNote = newNoteItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
-      newNote.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+      newNote.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
       server.addItem(userStore.user, newNote);
       layoutStore.hideContextMenu();
@@ -69,7 +71,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const newTableInContext = () => {
     if (isPageItem(props.contextItem)) {
       let newTable = newTableItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new table", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
-      newTable.spatialPositionBl = calcBlockPosition(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
+      newTable.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newTable);
       server.addItem(userStore.user, newTable);
       layoutStore.hideContextMenu();

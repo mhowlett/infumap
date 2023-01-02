@@ -23,7 +23,7 @@ import { Item } from "./item";
 const ITEM_TYPES = ["page", "note", "table"];
 
 export interface XSizableItem extends Item {
-  spatialWidthBl: number
+  spatialWidthGr: number
 }
 
 export function isXSizableItem(item: Item | null): boolean {

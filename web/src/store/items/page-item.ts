@@ -29,30 +29,30 @@ import { XSizableItem } from './base/x-sizeable-item';
 
 
 export interface PageItem extends XSizableItem, ContainerItem, AttachmentsItem {
-  innerSpatialWidthBl: number;
+  innerSpatialWidthGr: number;
   naturalAspect: number;
   backgroundColorIndex: number;
-  popupPositionBl: Vector;
+  popupPositionGr: Vector;
   popupAlignmentPoint: string,
-  popupWidthBl: number;
+  popupWidthGr: number;
 }
 
 export function calcPageSizeForSpatialBl(item: PageItem): Dimensions {
-  let bh = Math.round(item.spatialWidthBl / item.naturalAspect * 2.0) / 2.0;
-  return { w: item.spatialWidthBl, h: bh < 0.5 ? 0.5 : bh };
+  let bh = Math.round(item.spatialWidthGr / GRID_SIZE / item.naturalAspect * 2.0) / 2.0;
+  return { w: item.spatialWidthGr / GRID_SIZE, h: bh < 0.5 ? 0.5 : bh };
 }
 
-export function calcPageInnerSpatialDimensionsCo(page: PageItem): Dimensions {
+export function calcPageInnerSpatialDimensionsGr(page: PageItem): Dimensions {
   return {
-    w: page.innerSpatialWidthBl * GRID_SIZE,
-    h: Math.floor(page.innerSpatialWidthBl / page.naturalAspect) * GRID_SIZE
+    w: page.innerSpatialWidthGr,
+    h: Math.floor(page.innerSpatialWidthGr / GRID_SIZE / page.naturalAspect) * GRID_SIZE
   };
 }
 
 export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
-    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    x: (item.spatialPositionGr.x / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionGr.y / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
     w: calcPageSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
     h: calcPageSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
   };
@@ -99,16 +99,16 @@ export function clonePageItem(item: PageItem): PageItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    spatialPositionBl: cloneVector(item.spatialPositionBl)!,
+    spatialPositionGr: cloneVector(item.spatialPositionGr)!,
 
-    spatialWidthBl: item.spatialWidthBl,
+    spatialWidthGr: item.spatialWidthGr,
 
-    innerSpatialWidthBl: item.innerSpatialWidthBl,
+    innerSpatialWidthGr: item.innerSpatialWidthGr,
     naturalAspect: item.naturalAspect,
     backgroundColorIndex: item.backgroundColorIndex,
-    popupPositionBl: cloneVector(item.popupPositionBl)!,
+    popupPositionGr: cloneVector(item.popupPositionGr)!,
     popupAlignmentPoint: item.popupAlignmentPoint,
-    popupWidthBl: item.popupWidthBl,
+    popupWidthGr: item.popupWidthGr,
 
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
@@ -127,16 +127,16 @@ export function newPageItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering,
     title,
-    spatialPositionBl: { x: 0.0, y: 0.0 },
+    spatialPositionGr: { x: 0.0, y: 0.0 },
 
-    spatialWidthBl: 4.0,
+    spatialWidthGr: 4.0 * GRID_SIZE,
 
-    innerSpatialWidthBl: 60.0,
+    innerSpatialWidthGr: 60.0 * GRID_SIZE,
     naturalAspect: 2.0,
     backgroundColorIndex: 0,
-    popupPositionBl: { x: 30.0, y: 15.0 },
+    popupPositionGr: { x: 30.0 * GRID_SIZE, y: 15.0 * GRID_SIZE },
     popupAlignmentPoint: "center",
-    popupWidthBl: 10.0,
+    popupWidthGr: 10.0 * GRID_SIZE,
 
     computed_children: [],
     computed_attachments: [],

@@ -22,7 +22,7 @@ use crate::store::item::{Item, RelationshipToParent};
 use crate::store::item_store::ItemStore;
 use crate::store::kv_store::KVStore;
 use crate::store::user::User;
-use crate::util::geometry::Vector;
+use crate::util::geometry::{Vector, GRID_SIZE};
 use crate::util::uid::{new_uid, Uid};
 
 
@@ -119,15 +119,15 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     last_modified_date: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as i64,
     ordering: vec![128],
     title: username.to_string(),
-    spatial_position_bl: Vector { x: 0.0, y: 0.0 },
-    spatial_width_bl: Some(60.0),
-    spatial_height_bl: None,
-    inner_spatial_width_bl: Some(60.0),
+    spatial_position_gr: Vector { x: 0, y: 0 },
+    spatial_width_gr: Some(60 * GRID_SIZE),
+    spatial_height_gr: None,
+    inner_spatial_width_gr: Some(60 * GRID_SIZE),
     natural_aspect: Some(2.0),
     background_color_index: Some(0),
-    popup_position_bl: Some(Vector { x: 30.0, y: 15.0 }),
+    popup_position_gr: Some(Vector { x: 30 * GRID_SIZE, y: 15 * GRID_SIZE }),
     popup_alignment_point: Some(crate::store::item::AlignmentPoint::Center),
-    popup_width_bl: Some(10.0),
+    popup_width_gr: Some(10 * GRID_SIZE),
     url: None,
     original_creation_date: None,
   }

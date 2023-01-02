@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Matt Howlett
+// Copyright (C) 2022-2023 Matt Howlett
 // This file is part of Infumap.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,19 +17,21 @@
 use serde::{Serialize, Deserialize};
 
 
+pub const GRID_SIZE: i64 = 60;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vector<T> {
   pub x: T,
   pub y: T
 }
 
-impl Clone for Vector<f64> {
+impl Clone for Vector<i64> {
   fn clone(&self) -> Self {
     Self { x: self.x.clone(), y: self.y.clone() }
   }
 }
 
-impl PartialEq for Vector<f64> {
+impl PartialEq for Vector<i64> {
   fn eq(&self, other: &Self) -> bool {
     self.x == other.x && self.y == other.y
   }

@@ -17,6 +17,7 @@
 */
 
 import { Component } from "solid-js";
+import { GRID_SIZE } from "../../constants";
 import { server } from "../../server";
 import { Item } from "../../store/items/base/item";
 import { asPageItem } from "../../store/items/page-item";
@@ -34,7 +35,7 @@ export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
   let pageItem = asPageItem(props.item);
 
   const handleBlockWidthChange = (v: string) => {
-    itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthBl = parseInt(v));
+    itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthGr = parseInt(v) * GRID_SIZE);
     server.updateItem(userStore.user, itemStore.getItem(pageId)!);
   };
   const handleNaturalAspectChange = (v: string) => {
@@ -47,7 +48,7 @@ export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
   return (
     <div class="m-1">
       <div class="text-slate-800 text-sm">Title <TextInput value={pageItem.title} onIncrementalChange={handleTitleChange} onChange={handleTitleChanged} /></div>
-      <div class="text-slate-800 text-sm">Inner block width <TextInput value={pageItem.innerSpatialWidthBl.toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
+      <div class="text-slate-800 text-sm">Inner block width <TextInput value={(pageItem.innerSpatialWidthGr / GRID_SIZE).toString()} onIncrementalChange={null} onChange={handleBlockWidthChange} /></div>
       <div class="text-slate-800 text-sm">Natural Aspect <TextInput value={pageItem.naturalAspect.toString()} onIncrementalChange={null} onChange={handleNaturalAspectChange} /></div>
       <ColorSelector item={props.item} />
     </div>

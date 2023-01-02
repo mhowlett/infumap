@@ -23,7 +23,7 @@ import { Item } from "./item";
 const ITEM_TYPES = ["table"];
 
 export interface YSizableItem extends Item {
-  spatialHeightBl: number
+  spatialHeightGr: number
 }
 
 export function isYSizableItem(item: Item | null): boolean {

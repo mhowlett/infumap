@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Matt Howlett
+// Copyright (C) 2022-2023 Matt Howlett
 // This file is part of Infumap.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde_json::{Map, Value, Number};
-use super::infu::{InfuResult, InfuError};
+use serde_json::{Map, Value};
+use super::infu::InfuResult;
 use super::geometry::Vector;
 
 
@@ -35,19 +35,19 @@ pub fn get_float_field(map: &Map<String, Value>, field: &str) -> InfuResult<Opti
   Ok(Some(v.as_f64().ok_or(format!("'{}' field was not of type 'f64'.", field))?))
 }
 
-pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<Vector<f64>>> {
+pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<Vector<i64>>> {
   let v = match map.get(field) { None => return Ok(None), Some(s) => s };
   let o = v.as_object().ok_or(format!("'{}' field was not of type 'object'.", field))?;
   Ok(Some(Vector {
-    x: get_float_field(o, "x")?.ok_or("Vector field 'x' was missing.")?,
-    y: get_float_field(o, "y")?.ok_or("Vector field 'y' was missing.")?
+    x: get_integer_field(o, "x")?.ok_or("Vector field 'x' was missing.")?,
+    y: get_integer_field(o, "y")?.ok_or("Vector field 'y' was missing.")?
   }))
 }
 
-pub fn vector_to_object(v: &Vector<f64>) -> InfuResult<Value> {
+pub fn vector_to_object(v: &Vector<i64>) -> InfuResult<Value> {
   let mut vec: Map<String, Value> = Map::new();
-  vec.insert(String::from("x"), Value::Number(Number::from_f64(v.x).ok_or(InfuError::new("Vector x coordinate is not a number."))?));
-  vec.insert(String::from("y"), Value::Number(Number::from_f64(v.y).ok_or(InfuError::new("Vector y coordinate is not a number."))?));
+  vec.insert(String::from("x"), Value::Number(v.x.into()));
+  vec.insert(String::from("y"), Value::Number(v.y.into()));
   Ok(Value::Object(vec))
 }
 

@@ -45,14 +45,14 @@ function measureLineCount(s: string, widthBl: number): number {
 }
 
 export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
-  let lineCount = measureLineCount(item.title, item.spatialWidthBl);
-  return { w: item.spatialWidthBl, h: lineCount };
+  let lineCount = measureLineCount(item.title, item.spatialWidthGr / GRID_SIZE);
+  return { w: item.spatialWidthGr / GRID_SIZE, h: lineCount };
 }
 
 export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
-    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    x: (item.spatialPositionGr.x / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionGr.y / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
     w: calcNoteSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
     h: calcNoteSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
   };
@@ -90,9 +90,9 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    spatialPositionBl: item.spatialPositionBl,
+    spatialPositionGr: item.spatialPositionGr,
 
-    spatialWidthBl: item.spatialWidthBl,
+    spatialWidthGr: item.spatialWidthGr,
 
     url: item.url,
 
@@ -112,9 +112,9 @@ export function newNoteItem(ownerId: Uid, parentId: Uid, relationshipToParent: s
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering,
     title,
-    spatialPositionBl: { x: 0.0, y: 0.0 },
+    spatialPositionGr: { x: 0.0, y: 0.0 },
 
-    spatialWidthBl: 4.0,
+    spatialWidthGr: 4.0 * GRID_SIZE,
 
     url: "",
 

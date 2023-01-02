@@ -35,7 +35,7 @@ export interface Item {
   lastModifiedDate: number,
   ordering: Uint8Array,
   title: string,
-  spatialPositionBl: Vector,
+  spatialPositionGr: Vector,
 
   computed_fromParentIdMaybe: Uid | null, // when moving.
 }

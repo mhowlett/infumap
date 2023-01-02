@@ -43,7 +43,7 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
   }
 
   // Too small for inside items to be visible. Opaque.
-  if (props.item.spatialWidthBl < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
+  if (props.item.spatialWidthGr / GRID_SIZE < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
     // console.log("draw page (2).");
     return (
       <div ref={outerDiv}

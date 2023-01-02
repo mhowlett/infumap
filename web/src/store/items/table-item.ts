@@ -32,13 +32,13 @@ export interface TableItem extends XSizableItem, YSizableItem, ContainerItem, At
 }
 
 export function calcTableSizeForSpatialBl(item: TableItem): Dimensions {
-  return { w: item.spatialWidthBl, h: item.spatialHeightBl };
+  return { w: item.spatialWidthGr / GRID_SIZE, h: item.spatialHeightGr / GRID_SIZE };
 }
 
 export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
-    x: (item.spatialPositionBl.x * GRID_SIZE / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionBl.y * GRID_SIZE / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
+    x: (item.spatialPositionGr.x / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionGr.y / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
     w: calcTableSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
     h: calcTableSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
   };
@@ -76,10 +76,10 @@ export function cloneTableItem(item: TableItem): TableItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    spatialPositionBl: cloneVector(item.spatialPositionBl)!,
+    spatialPositionGr: cloneVector(item.spatialPositionGr)!,
 
-    spatialWidthBl: item.spatialWidthBl,
-    spatialHeightBl: item.spatialHeightBl,
+    spatialWidthGr: item.spatialWidthGr,
+    spatialHeightGr: item.spatialHeightGr,
 
     computed_children: [...item.computed_children],
     computed_attachments: [...item.computed_attachments],
@@ -98,10 +98,10 @@ export function newTableItem(ownerId: Uid, parentId: Uid, relationshipToParent: 
     lastModifiedDate: currentUnixTimeSeconds(),
     ordering,
     title,
-    spatialPositionBl: { x: 0.0, y: 0.0 },
+    spatialPositionGr: { x: 0.0, y: 0.0 },
 
-    spatialWidthBl: 8.0,
-    spatialHeightBl: 6.0,
+    spatialWidthGr: 8.0 * GRID_SIZE,
+    spatialHeightGr: 6.0 * GRID_SIZE,
 
     computed_children: [],
     computed_attachments: [],
