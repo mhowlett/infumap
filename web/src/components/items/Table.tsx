@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { RESIZE_BOX_SIZE_PX } from "../../constants";
+import { GRID_SIZE, RESIZE_BOX_SIZE_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { BoundingBox } from "../../util/geometry";
@@ -25,17 +25,24 @@ import { BoundingBox } from "../../util/geometry";
 export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, boundsPx: BoundingBox }) => {
   const layoutStore = useLayoutStore();
 
+  let sizeBl = { x: props.item.spatialWidthGr / GRID_SIZE, y: props.item.spatialHeightGr / GRID_SIZE };
+  let blockSizePx = { x: props.boundsPx.w / sizeBl.x, y: props.boundsPx.h / sizeBl.y };
+  let headerHeightPx = blockSizePx.y * 1.5;
+
   return (
     <div id={props.item.id}
-         class={`absolute border border-slate-700 rounded-sm shadow-lg`}
+         class="absolute"
          style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
-      <div class="flex items-center justify-center" style={`width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
-        <div class="flex items-center text-center text-xs font-bold text-white">
-          {props.item.title}
+      <div class="absolute"
+           style={`left: 0px; top: 0px; width: ${props.boundsPx.w}px; height: ${headerHeightPx}px;`}>
+        {props.item.title}
+      </div>
+      <div class={`absolute border border-slate-700 rounded-sm shadow-lg`}
+           style={`left: 0px; top: ${headerHeightPx}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h - headerHeightPx}px;`}>
+        <div class={`absolute opacity-0 cursor-nwse-resize`}
+             style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}>
         </div>
       </div>
-      <div class={`absolute opacity-0 cursor-nwse-resize`}
-           style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
     </div>
   );
 }
