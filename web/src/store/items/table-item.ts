@@ -35,12 +35,12 @@ export function calcTableSizeForSpatialBl(item: TableItem): Dimensions {
   return { w: item.spatialWidthGr / GRID_SIZE, h: item.spatialHeightGr / GRID_SIZE };
 }
 
-export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
-    x: (item.spatialPositionGr.x / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionGr.y / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-    w: calcTableSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
-    h: calcTableSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
+    x: (item.spatialPositionGr.x / (containerInnerSizeBl.w * GRID_SIZE)) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionGr.y / (containerInnerSizeBl.h * GRID_SIZE)) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcTableSizeForSpatialBl(item).w / containerInnerSizeBl.w * containerBoundsPx.w,
+    h: calcTableSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
     itemId: item.id,

@@ -49,12 +49,12 @@ export function calcNoteSizeForSpatialBl(item: NoteItem): Dimensions {
   return { w: item.spatialWidthGr / GRID_SIZE, h: lineCount };
 }
 
-export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
   const boundsPx = {
-    x: (item.spatialPositionGr.x / containerInnerSizeCo.w) * containerBoundsPx.w + containerBoundsPx.x,
-    y: (item.spatialPositionGr.y / containerInnerSizeCo.h) * containerBoundsPx.h + containerBoundsPx.y,
-    w: calcNoteSizeForSpatialBl(item).w * GRID_SIZE / containerInnerSizeCo.w * containerBoundsPx.w,
-    h: calcNoteSizeForSpatialBl(item).h * GRID_SIZE / containerInnerSizeCo.h * containerBoundsPx.h,
+    x: (item.spatialPositionGr.x / (containerInnerSizeBl.w * GRID_SIZE)) * containerBoundsPx.w + containerBoundsPx.x,
+    y: (item.spatialPositionGr.y / (containerInnerSizeBl.h * GRID_SIZE)) * containerBoundsPx.h + containerBoundsPx.y,
+    w: calcNoteSizeForSpatialBl(item).w / containerInnerSizeBl.w * containerBoundsPx.w,
+    h: calcNoteSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
     itemId: item.id,

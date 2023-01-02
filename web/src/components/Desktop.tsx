@@ -21,7 +21,7 @@ import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
 import { calcGeometryOfItemInPage } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
-import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsGr, isPageItem, PageItem } from "../store/items/page-item";
+import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem, PageItem } from "../store/items/page-item";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
@@ -66,7 +66,7 @@ export const Desktop: Component = () => {
 
   function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
     let page = asPageItem(itemStore.getItem(pageId)!);
-    let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsGr(page);
+    let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
 
     let result: Array<ItemGeometry> = [];
 
@@ -76,7 +76,7 @@ export const Desktop: Component = () => {
     }
 
     page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
-      let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsCo, level);
+      let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, level);
       result.push(itemGeometry);
       if (isPageItem(childItem)) {
         let childPage = asPageItem(childItem);
@@ -138,8 +138,8 @@ export const Desktop: Component = () => {
       let item = itemStore.items.moving[i];
       let parentGeometry = fixedGeometry.find(a => a.itemId == item.parentId);
       let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
-      let pageInnerDimensionsCo = calcPageInnerSpatialDimensionsGr(parentPage);
-      let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsCo, 1);
+      let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
+      let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
       if (isPageItem(item)) {
         result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
       } else {

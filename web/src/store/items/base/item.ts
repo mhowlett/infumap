@@ -54,10 +54,10 @@ export function calcSizeForSpatialBl(item: Item): Dimensions {
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
-export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeCo: Dimensions, level: number): ItemGeometry {
-  if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeCo, level); }
-  if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeCo, level); }
-  if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeCo, level); }
+export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
+  if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeBl, level); }
+  if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeBl, level); }
+  if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
