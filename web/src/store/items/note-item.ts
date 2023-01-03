@@ -65,8 +65,23 @@ export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: Boundi
         boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
                     w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
     ],
-    level
+    level,
   }
+}
+
+export function calcGeometryOfNoteItemInTable(item: NoteItem, blockSizePx: Dimensions, index: number, level: number): ItemGeometry {
+  const boundsPx = {
+    x: 0.0,
+    y: blockSizePx.h * (index + 1.5),
+    w: blockSizePx.w * item.spatialWidthGr / GRID_SIZE,
+    h: blockSizePx.h
+  };
+  return {
+    itemId: item.id,
+    boundsPx,
+    hitboxes: [],
+    level
+  };
 }
 
 export function isNoteItem(item: Item | null): boolean {

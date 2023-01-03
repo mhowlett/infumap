@@ -20,9 +20,9 @@ import { ItemGeometry } from '../../../item-geometry';
 import { BoundingBox, Dimensions, Vector } from '../../../util/geometry';
 import { throwExpression } from '../../../util/lang';
 import { Uid } from '../../../util/uid';
-import { asNoteItem, calcGeometryOfNoteItem, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
-import { asPageItem, calcGeometryOfPageItem, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
-import { asTableItem, calcGeometryOfTableItem, calcTableSizeForSpatialBl, cloneTableItem, isTableItem } from '../table-item';
+import { asNoteItem, calcGeometryOfNoteItem, calcGeometryOfNoteItemInTable, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
+import { asPageItem, calcGeometryOfPageItem, calcGeometryOfPageItemInTable, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
+import { asTableItem, calcGeometryOfTableItem, calcGeometryOfTableItemInTable, calcTableSizeForSpatialBl, cloneTableItem, isTableItem } from '../table-item';
 
 
 export interface Item {
@@ -58,6 +58,13 @@ export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: Bounding
   if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeBl, level); }
+  throwExpression(`Unknown item type: ${item.itemType}`);
+}
+
+export function calcGeometryOfItemInTable(item: Item, blockSizePx: Dimensions, index: number, level: number): ItemGeometry {
+  if (isPageItem(item)) { return calcGeometryOfPageItemInTable(asPageItem(item), blockSizePx, index, level); }
+  if (isTableItem(item)) { return calcGeometryOfTableItemInTable(asTableItem(item), blockSizePx, index, level); }
+  if (isNoteItem(item)) { return calcGeometryOfNoteItemInTable(asNoteItem(item), blockSizePx, index, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 

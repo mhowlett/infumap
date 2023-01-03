@@ -65,6 +65,21 @@ export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: Boundi
         boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
                     w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
     ],
+    level,
+  };
+}
+
+export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimensions, index: number, level: number): ItemGeometry {
+  const boundsPx = {
+    x: 0.0,
+    y: blockSizePx.h * (index + 1.5),
+    w: blockSizePx.w * item.spatialWidthGr / GRID_SIZE,
+    h: blockSizePx.h
+  };
+  return {
+    itemId: item.id,
+    boundsPx,
+    hitboxes: [],
     level
   };
 }
@@ -74,7 +89,7 @@ export function calcCurrentPageItemGeometry(item: PageItem, desktopBoundsPx: Bou
     itemId: item.id,
     boundsPx: desktopBoundsPx,
     hitboxes: [],
-    level: 0
+    level: 0,
   };
 }
 

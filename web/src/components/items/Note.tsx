@@ -40,7 +40,7 @@ export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
          style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
       <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
-                  `line-height: 24px; transform: scale(${scale}); transform-origin: top left; ` +
+                  `line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left; ` +
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
         <Show when={props.item.url != null}
               fallback={<span>{props.item.title}</span>}>
@@ -49,6 +49,20 @@ export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props
       </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
            style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
+    </div>
+  );
+}
+
+export const NoteInTable: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, boundsPx: BoundingBox }) => {
+  let scale = props.boundsPx.h / LINE_HEIGHT_PX;
+
+  return (
+    <div class="absolute overflow-hidden"
+         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; `}>
+      <div class="absolute"
+           style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
+        { props.item.title }
+      </div>
     </div>
   );
 }

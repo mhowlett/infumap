@@ -19,11 +19,11 @@
 import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
-import { calcGeometryOfItemInPage } from "../store/items/base/item";
+import { calcGeometryOfItemInPage, calcGeometryOfItemInTable, Item } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem, PageItem } from "../store/items/page-item";
-import { Note } from "./items/Note";
-import { Page } from "./items/Page";
+import { Note, NoteInTable } from "./items/Note";
+import { Page, PageInTable } from "./items/Page";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
 import { produce } from "solid-js/store";
@@ -34,8 +34,9 @@ import { Uid } from "../util/uid";
 import { ItemGeometry } from "../item-geometry";
 import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
 import { asTableItem, isTableItem, TableItem } from "../store/items/table-item";
-import { Table } from "./items/Table";
+import { Table, TableInTable } from "./items/Table";
 import { throwExpression } from "../util/lang";
+import { RenderArea } from "../render-area";
 
 
 export const Desktop: Component = () => {
@@ -64,86 +65,123 @@ export const Desktop: Component = () => {
   }
 
 
-  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
+    if (pageId == null) { return; }
+
     let page = asPageItem(itemStore.getItem(pageId)!);
     let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
 
-    let result: Array<ItemGeometry> = [];
-
     if (!layoutStore.childrenLoaded(page.id)) {
       loadChildItems(page.id);
-      return result;
+      return;
     }
 
     page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
       let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, level);
-      result.push(itemGeometry);
+      renderArea.itemGeometry.push(itemGeometry);
       if (isPageItem(childItem)) {
         let childPage = asPageItem(childItem);
         if (childPage.spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          if (layoutStore.childrenLoaded(childPage.id)) {
-            calcNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
-          } else {
-            loadChildItems(childPage.id);
+          if (level < 2) {
+            if (layoutStore.childrenLoaded(childPage.id)) {
+              calcPageNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1, renderArea);
+            } else {
+              loadChildItems(childPage.id);
+            }
           }
         }
       }
       else if (isTableItem(childItem)) {
         let childTable = asTableItem(childItem);
-        if (layoutStore.childrenLoaded(childTable.id)) {
-          calcNestedGeometry(childTable.id, itemGeometry.boundsPx, level+1).forEach(c => result.push(c));
-        } else {
-          loadChildItems(childTable.id);
+        if (level < 2) {
+          if (layoutStore.childrenLoaded(childTable.id)) {
+            calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, level+1, renderArea);
+          } else {
+            loadChildItems(childTable.id);
+          }
         }
       }
     });
-
-    return result;
   }
 
-  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number): Array<ItemGeometry> {
+
+  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
     let table = asTableItem(itemStore.getItem(tableId)!);
-    console.log(table.title, tableId, tableBoundsPx);
-    return [];
-  }
+    // console.log(table.title, tableId, tableBoundsPx);
 
-  function calcNestedGeometry(containerId: Uid | null, boundsPx: BoundingBox, level: number): Array<ItemGeometry> {
-    if (containerId == null) { return []; }
-
-    if (isPageItem(itemStore.getItem(containerId))) {
-      return calcPageNestedGeometry(containerId, boundsPx, level);
-    } else if (isTableItem(itemStore.getItem(containerId))) {
-      return calcTableNestedGeometry(containerId, boundsPx, level);
-    } else {
-      throwExpression("can't calculated nested geometry");
+    if (!layoutStore.childrenLoaded(table.id)) {
+      console.log("DEBUG: should never get here, because table child items should always be loaded on parent page load.");
+      loadChildItems(table.id);
+      return null;
     }
+
+    let result: Array<ItemGeometry> = [];
+
+    for (let idx=0; idx<table.computed_children.length; ++idx) {
+      let childId = table.computed_children[idx];
+      let childItem = itemStore.items.fixed[childId];
+      let blockSizePx = {
+        w: tableBoundsPx.w / (table.spatialWidthGr / GRID_SIZE),
+        h: tableBoundsPx.h / (table.spatialHeightGr / GRID_SIZE),
+      };
+      let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, idx, level);
+      result.push(itemGeometry);
+      if (idx > 2) { break; }
+    }
+
+    renderArea.children.push({
+      itemId: tableId,
+      boundsPx: tableBoundsPx,
+      itemGeometry: result,
+      children: []
+    });
   }
 
 
-  const calcFixedGeometryMemoized = createMemo((): Array<ItemGeometry> => {
+  const calcFixedGeometryMemoized = createMemo((): RenderArea => {
     const currentPageId = layoutStore.currentPageId();
-    if (currentPageId == null) { return []; }
+    if (currentPageId == null) {
+      return {
+        itemId: "",
+        boundsPx: { x: 0, y: 0, w: 0, h: 0 },
+        itemGeometry: [],
+        children: []
+      };
+    }
     const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
     const currentPage = asPageItem(itemStore.items.fixed[currentPageId!]);
-    const rootPageGeometry = calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx);
-    return [rootPageGeometry, ...calcNestedGeometry(currentPageId, currentPageBoundsPx, 1)];
+    let ra: RenderArea = {
+      itemId: currentPageId,
+      boundsPx: currentPageBoundsPx,
+      itemGeometry: [calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx)],
+      children: []
+    }
+    calcPageNestedGeometry(currentPageId, currentPageBoundsPx, 1, ra);
+    return ra;
   });
 
 
   const calcMovingGeometry = (): Array<ItemGeometry> => {
-    let fixedGeometry = calcFixedGeometryMemoized();
+    let renderArea = calcFixedGeometryMemoized();
 
     let result: Array<ItemGeometry> = [];
     for (let i=0; i<itemStore.items.moving.length; ++i) {
       let item = itemStore.items.moving[i];
-      let parentGeometry = fixedGeometry.find(a => a.itemId == item.parentId);
+      let parentGeometry = renderArea?.itemGeometry.find(a => a.itemId == item.parentId);
       let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
       let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
       let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
       if (isPageItem(item)) {
-        result = [...result, movingItemGeometry, ...calcNestedGeometry(item.id, movingItemGeometry.boundsPx, 1)];
+        let ra: RenderArea = {
+          itemId: item.id,
+          boundsPx: movingItemGeometry.boundsPx,
+          itemGeometry: [movingItemGeometry],
+          children: []
+        }
+        calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, 1, ra);
+        result = ra.itemGeometry;
       } else {
-        result = [...result, movingItemGeometry];
+        result = [movingItemGeometry];
       }
     }
 
@@ -167,18 +205,27 @@ export const Desktop: Component = () => {
 
   const mouseDownListener = (ev: MouseEvent) => {
     ev.preventDefault();
-    mouseDownHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
+    let renderArea = calcFixedGeometryMemoized();
+    if (renderArea != null) {
+      mouseDownHandler(itemStore, layoutStore, renderArea, ev);
+    }
   }
 
   const mouseMoveListener = (ev: MouseEvent) => {
     ev.preventDefault();
     lastMouseMoveEvent = ev;
-    mouseMoveHandler(itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
+    let renderArea = calcFixedGeometryMemoized();
+    if (renderArea != null) {
+      mouseMoveHandler(itemStore, layoutStore, renderArea, ev);
+    }
   }
 
   const mouseUpListener = (ev: MouseEvent) => {
     ev.preventDefault();
-    mouseUpHandler(userStore, itemStore, layoutStore, calcFixedGeometryMemoized(), ev);
+    let renderArea = calcFixedGeometryMemoized();
+    if (renderArea != null) {
+      mouseUpHandler(userStore, itemStore, layoutStore, renderArea, ev);
+    }
   }
 
   const windowResizeListener = () => {
@@ -226,11 +273,45 @@ export const Desktop: Component = () => {
     }</For>
   }
 
+  function drawTableItems(itemGeometry: Array<ItemGeometry>) {
+    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
+    return <For each={toDrawItems}>{toDrawItem =>
+      <Switch fallback={<div>Not Found</div>}>
+        <Match when={isPageItem(toDrawItem.item)}>
+          <PageInTable item={toDrawItem.item as PageItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
+        <Match when={isTableItem(toDrawItem.item)}>
+          <TableInTable item={toDrawItem.item as TableItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
+        <Match when={isNoteItem(toDrawItem.item)}>
+          <NoteInTable item={toDrawItem.item as NoteItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
+      </Switch>
+    }</For>
+  }
+
+
+  function draw() {
+    let geom = calcFixedGeometryMemoized();
+
+    return (
+    <>
+    { drawItems(geom.itemGeometry) }
+
+    <For each={geom.children}>{ra =>
+      <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h}px;`}>
+        { drawTableItems(ra.itemGeometry) }
+      </div>
+    }</For>
+
+    { drawItems(calcMovingGeometry()) }
+    </>);
+  }
+
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
-      { drawItems(calcFixedGeometryMemoized()) }
-      { drawItems(calcMovingGeometry()) }
+      { draw() }
       <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
         <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
       </Show>

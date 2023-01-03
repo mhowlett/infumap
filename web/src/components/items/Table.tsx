@@ -17,10 +17,11 @@
 */
 
 import { Component } from "solid-js";
-import { GRID_SIZE, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { BoundingBox } from "../../util/geometry";
+
 
 export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, boundsPx: BoundingBox }) => {
   const layoutStore = useLayoutStore();
@@ -42,6 +43,20 @@ export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (pro
         <div class={`absolute opacity-0 cursor-nwse-resize`}
              style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export const TableInTable: Component<{ item: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, boundsPx: BoundingBox }) => {
+  let scale = props.boundsPx.h / LINE_HEIGHT_PX;
+
+  return (
+    <div class="absolute overflow-hidden"
+         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; `}>
+      <div class="absolute"
+           style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
+        { props.item.title }
       </div>
     </div>
   );

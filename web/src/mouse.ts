@@ -19,6 +19,7 @@
 import { GRID_SIZE, MOUSE_MOVE_AMBIGUOUS_PX } from "./constants";
 import { Hitbox, HitboxType } from "./hitbox";
 import { ItemGeometry } from "./item-geometry";
+import { RenderArea } from "./render-area";
 import { server } from "./server";
 import { calcSizeForSpatialBl, Item } from "./store/items/base/item";
 import { asXSizableItem } from "./store/items/base/x-sizeable-item";
@@ -86,12 +87,12 @@ function clearState() {
 export function mouseDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    fixedItemGeometry: Array<ItemGeometry>,
+    renderArea: RenderArea,
     ev: MouseEvent) {
   if (ev.button == MOUSE_LEFT) {
-    mouseLeftDownHandler(itemStore, layoutStore, fixedItemGeometry, ev);
+    mouseLeftDownHandler(itemStore, layoutStore, renderArea, ev);
   } else if (ev.button == MOUSE_RIGHT) {
-    mouseRightDownHandler(itemStore, layoutStore, fixedItemGeometry, ev);
+    mouseRightDownHandler(itemStore, layoutStore, renderArea, ev);
   } else {
     console.log("unknown mouse button: " + ev.button);
   }
@@ -100,11 +101,11 @@ export function mouseDownHandler(
 export function mouseLeftDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    fixedItemGeometry: Array<ItemGeometry>,
+    renderArea: RenderArea,
     ev: MouseEvent) {
   layoutStore.hideContextMenu();
 
-  let hitInfo = getHitInfo(fixedItemGeometry, desktopPxFromMouseEvent(ev));
+  let hitInfo = getHitInfo(renderArea.itemGeometry, desktopPxFromMouseEvent(ev));
   if (hitInfo == null) {
     clearState();
     return;
@@ -134,7 +135,7 @@ export function mouseLeftDownHandler(
 export function mouseRightDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    fixedItemGeometry: Array<ItemGeometry>,
+    renderArea: RenderArea,
     ev: MouseEvent) {
   layoutStore.hideContextMenu();
 
@@ -148,7 +149,7 @@ export function mouseRightDownHandler(
 export function mouseMoveHandler(
     itemStore: ItemStoreContextModel,
     _layoutStore: LayoutStoreContextModel,
-    _itemGeometry: Array<ItemGeometry>,
+    _renderArea: RenderArea,
     ev: MouseEvent) {
   if (mouseAction == null) { return; }
 
@@ -198,7 +199,7 @@ export function mouseUpHandler(
     userStore: UserStoreContextModel,
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    _itemGeometry: Array<ItemGeometry>,
+    _renderArea: RenderArea,
     _ev: MouseEvent) {
 
   if (mouseAction == null) { return; }
