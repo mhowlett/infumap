@@ -120,11 +120,12 @@ export const Desktop: Component = () => {
     for (let idx=0; idx<table.computed_children.length; ++idx) {
       let childId = table.computed_children[idx];
       let childItem = itemStore.items.fixed[childId];
+      let rowWidthBl = table.spatialWidthGr / GRID_SIZE;
       let blockSizePx = {
-        w: tableBoundsPx.w / (table.spatialWidthGr / GRID_SIZE),
+        w: tableBoundsPx.w / rowWidthBl,
         h: tableBoundsPx.h / (table.spatialHeightGr / GRID_SIZE),
       };
-      let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, idx, level);
+      let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
       result.push(itemGeometry);
       if (idx > 2) { break; }
     }
@@ -275,19 +276,22 @@ export const Desktop: Component = () => {
 
   function drawTableItems(itemGeometry: Array<ItemGeometry>) {
     let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
-    return <For each={toDrawItems}>{toDrawItem =>
-      <Switch fallback={<div>Not Found</div>}>
-        <Match when={isPageItem(toDrawItem.item)}>
-          <PageInTable item={toDrawItem.item as PageItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isTableItem(toDrawItem.item)}>
-          <TableInTable item={toDrawItem.item as TableItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isNoteItem(toDrawItem.item)}>
-          <NoteInTable item={toDrawItem.item as NoteItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-      </Switch>
-    }</For>
+    if (toDrawItems.length > 0) {
+      let parentTable = asTableItem(itemStore.getItem(toDrawItems[0].item!.parentId!)!);
+      return <For each={toDrawItems}>{toDrawItem =>
+        <Switch fallback={<div>Not Found</div>}>
+          <Match when={isPageItem(toDrawItem.item)}>
+            <PageInTable item={toDrawItem.item as PageItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
+          </Match>
+          <Match when={isTableItem(toDrawItem.item)}>
+            <TableInTable item={toDrawItem.item as TableItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
+          </Match>
+          <Match when={isNoteItem(toDrawItem.item)}>
+            <NoteInTable item={toDrawItem.item as NoteItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
+          </Match>
+        </Switch>
+      }</For>
+    }
   }
 
 

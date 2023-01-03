@@ -20,6 +20,7 @@ import { Component, Show } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
 import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { TableItem } from "../../store/items/table-item";
 
 
 export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, boundsPx: BoundingBox }) => {
@@ -53,16 +54,25 @@ export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props
   );
 }
 
-export const NoteInTable: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, boundsPx: BoundingBox }) => {
+export const NoteInTable: Component<{ item: NoteItem, parentTable: TableItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, parentTable: TableItem, boundsPx: BoundingBox }) => {
   let scale = props.boundsPx.h / LINE_HEIGHT_PX;
+  let widthBl = props.parentTable.spatialWidthGr / GRID_SIZE;
+  let oneBlockWidthPx = props.boundsPx.w / widthBl;
 
   return (
+    <>
+    <div class="absolute"
+         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
+      <div class="text-center" style={`line-height: ${LINE_HEIGHT_PX - 4}px; transform: scale(${scale}); transform-origin: center center;`}>
+        <i class={`fas fa-sticky-note`} />
+      </div>
+    </div>
     <div class="absolute overflow-hidden"
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; `}>
-      <div class="absolute"
-           style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
+         style={`left: ${props.boundsPx.x + oneBlockWidthPx}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w - oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
+      <div style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
         { props.item.title }
       </div>
     </div>
+    </>
   );
 }

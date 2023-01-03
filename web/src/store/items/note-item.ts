@@ -69,11 +69,11 @@ export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: Boundi
   }
 }
 
-export function calcGeometryOfNoteItemInTable(item: NoteItem, blockSizePx: Dimensions, index: number, level: number): ItemGeometry {
+export function calcGeometryOfNoteItemInTable(item: NoteItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
     y: blockSizePx.h * (index + 1.5),
-    w: blockSizePx.w * item.spatialWidthGr / GRID_SIZE,
+    w: blockSizePx.w * rowWidthBl,
     h: blockSizePx.h
   };
   return {

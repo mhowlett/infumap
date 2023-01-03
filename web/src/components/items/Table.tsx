@@ -48,12 +48,13 @@ export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (pro
   );
 }
 
-export const TableInTable: Component<{ item: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, boundsPx: BoundingBox }) => {
+export const TableInTable: Component<{ item: TableItem, parentTable: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, parentTable: TableItem, boundsPx: BoundingBox }) => {
   let scale = props.boundsPx.h / LINE_HEIGHT_PX;
-
+  let widthBl = props.parentTable.spatialWidthGr / GRID_SIZE;
+  let oneBlockWidthPx = props.boundsPx.w / widthBl;
   return (
     <div class="absolute overflow-hidden"
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; `}>
+         style={`left: ${props.boundsPx.x + oneBlockWidthPx}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w - oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
       <div class="absolute"
            style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
         { props.item.title }

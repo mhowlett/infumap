@@ -23,6 +23,7 @@ import { PageItem } from "../../store/items/page-item";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
+import { TableItem } from "../../store/items/table-item";
 
 
 export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props: { item: PageItem, boundsPx: BoundingBox }) => {
@@ -81,16 +82,25 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
   );
 }
 
-export const PageInTable: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props: { item: PageItem, boundsPx: BoundingBox }) => {
+export const PageInTable: Component<{ item: PageItem, parentTable: TableItem, boundsPx: BoundingBox }> = (props: { item: PageItem, parentTable: TableItem, boundsPx: BoundingBox }) => {
   let scale = props.boundsPx.h / LINE_HEIGHT_PX;
+  let widthBl = props.parentTable.spatialWidthGr / GRID_SIZE;
+  let oneBlockWidthPx = props.boundsPx.w / widthBl;
 
   return (
+    <>
+    <div class="absolute"
+         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${oneBlockWidthPx}px; height: ${props.boundsPx.h}px; ` + 
+                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.364)}); ` +
+                `transform: scale(${0.7}); transform-origin: center center;`}>
+    </div>
     <div class="absolute overflow-hidden"
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; `}>
+         style={`left: ${props.boundsPx.x + oneBlockWidthPx}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w - oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
       <div class="absolute"
            style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
         { props.item.title }
       </div>
     </div>
+    </>
   );
 }
