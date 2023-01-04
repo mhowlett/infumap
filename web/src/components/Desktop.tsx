@@ -58,8 +58,10 @@ export const Desktop: Component = () => {
         } else {
           console.log(`No items were fetched for '${containerId}'.`);
         }
-        // invalidate the item-geometry calc.
-        // itemStore.replaceWithClone(layoutStore.currentPageId()!);
+        // Invalidate the item-geometry calc.
+        // Without this, the list elements don't show automatically.
+        // TODO (HIGH): figure out why...
+        itemStore.replaceWithClone(layoutStore.currentPageId()!);
       });
   }
 
@@ -106,7 +108,6 @@ export const Desktop: Component = () => {
 
   function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
     let table = asTableItem(itemStore.getItem(tableId)!);
-    // console.log(table.title, tableId, tableBoundsPx);
 
     if (!layoutStore.childrenLoaded(table.id)) {
       console.log("DEBUG: should never get here, because table child items should always be loaded on parent page load.");
@@ -126,10 +127,6 @@ export const Desktop: Component = () => {
       };
       let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
       result.push(itemGeometry);
-      // if (idx > 4) {
-      //   console.log("Limiting table item count to 100, from " + table.computed_children.length);
-      //   break;
-      // }
     }
 
     renderArea.children.push({

@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { JSX } from "solid-js";
+import { batch, JSX } from "solid-js";
 import { createContext, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { panic, throwExpression } from "../util/lang";
@@ -110,21 +110,23 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
 
   // Note: the items array contains the container item itself, in addition to the children, if the container is the root.
   const setChildItems = (parentId: Uid, childItems: Array<Item>): void => {
-    childItems.forEach(childItem => {
-      setItems("fixed", produce(itms => { itms[childItem.id] = childItem; }));
-    });
-    childItems.forEach(childItem => {
-      if (childItem.parentId == null) {
-        if (childItem.relationshipToParent != NoParent) { panic(); }
-      } else {
-        if (childItem.parentId != parentId) {
-          throwExpression(`Child item had parent '${childItem.parentId}', but '${parentId}' was expected.`);
+    batch(() => {
+      childItems.forEach(childItem => {
+        setItems("fixed", produce(itms => { itms[childItem.id] = childItem; }));
+      });
+      childItems.forEach(childItem => {
+        if (childItem.parentId == null) {
+          if (childItem.relationshipToParent != NoParent) { panic(); }
+        } else {
+          if (childItem.parentId != parentId) {
+            throwExpression(`Child item had parent '${childItem.parentId}', but '${parentId}' was expected.`);
+          }
+          updateItem(childItem.parentId, parentItem => {
+            if (!isContainerItem(parentItem)) { panic(); }
+            (parentItem as ContainerItem).computed_children = [...(parentItem as ContainerItem).computed_children, childItem.id];
+          });
         }
-        updateItem(childItem.parentId, parentItem => {
-          if (!isContainerItem(parentItem)) { panic(); }
-          (parentItem as ContainerItem).computed_children = [...(parentItem as ContainerItem).computed_children, childItem.id];
-        });
-      }
+      });
     });
   };
 
