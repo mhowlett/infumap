@@ -35,7 +35,6 @@ import { ItemGeometry } from "../item-geometry";
 import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
 import { asTableItem, isTableItem, TableItem } from "../store/items/table-item";
 import { Table, TableInTable } from "./items/Table";
-import { throwExpression } from "../util/lang";
 import { RenderArea } from "../render-area";
 
 
@@ -60,7 +59,7 @@ export const Desktop: Component = () => {
           console.log(`No items were fetched for '${containerId}'.`);
         }
         // invalidate the item-geometry calc.
-        itemStore.replaceWithClone(layoutStore.currentPageId()!);
+        // itemStore.replaceWithClone(layoutStore.currentPageId()!);
       });
   }
 
@@ -127,7 +126,10 @@ export const Desktop: Component = () => {
       };
       let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
       result.push(itemGeometry);
-      if (idx > 2) { break; }
+      // if (idx > 4) {
+      //   console.log("Limiting table item count to 100, from " + table.computed_children.length);
+      //   break;
+      // }
     }
 
     renderArea.children.push({
@@ -274,10 +276,9 @@ export const Desktop: Component = () => {
     }</For>
   }
 
-  function drawTableItems(itemGeometry: Array<ItemGeometry>) {
+  function drawTableItems(itemGeometry: Array<ItemGeometry>, parentTable: TableItem) {
     let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
     if (toDrawItems.length > 0) {
-      let parentTable = asTableItem(itemStore.getItem(toDrawItems[0].item!.parentId!)!);
       return <For each={toDrawItems}>{toDrawItem =>
         <Switch fallback={<div>Not Found</div>}>
           <Match when={isPageItem(toDrawItem.item)}>
@@ -302,10 +303,20 @@ export const Desktop: Component = () => {
     <>
     { drawItems(geom.itemGeometry) }
 
-    <For each={geom.children}>{ra =>
-      <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h}px;`}>
-        { drawTableItems(ra.itemGeometry) }
-      </div>
+    <For each={geom.children}>{ra => (() => {
+      let tableItem = asTableItem(itemStore.getItem(ra.itemId)!);
+      let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
+      let heightPx = ra.boundsPx.h;
+      let blockHeightPx = heightPx / heightBr;
+      let headerHeightPx = 1.5 * blockHeightPx;
+      let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
+      return (
+        <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y + headerHeightPx}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h - headerHeightPx}px; overflow-y: auto;`}>
+          <div class="absolute" style={`width: ${ra.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
+            { drawTableItems(ra.itemGeometry, tableItem) }
+          </div>
+        </div>)
+      })()
     }</For>
 
     { drawItems(calcMovingGeometry()) }

@@ -72,7 +72,7 @@ export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: Boundi
 export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
-    y: blockSizePx.h * (index + 1.5),
+    y: blockSizePx.h * index,
     w: blockSizePx.w * rowWidthBl,
     h: blockSizePx.h
   };

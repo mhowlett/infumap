@@ -58,7 +58,7 @@ export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: Boun
 export function calcGeometryOfTableItemInTable(item: TableItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
-    y: blockSizePx.h * (index + 1.5),
+    y: blockSizePx.h * index,
     w: blockSizePx.w * rowWidthBl,
     h: blockSizePx.h
   };
