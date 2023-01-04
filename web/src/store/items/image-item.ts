@@ -17,6 +17,7 @@
 */
 
 import { GRID_SIZE } from "../../constants";
+import { HitboxType } from "../../hitbox";
 import { ItemGeometry } from "../../item-geometry";
 import { BoundingBox, cloneDimensions, cloneVector, Dimensions } from "../../util/geometry";
 import { panic } from "../../util/lang";
@@ -72,7 +73,7 @@ export function calcGeometryOfImageItemInTable(item: ImageItem, blockSizePx: Dim
   return {
     itemId: item.id,
     boundsPx,
-    hitboxes: [],
+    hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level
   };
 }

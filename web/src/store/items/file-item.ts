@@ -78,7 +78,7 @@ export function calcGeometryOfFileItemInTable(item: FileItem, blockSizePx: Dimen
   return {
     itemId: item.id,
     boundsPx,
-    hitboxes: [],
+    hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level
   };
 }

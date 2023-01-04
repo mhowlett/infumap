@@ -47,11 +47,23 @@ interface HitInfo {
   itemBoundsPx: BoundingBox
 }
 
-function getHitInfo(itemGeometry: Array<ItemGeometry>, desktopPx: Vector): HitInfo | null {
-  let geom = itemGeometry.filter(g => isInside(desktopPx, g.boundsPx))
+function getHitInfo(renderArea: RenderArea, desktopPx: Vector): HitInfo | null {
+  let hitPointPx = desktopPx;
+
+  for (let i=0; i<renderArea.children.length; ++i) {
+    let childRenderArea = renderArea.children[i];
+    if (isInside(desktopPx, childRenderArea.boundsPx)) {
+      renderArea = childRenderArea;
+      hitPointPx = subtract(desktopPx, { x: childRenderArea.boundsPx.x, y: childRenderArea.boundsPx.y });
+      break;
+    }
+  }
+
+  let itemGeometry = renderArea.itemGeometry;
+  let geom = itemGeometry.filter(g => isInside(hitPointPx, g.boundsPx))
   for (let i=geom.length-1; i>=0; --i) {
     for (let j=geom[i].hitboxes.length-1; j>=0; --j) {
-      if (isInside(desktopPx, geom[i].hitboxes[j].boundsPx)) {
+      if (isInside(hitPointPx, geom[i].hitboxes[j].boundsPx)) {
         return {
           itemId: geom[i].itemId,
           hitbox: geom[i].hitboxes[j],
@@ -60,6 +72,7 @@ function getHitInfo(itemGeometry: Array<ItemGeometry>, desktopPx: Vector): HitIn
       }
     }
   }
+
   return null;
 }
 
@@ -105,7 +118,7 @@ export function mouseLeftDownHandler(
     ev: MouseEvent) {
   layoutStore.hideContextMenu();
 
-  let hitInfo = getHitInfo(renderArea.itemGeometry, desktopPxFromMouseEvent(ev));
+  let hitInfo = getHitInfo(renderArea, desktopPxFromMouseEvent(ev));
   if (hitInfo == null) {
     clearState();
     return;
@@ -135,15 +148,21 @@ export function mouseLeftDownHandler(
 export function mouseRightDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    renderArea: RenderArea,
-    ev: MouseEvent) {
+    _renderArea: RenderArea,
+    _ev: MouseEvent) {
   layoutStore.hideContextMenu();
 
-  let overItem = itemStore.items.fixed[layoutStore.currentPageId()!];
-  let parentId = overItem.parentId;
-  if (parentId != null) {
-    layoutStore.setCurrentPageId(parentId);
+  let item = itemStore.items.fixed[layoutStore.currentPageId()!];
+  let parentId = item.parentId;
+  let loopCount = 0;
+  while (!isPageItem(itemStore.items.fixed[parentId!]))
+  {
+    if (parentId == null) { panic(); }
+    item = itemStore.items.fixed[parentId];
+    parentId = item.parentId;
+    if (loopCount++ > 10) { panic(); }
   }
+  layoutStore.setCurrentPageId(parentId);
 }
 
 export function mouseMoveHandler(

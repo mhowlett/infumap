@@ -121,21 +121,27 @@ export const Desktop: Component = () => {
 
     let result: Array<ItemGeometry> = [];
 
+    const rowWidthBl = table.spatialWidthGr / GRID_SIZE;
+    const colHeightBl = table.spatialHeightGr / GRID_SIZE;
+    const blockSizePx = {
+      w: tableBoundsPx.w / rowWidthBl,
+      h: tableBoundsPx.h / colHeightBl,
+    };
+    const headerHeightPx = blockSizePx.h * 1.5;
+
     for (let idx=0; idx<table.computed_children.length; ++idx) {
-      let childId = table.computed_children[idx];
-      let childItem = itemStore.items.fixed[childId];
-      let rowWidthBl = table.spatialWidthGr / GRID_SIZE;
-      let blockSizePx = {
-        w: tableBoundsPx.w / rowWidthBl,
-        h: tableBoundsPx.h / (table.spatialHeightGr / GRID_SIZE),
-      };
-      let itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
+      const childId = table.computed_children[idx];
+      const childItem = itemStore.items.fixed[childId];
+      const itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
       result.push(itemGeometry);
     }
 
     renderArea.children.push({
       itemId: tableId,
-      boundsPx: tableBoundsPx,
+      boundsPx: {
+        x: tableBoundsPx.x, y: tableBoundsPx.y + headerHeightPx,
+        w: tableBoundsPx.w, h: tableBoundsPx.h - headerHeightPx
+      },
       itemGeometry: result,
       children: []
     });
@@ -321,10 +327,9 @@ export const Desktop: Component = () => {
       let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
       let heightPx = ra.boundsPx.h;
       let blockHeightPx = heightPx / heightBr;
-      let headerHeightPx = 1.5 * blockHeightPx;
       let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
       return (
-        <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y + headerHeightPx}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h - headerHeightPx}px; overflow-y: auto;`}>
+        <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h}px; overflow-y: auto;`}>
           <div class="absolute" style={`width: ${ra.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
             { drawTableItems(ra.itemGeometry, tableItem) }
           </div>

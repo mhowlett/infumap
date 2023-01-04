@@ -65,7 +65,7 @@ export function calcGeometryOfTableItemInTable(item: TableItem, blockSizePx: Dim
   return {
     itemId: item.id,
     boundsPx,
-    hitboxes: [],
+    hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level
   };
 }
