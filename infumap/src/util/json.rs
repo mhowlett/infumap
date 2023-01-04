@@ -16,7 +16,7 @@
 
 use serde_json::{Map, Value};
 use super::infu::InfuResult;
-use super::geometry::Vector;
+use super::geometry::{Vector, Dimensions};
 
 
 pub fn get_string_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<String>> {
@@ -44,11 +44,27 @@ pub fn get_vector_field(map: &Map<String, Value>, field: &str) -> InfuResult<Opt
   }))
 }
 
+pub fn get_dimensions_field(map: &Map<String, Value>, field: &str) -> InfuResult<Option<Dimensions<i64>>> {
+  let v = match map.get(field) { None => return Ok(None), Some(s) => s };
+  let o = v.as_object().ok_or(format!("'{}' field was not of type 'object'.", field))?;
+  Ok(Some(Dimensions {
+    w: get_integer_field(o, "w")?.ok_or("Dimensions field 'w' was missing.")?,
+    h: get_integer_field(o, "h")?.ok_or("Dimensions field 'h' was missing.")?
+  }))
+}
+
 pub fn vector_to_object(v: &Vector<i64>) -> InfuResult<Value> {
   let mut vec: Map<String, Value> = Map::new();
   vec.insert(String::from("x"), Value::Number(v.x.into()));
   vec.insert(String::from("y"), Value::Number(v.y.into()));
   Ok(Value::Object(vec))
+}
+
+pub fn dimensions_to_object(v: &Dimensions<i64>) -> InfuResult<Value> {
+  let mut dim: Map<String, Value> = Map::new();
+  dim.insert(String::from("w"), Value::Number(v.w.into()));
+  dim.insert(String::from("h"), Value::Number(v.h.into()));
+  Ok(Value::Object(dim))
 }
 
 pub fn validate_map_fields(map: &serde_json::Map<String, serde_json::Value>, all_fields: &[&str]) -> InfuResult<()> {

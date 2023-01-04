@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022-2023 Matt Howlett
+  Copyright (C) 2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,22 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { AttachmentsItem } from "./base/attachments-item";
-import { EncryptableItem } from "./base/encryptable-item";
-import { XSizableItem } from "./base/x-sizeable-item";
+import { panic } from "../../../util/lang";
+import { Item } from "./item";
 
 
-export interface FileItem extends XSizableItem, AttachmentsItem, EncryptableItem {
-  originalCreationDate: number,
-  // TODO.
+const ITEM_TYPES = ["image", "file"];
+
+export interface EncryptableItem extends Item {
+  passwordName: string | null
+}
+
+export function isEncryptableItem(item: Item | null): boolean {
+  if (item == null) { return false; }
+  return ITEM_TYPES.find(t => t == item.itemType) != null;
+}
+
+export function asEncryptableItem(item: Item): EncryptableItem {
+  if (isEncryptableItem(item)) { return item as EncryptableItem; }
+  panic();
 }

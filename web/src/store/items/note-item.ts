@@ -19,7 +19,7 @@
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from '../../constants';
 import { HitboxType } from '../../hitbox';
 import { ItemGeometry } from '../../item-geometry';
-import { BoundingBox, Dimensions } from '../../util/geometry';
+import { BoundingBox, cloneVector, Dimensions } from '../../util/geometry';
 import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { AttachmentsItem } from './base/attachments-item';
@@ -105,7 +105,7 @@ export function cloneNoteItem(item: NoteItem): NoteItem {
     lastModifiedDate: item.lastModifiedDate,
     ordering: item.ordering,
     title: item.title,
-    spatialPositionGr: item.spatialPositionGr,
+    spatialPositionGr: cloneVector(item.spatialPositionGr)!,
 
     spatialWidthGr: item.spatialWidthGr,
 

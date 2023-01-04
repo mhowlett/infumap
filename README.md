@@ -23,3 +23,11 @@ infumap web -s path/to/settings.toml
 ```
 
 You can also specify configuration via environment variables (prefixed with `INFUMAP_`, case insensitive). These will overwrite any values specified in the settings file. Finally, note that if there is no `settings.toml` file, and all mandatory configuration values are specified via env vars (currently this is only `data_dir`), then a default `settings.toml` file will *not* be created.
+
+
+## MacOS Settings
+
+System Preferences / Trackpad:
+
+- Turn off "Smart zoom". If enabled, the system needs to wait to know if a two finger tap was a double two finger tap.
+- Turn off "Swipe between pages".

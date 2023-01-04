@@ -20,10 +20,10 @@ import { TOOLBAR_WIDTH } from "../constants";
 
 
 export interface BoundingBox {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export function cloneBoundingBox(boundingBox: BoundingBox | null): BoundingBox | null {
@@ -44,8 +44,8 @@ export function isInside(point: Vector, boundingBox: BoundingBox): boolean {
 }
 
 export interface Vector {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 export function cloneVector(vector: Vector | null): Vector | null {
@@ -60,6 +60,15 @@ export interface Dimensions {
   w: number;
   h: number;
 }
+
+export function cloneDimensions(dimensions: Dimensions | null): Dimensions | null {
+  if (dimensions == null) { return null; }
+  return {
+    w: dimensions.w,
+    h: dimensions.h
+  };
+}
+
 
 export function clientPxFromMouseEvent(ev: MouseEvent): Vector {
   return { x: ev.clientX, y: ev.clientY };

@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Matt Howlett
+// Copyright (C) 2022-2023 Matt Howlett
 // This file is part of Infumap.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -122,6 +122,7 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     spatial_position_gr: Vector { x: 0, y: 0 },
     spatial_width_gr: Some(60 * GRID_SIZE),
     spatial_height_gr: None,
+    password_name: None,
     inner_spatial_width_gr: Some(60 * GRID_SIZE),
     natural_aspect: Some(2.0),
     background_color_index: Some(0),
@@ -130,5 +131,7 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     popup_width_gr: Some(10 * GRID_SIZE),
     url: None,
     original_creation_date: None,
+    image_size_px: None,
+    thumbnail: None,
   }
 }
