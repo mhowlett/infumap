@@ -38,6 +38,8 @@ import { Table, TableInTable } from "./items/Table";
 import { RenderArea } from "../render-area";
 import { ImageItem, isImageItem } from "../store/items/image-item";
 import { Image, ImageInTable } from "./items/Image";
+import { FileItem, isFileItem } from "../store/items/file-item";
+import { File, FileInTable } from "./items/File";
 
 
 export const Desktop: Component = () => {
@@ -274,6 +276,9 @@ export const Desktop: Component = () => {
         <Match when={isImageItem(toDrawItem.item)}>
           <Image item={toDrawItem.item as ImageItem} boundsPx={toDrawItem.boundsPx} />
         </Match>
+        <Match when={isFileItem(toDrawItem.item)}>
+          <File item={toDrawItem.item as FileItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
       </Switch>
     }</For>
   }
@@ -294,6 +299,9 @@ export const Desktop: Component = () => {
           </Match>
           <Match when={isImageItem(toDrawItem.item)}>
             <ImageInTable item={toDrawItem.item as ImageItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
+          </Match>
+          <Match when={isFileItem(toDrawItem.item)}>
+            <FileInTable item={toDrawItem.item as FileItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
           </Match>
         </Switch>
       }</For>

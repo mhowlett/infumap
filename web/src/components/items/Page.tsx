@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,6 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
 
   // Current top page.
   if (props.item.id == layoutStore.currentPageId()) {
-    // console.log("draw page (1).");
     return (
       <div ref={outerDiv}
            id={props.item.id}
@@ -45,7 +44,6 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
 
   // Too small for inside items to be visible. Opaque.
   if (props.item.spatialWidthGr / GRID_SIZE < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-    // console.log("draw page (2).");
     return (
       <div ref={outerDiv}
            id={props.item.id}
@@ -64,7 +62,6 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
   }
 
   // Show child items. Translucent.
-  // console.log("draw page (3).");
   return (
     <div ref={outerDiv}
          id={props.item.id}
