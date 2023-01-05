@@ -25,6 +25,8 @@ const ITEM_TYPES = ["image", "file"];
 export interface DataItem extends Item {
   passwordName: string | null,
   originalCreationDate: number,
+  mimeType: string,
+  fileSizeBytes: number,
 }
 
 export function isDataItem(item: Item | null): boolean {

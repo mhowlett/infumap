@@ -123,6 +123,9 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     spatial_width_gr: Some(60 * GRID_SIZE),
     spatial_height_gr: None,
     password_name: None,
+    original_creation_date: None,
+    mime_type: None,
+    file_size_bytes: None,
     inner_spatial_width_gr: Some(60 * GRID_SIZE),
     natural_aspect: Some(2.0),
     background_color_index: Some(0),
@@ -130,7 +133,6 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     popup_alignment_point: Some(crate::store::item::AlignmentPoint::Center),
     popup_width_gr: Some(10 * GRID_SIZE),
     url: None,
-    original_creation_date: None,
     image_size_px: None,
     thumbnail: None,
   }

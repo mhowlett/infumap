@@ -96,6 +96,8 @@ export function cloneImageItem(item: ImageItem): ImageItem {
 
     passwordName: item.passwordName,
     originalCreationDate: item.originalCreationDate,
+    mimeType: item.mimeType,
+    fileSizeBytes: item.fileSizeBytes,
 
     imageSizePx: cloneDimensions(item.imageSizePx)!,
     thumbnail: item.thumbnail,

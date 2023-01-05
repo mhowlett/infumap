@@ -108,34 +108,11 @@ export function cloneFileItem(item: FileItem): FileItem {
     spatialWidthGr: item.spatialWidthGr,
 
     passwordName: item.passwordName,
-
     originalCreationDate: item.originalCreationDate,
+    mimeType: item.mimeType,
+    fileSizeBytes: item.fileSizeBytes,
 
     computed_attachments: [...item.computed_attachments],
     computed_fromParentIdMaybe: item.computed_fromParentIdMaybe
-  };
-}
-
-export function newFileItem(ownerId: Uid, parentId: Uid, relationshipToParent: string, title: string, ordering: Uint8Array): FileItem {
-  return {
-    itemType: "file",
-    ownerId,
-    id: newUid(),
-    parentId,
-    relationshipToParent,
-    creationDate: currentUnixTimeSeconds(),
-    lastModifiedDate: currentUnixTimeSeconds(),
-    ordering,
-    title,
-    spatialPositionGr: { x: 0.0, y: 0.0 },
-
-    spatialWidthGr: 4.0 * GRID_SIZE,
-
-    passwordName: null,
-
-    originalCreationDate: 0,
-
-    computed_attachments: [],
-    computed_fromParentIdMaybe: null,
   };
 }

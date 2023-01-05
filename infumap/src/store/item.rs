@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use log::warn;
 use serde_json::{Value, Map, Number};
 
 use crate::util::json;
@@ -129,15 +128,38 @@ const ITEM_TYPE_FILE: &'static str = "file";
 const ITEM_TYPE_TABLE: &'static str = "table";
 const ITEM_TYPE_IMAGE: &'static str = "image";
 
-const ALL_JSON_FIELDS: [&'static str; 24] = ["__recordType",
+fn is_data_item(item_type: &str) -> bool {
+  item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE
+}
+
+fn is_x_sizeable(item_type: &str) -> bool {
+  item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_NOTE ||
+  item_type == ITEM_TYPE_PAGE || item_type == ITEM_TYPE_TABLE ||
+  item_type == ITEM_TYPE_IMAGE
+}
+
+fn is_y_sizeable(item_type: &str) -> bool {
+  item_type == ITEM_TYPE_TABLE
+}
+
+const ALL_JSON_FIELDS: [&'static str; 26] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
   "spatialPositionGr", "spatialWidthGr", "innerSpatialWidthGr",
   "naturalAspect", "backgroundColorIndex", "popupPositionGr",
   "popupAlignmentPoint", "popupWidthGr", "url",
-  "originalCreationDate", "spatialHeightGr",
-  "passwordName", "imageSizePx", "thumbnail"];
+  "originalCreationDate", "spatialHeightGr", "passwordName",
+  "imageSizePx", "thumbnail", "mimeType", "fileSizeBytes"];
 
+
+/// The Item type, used for all items, and corresponding serialization / validation logic.
+/// All of this is largely done by hand, rather than make use of the defualt Rust serde
+/// Serialize/Deserialize attributes or JSON Schema for validation, because the requirements
+/// are quite specialized:
+///  - Different serialized data for web apis vs db log use.
+///  - Handling of updates, where not all fields present.
+///  - Custom validation logic (e.g. related to item type classes).
+///  - A flat (straightforward) serialized structure of a more complex object model.
 #[derive(Debug)]
 pub struct Item {
   pub item_type: String,
@@ -160,6 +182,8 @@ pub struct Item {
   // data
   pub password_name: Option<String>,
   pub original_creation_date: Option<i64>,
+  pub mime_type: Option<String>,
+  pub file_size_bytes: Option<i64>,
 
   // page
   pub inner_spatial_width_gr: Option<i64>,
@@ -197,6 +221,9 @@ impl Clone for Item {
       spatial_width_gr: self.spatial_width_gr.clone(),
       spatial_height_gr: self.spatial_height_gr.clone(),
       password_name: self.password_name.clone(),
+      original_creation_date: self.original_creation_date.clone(),
+      mime_type: self.mime_type.clone(),
+      file_size_bytes: self.file_size_bytes.clone(),
       inner_spatial_width_gr: self.inner_spatial_width_gr.clone(),
       natural_aspect: self.natural_aspect.clone(),
       background_color_index: self.background_color_index.clone(),
@@ -204,7 +231,6 @@ impl Clone for Item {
       popup_alignment_point: self.popup_alignment_point.clone(),
       popup_width_gr: self.popup_width_gr.clone(),
       url: self.url.clone(),
-      original_creation_date: self.original_creation_date.clone(),
       image_size_px: self.image_size_px.clone(),
       thumbnail: self.thumbnail.clone()
     }
@@ -289,15 +315,25 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // data
+    // Like the data file, all these fields are immutable.
     if let Some(new_password_name) = &new.password_name {
       if match &old.password_name { Some(o) => o != new_password_name, None => { true } } {
-        result.insert(String::from("passwordName"), Value::String(new_password_name.clone()));
+        cannot_modify_err("passwordName", &old.id)?;
       }
     }
     if let Some(new_original_creation_date) = new.original_creation_date {
       if match old.original_creation_date { Some(o) => o != new_original_creation_date, None => { true } } {
-        // Enforce this is never updated.
         cannot_modify_err("originalCreationDate", &old.id)?;
+      }
+    }
+    if let Some(new_mime_type) = &new.mime_type {
+      if match &old.mime_type { Some(o) => o != new_mime_type, None => { true } } {
+        cannot_modify_err("mimeType", &old.id)?;
+      }
+    }
+    if let Some(new_file_size_bytes) = &new.file_size_bytes {
+      if match &old.file_size_bytes { Some(o) => o != new_file_size_bytes, None => { true } } {
+        cannot_modify_err("fileSizeBytes", &old.id)?;
       }
     }
 
@@ -376,7 +412,7 @@ impl JsonLogSerializable<Item> for Item {
       Err(InfuError::new(&format!("'{}' field is not valid for item type '{}' - cannot update.", field_name, item_type)))
     }
 
-    json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
+    json::validate_map_fields(map, &ALL_JSON_FIELDS)?;
 
     if let Ok(v) = json::get_string_field(map, "itemType") { if v.is_some() { cannot_update_err("itemType", &self.id)?; } }
     if let Ok(v) = json::get_string_field(map, "ownerId") { if v.is_some() { cannot_update_err("ownerId", &self.id)?; } }
@@ -418,12 +454,18 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // data
+    // Like the data file, all these fields are immutable.
     if let Ok(v) = json::get_string_field(map, "passwordName") {
-      if let Some(u) = v { self.password_name = Some(u); }
+      if v.is_some() { cannot_update_err("passwordName", &self.id)?; }
     }
     if let Ok(v) = json::get_integer_field(map, "originalCreationDate") {
-      // Enforce this is never updated.
       if v.is_some() { cannot_update_err("originalCreationDate", &self.id)?; }
+    }
+    if let Ok(v) = json::get_string_field(map, "mimeType") {
+      if v.is_some() { cannot_update_err("mimeType", &self.id)?; }
+    }
+    if let Ok(v) = json::get_integer_field(map, "fileSizeBytes") {
+      if v.is_some() { cannot_update_err("fileSizeBytes", &self.id)?; }
     }
 
     // page
@@ -520,35 +562,38 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
 
   // x-sizeable
   if let Some(spatial_width_gr) = item.spatial_width_gr {
-    result.insert(
-      String::from("spatialWidthGr"),
-      Value::Number(spatial_width_gr.into()));
+    if !is_x_sizeable(&item.item_type) { unexpected_field_err("spatialWidthGr", &item.id, &item.item_type)? }
+    result.insert(String::from("spatialWidthGr"), Value::Number(spatial_width_gr.into()));
   }
 
   // y-sizeable
   if let Some(spatial_height_gr) = item.spatial_height_gr {
-    result.insert(
-      String::from("spatialHeightGr"),
-      Value::Number(spatial_height_gr.into()));
+    if !is_y_sizeable(&item.item_type) { unexpected_field_err("spatialHeightGr", &item.id, &item.item_type)? }
+    result.insert(String::from("spatialHeightGr"), Value::Number(spatial_height_gr.into()));
   }
 
   // data
   if let Some(password_name) = &item.password_name {
-    result.insert(
-      String::from("passwordName"),
-      Value::String(password_name.clone()));
+    if !is_data_item(&item.item_type) { unexpected_field_err("passwordName", &item.id, &item.item_type)? }
+    result.insert(String::from("passwordName"), Value::String(password_name.clone()));
   }
   if let Some(original_creation_date) = item.original_creation_date {
-    if item.item_type != ITEM_TYPE_FILE && item.item_type != ITEM_TYPE_IMAGE { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
+    if !is_data_item(&item.item_type) { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
     result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
+  }
+  if let Some(mime_type) = &item.mime_type {
+    if !is_data_item(&item.item_type) { unexpected_field_err("mimeType", &item.id, &item.item_type)? }
+    result.insert(String::from("mimeType"), Value::String(mime_type.clone()));
+  }
+  if let Some(file_size_bytes) = item.file_size_bytes {
+    if !is_data_item(&item.item_type) { unexpected_field_err("fileSizeBytes", &item.id, &item.item_type)? }
+    result.insert(String::from("fileSizeBytes"), Value::Number(file_size_bytes.into()));
   }
 
   // page
   if let Some(inner_spatial_width_gr) = item.inner_spatial_width_gr {
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("innerSpatialWidthGr", &item.id, &item.item_type)? }
-    result.insert(
-      String::from("innerSpatialWidthGr"),
-      Value::Number(inner_spatial_width_gr.into()));
+    result.insert(String::from("innerSpatialWidthGr"), Value::Number(inner_spatial_width_gr.into()));
   }
   if let Some(natural_aspect) = item.natural_aspect {
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("naturalAspect", &item.id, &item.item_type)? }
@@ -570,9 +615,7 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   }
   if let Some(popup_width_gr) = item.popup_width_gr {
     if item.item_type != ITEM_TYPE_PAGE { unexpected_field_err("popupWidthGr", &item.id, &item.item_type)? }
-    result.insert(
-      String::from("popupWidthGr"),
-      Value::Number(popup_width_gr.into()));
+    result.insert(String::from("popupWidthGr"), Value::Number(popup_width_gr.into()));
   }
 
   // note
@@ -607,7 +650,7 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     InfuError::new(&format!("'{}' field is expected for item type '{}'.", field_name, item_type))
   }
 
-  json::validate_map_fields(map, &ALL_JSON_FIELDS)?; // TODO (LOW): JsonSchema validation.
+  json::validate_map_fields(map, &ALL_JSON_FIELDS)?;
 
   let id = json::get_string_field(map, "id")?.ok_or("'id' field was missing.")?;
   let item_type = json::get_string_field(map, "itemType")?.ok_or("'itemType' field was missing.")?;
@@ -639,24 +682,32 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
 
     // x-sizeable
     spatial_width_gr: match json::get_integer_field(map, "spatialWidthGr")? {
-      Some(v) => { Ok(Some(v)) },
-      None => { Err(InfuError::new("'spatialWidthGr' field is expected for all current item types.")) }
+      Some(v) => { if is_x_sizeable(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("spatialWidthGr", &item_type)) } },
+      None => { if is_x_sizeable(&item_type) { Err(expected_for_err("spatialWidthGr", &item_type)) } else { Ok(None) } }
     }?,
 
     // y-sizeable
     spatial_height_gr: match json::get_integer_field(map, "spatialHeightGr")? {
-      Some(v) => { if item_type == ITEM_TYPE_TABLE { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightGr", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_TABLE { Err(expected_for_err("spatialHeightGr", &item_type)) } else { Ok(None) } }
+      Some(v) => { if is_y_sizeable(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightGr", &item_type)) } },
+      None => { if is_y_sizeable(&item_type) { Err(expected_for_err("spatialHeightGr", &item_type)) } else { Ok(None) } }
     }?,
 
     // data
     password_name: match json::get_string_field(map, "passwordName")? {
-      Some(v) => { if item_type == ITEM_TYPE_IMAGE || item_type == ITEM_TYPE_FILE { Ok(Some(v)) } else { Err(not_applicable_err("passwordName", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_IMAGE || item_type == ITEM_TYPE_FILE { Err(expected_for_err("passwordName", &item_type)) } else { Ok(None) } }
+      Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("passwordName", &item_type)) } },
+      None => { if is_data_item(&item_type) { Err(expected_for_err("passwordName", &item_type)) } else { Ok(None) } }
     }?,
     original_creation_date: match json::get_integer_field(map, "originalCreationDate")? {
-      Some(v) => { if item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
+      Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
+      None => { if is_data_item(&item_type) { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
+    }?,
+    mime_type: match json::get_string_field(map, "mimeType")? {
+      Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("mimeType", &item_type)) } },
+      None => { if is_data_item(&item_type) { Err(expected_for_err("mimeType", &item_type)) } else { Ok(None) } }
+    }?,
+    file_size_bytes: match json::get_integer_field(map, "fileSizeBytes")? {
+      Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("fileSizeBytes", &item_type)) } },
+      None => { if is_data_item(&item_type) { Err(expected_for_err("fileSizeBytes", &item_type)) } else { Ok(None) } }
     }?,
 
     // page
@@ -674,41 +725,17 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     }?,
     popup_position_gr: match json::get_vector_field(map, "popupPositionGr")? {
       Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupPositionGr", &item_type)) } },
-      None => {
-        if item_type == ITEM_TYPE_PAGE {
-          // TODO (LOW): remove.
-          warn!("popupPositionGr was not specified for item '{}', using default (0,0).", id);
-          Ok(Some(Vector { x: 0, y: 0 }))
-        } else {
-          Ok(None)
-        }
-      }
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("popupPositionGr", &item_type)) } else { Ok(None) } }
     }?,
     popup_alignment_point: match &json::get_string_field(map, "popupAlignmentPoint")? {
       Some(v) => {
-          if item_type == ITEM_TYPE_PAGE { Ok(Some(AlignmentPoint::from_string(v)?)) }
-          else { Err(not_applicable_err("popupAlignmentPoint", &item_type)) } },
-      None => {
-        if item_type == ITEM_TYPE_PAGE {
-          // TODO (LOW): remove.
-          warn!("popupAlignmentPoint was not specified for item '{}', using default (TopLeft).", id);
-          Ok(Some(AlignmentPoint::TopLeft))
-        } else {
-          Ok(None)
-        }
-      }
+        if item_type == ITEM_TYPE_PAGE { Ok(Some(AlignmentPoint::from_string(v)?)) }
+        else { Err(not_applicable_err("popupAlignmentPoint", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("popupAlignmentPoint", &item_type)) } else { Ok(None) } }
     }?,
     popup_width_gr: match json::get_integer_field(map, "popupWidthGr")? {
       Some(v) => { if item_type == ITEM_TYPE_PAGE { Ok(Some(v)) } else { Err(not_applicable_err("popupWidthGr", &item_type)) } },
-      None => {
-        if item_type == ITEM_TYPE_PAGE {
-          // TODO (LOW): remove.
-          warn!("popupWidthGr was not specified for item '{}', using default (10.0).", id);
-          Ok(Some(10))
-        } else {
-          Ok(None)
-        }
-      }
+      None => { if item_type == ITEM_TYPE_PAGE { Err(expected_for_err("popupWidthGr", &item_type)) } else { Ok(None) } }
     }?,
 
     // note
@@ -724,10 +751,7 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     // image
     image_size_px: match json::get_dimensions_field(map, "imageSizePx")? {
       Some(v) => { if item_type == ITEM_TYPE_IMAGE { Ok(Some(v)) } else { Err(not_applicable_err("imageSizePx", &item_type)) } },
-      None => {
-        if item_type == ITEM_TYPE_IMAGE { Err(expected_for_err("imageSizePx", &item_type)) }
-        else { Ok(None) }
-      }
+      None => { if item_type == ITEM_TYPE_IMAGE { Err(expected_for_err("imageSizePx", &item_type)) } else { Ok(None) } }
     }?,
     thumbnail: match json::get_string_field(map, "thumbnail")? {
       Some(v) => { if item_type == ITEM_TYPE_IMAGE { Ok(Some(v)) } else { Err(not_applicable_err("thumbnail", &item_type)) } },
