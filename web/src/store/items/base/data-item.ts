@@ -22,16 +22,17 @@ import { Item } from "./item";
 
 const ITEM_TYPES = ["image", "file"];
 
-export interface EncryptableItem extends Item {
-  passwordName: string | null
+export interface DataItem extends Item {
+  passwordName: string | null,
+  originalCreationDate: number,
 }
 
-export function isEncryptableItem(item: Item | null): boolean {
+export function isDataItem(item: Item | null): boolean {
   if (item == null) { return false; }
   return ITEM_TYPES.find(t => t == item.itemType) != null;
 }
 
-export function asEncryptableItem(item: Item): EncryptableItem {
-  if (isEncryptableItem(item)) { return item as EncryptableItem; }
+export function asDataItem(item: Item): DataItem {
+  if (isDataItem(item)) { return item as DataItem; }
   panic();
 }

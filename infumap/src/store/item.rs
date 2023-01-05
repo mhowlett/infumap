@@ -157,8 +157,9 @@ pub struct Item {
   // y-sizeable
   pub spatial_height_gr: Option<i64>,
 
-  // encryptable
+  // data
   pub password_name: Option<String>,
+  pub original_creation_date: Option<i64>,
 
   // page
   pub inner_spatial_width_gr: Option<i64>,
@@ -172,8 +173,6 @@ pub struct Item {
   pub url: Option<String>,
 
   // file
-  pub original_creation_date: Option<i64>,
-  // TODO: not complete
 
   // table
 
@@ -275,24 +274,30 @@ impl JsonLogSerializable<Item> for Item {
     if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
     if old.spatial_position_gr != new.spatial_position_gr { result.insert(String::from("spatialPositionGr"), json::vector_to_object(&new.spatial_position_gr)?); }
 
-    // x-sizable.
+    // x-sizable
     if let Some(new_spatial_width_gr) = new.spatial_width_gr {
       if match old.spatial_width_gr { Some(o) => o != new_spatial_width_gr, None => { true } } {
         result.insert(String::from("spatialWidthGr"), Value::Number(new_spatial_width_gr.into()));
       }
     }
 
-    // y-sizable.
+    // y-sizable
     if let Some(new_spatial_height_gr) = new.spatial_height_gr {
       if match old.spatial_height_gr { Some(o) => o != new_spatial_height_gr, None => { true } } {
         result.insert(String::from("spatialHeightGr"), Value::Number(new_spatial_height_gr.into()));
       }
     }
 
-    // encryptable.
+    // data
     if let Some(new_password_name) = &new.password_name {
       if match &old.password_name { Some(o) => o != new_password_name, None => { true } } {
         result.insert(String::from("passwordName"), Value::String(new_password_name.clone()));
+      }
+    }
+    if let Some(new_original_creation_date) = new.original_creation_date {
+      if match old.original_creation_date { Some(o) => o != new_original_creation_date, None => { true } } {
+        // Enforce this is never updated.
+        cannot_modify_err("originalCreationDate", &old.id)?;
       }
     }
 
@@ -343,12 +348,8 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // file
-    if let Some(new_original_creation_date) = new.original_creation_date {
-      if match old.original_creation_date { Some(o) => o != new_original_creation_date, None => { true } } {
-        cannot_modify_err("originalCreationDate", &old.id)?;
-      }
-    }
-    // TODO (MEDIUM): not complete.
+
+    // table
   
     // image
     if let Some(new_image_size_px) = &new.image_size_px {
@@ -416,9 +417,13 @@ impl JsonLogSerializable<Item> for Item {
       if let Some(u) = v { self.spatial_height_gr = Some(u); }
     }
 
-    // encryptable
+    // data
     if let Ok(v) = json::get_string_field(map, "passwordName") {
       if let Some(u) = v { self.password_name = Some(u); }
+    }
+    if let Ok(v) = json::get_integer_field(map, "originalCreationDate") {
+      // Enforce this is never updated.
+      if v.is_some() { cannot_update_err("originalCreationDate", &self.id)?; }
     }
 
     // page
@@ -468,10 +473,8 @@ impl JsonLogSerializable<Item> for Item {
     }
 
     // file
-    if let Ok(v) = json::get_integer_field(map, "originalCreationDate") {
-      if v.is_some() { cannot_update_err("originalCreationDate", &self.id)?; }
-    }
-    // TODO (MEDIUM): not complete.
+
+    // table
 
     // image
     if let Ok(v) = json::get_dimensions_field(map, "imageSizePx") {
@@ -529,11 +532,15 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
       Value::Number(spatial_height_gr.into()));
   }
 
-  // encryptable
+  // data
   if let Some(password_name) = &item.password_name {
     result.insert(
       String::from("passwordName"),
       Value::String(password_name.clone()));
+  }
+  if let Some(original_creation_date) = item.original_creation_date {
+    if item.item_type != ITEM_TYPE_FILE && item.item_type != ITEM_TYPE_IMAGE { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
+    result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
   }
 
   // page
@@ -575,11 +582,8 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   }
 
   // file
-  if let Some(original_creation_date) = item.original_creation_date {
-    if item.item_type != ITEM_TYPE_FILE { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
-    result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
-  }
-  // TODO (MEDIUM): not complete.
+
+  // table
 
   // image
   if let Some(image_size_px) = &item.image_size_px {
@@ -645,10 +649,14 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
       None => { if item_type == ITEM_TYPE_TABLE { Err(expected_for_err("spatialHeightGr", &item_type)) } else { Ok(None) } }
     }?,
 
-    // encryptable
+    // data
     password_name: match json::get_string_field(map, "passwordName")? {
       Some(v) => { if item_type == ITEM_TYPE_IMAGE || item_type == ITEM_TYPE_FILE { Ok(Some(v)) } else { Err(not_applicable_err("passwordName", &item_type)) } },
       None => { if item_type == ITEM_TYPE_IMAGE || item_type == ITEM_TYPE_FILE { Err(expected_for_err("passwordName", &item_type)) } else { Ok(None) } }
+    }?,
+    original_creation_date: match json::get_integer_field(map, "originalCreationDate")? {
+      Some(v) => { if item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
     }?,
 
     // page
@@ -710,11 +718,8 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     }?,
 
     // file
-    original_creation_date: match json::get_integer_field(map, "originalCreationDate")? {
-      Some(v) => { if item_type == ITEM_TYPE_FILE { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
-      None => { if item_type == ITEM_TYPE_FILE { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
-    }?,
-    // TODO (MEDIUM): not complete.
+
+    // table
 
     // image
     image_size_px: match json::get_dimensions_field(map, "imageSizePx")? {

@@ -25,11 +25,10 @@ import { newUid, Uid } from '../../util/uid';
 import { AttachmentsItem } from './base/attachments-item';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
-import { EncryptableItem } from "./base/encryptable-item";
+import { DataItem } from "./base/data-item";
 
 
-export interface FileItem extends XSizableItem, AttachmentsItem, EncryptableItem {
-  originalCreationDate: number,
+export interface FileItem extends XSizableItem, AttachmentsItem, DataItem {
 }
 
 function measureLineCount(s: string, widthBl: number): number {

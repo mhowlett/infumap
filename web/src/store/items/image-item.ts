@@ -22,12 +22,12 @@ import { ItemGeometry } from "../../item-geometry";
 import { BoundingBox, cloneDimensions, cloneVector, Dimensions } from "../../util/geometry";
 import { panic } from "../../util/lang";
 import { AttachmentsItem } from "./base/attachments-item";
-import { EncryptableItem } from "./base/encryptable-item";
+import { DataItem } from "./base/data-item";
 import { Item } from "./base/item";
 import { XSizableItem } from "./base/x-sizeable-item";
 
 
-export interface ImageItem extends XSizableItem, AttachmentsItem, EncryptableItem {
+export interface ImageItem extends XSizableItem, AttachmentsItem, DataItem {
   imageSizePx: Dimensions,
   thumbnail: string,
 }
@@ -95,6 +95,8 @@ export function cloneImageItem(item: ImageItem): ImageItem {
     spatialWidthGr: item.spatialWidthGr,
 
     passwordName: item.passwordName,
+    originalCreationDate: item.originalCreationDate,
+
     imageSizePx: cloneDimensions(item.imageSizePx)!,
     thumbnail: item.thumbnail,
 
