@@ -48,9 +48,9 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
     }
   };
 
-  let data_dir = &config.get_string("data_dir").unwrap();
+  let db_dir = &config.get_string("db_dir").unwrap();
 
-  let mut user_store: KVStore<User> = match KVStore::init(data_dir, "users.json") {
+  let mut user_store: KVStore<User> = match KVStore::init(db_dir, "users.json") {
     Ok(store) => store,
     Err(e) => {
       println!("Could not open user store log: {e}");
@@ -89,7 +89,7 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
     }
   }
 
-  let mut item_store = ItemStore::init(data_dir);
+  let mut item_store = ItemStore::init(db_dir);
   match item_store.load_user_items(&user.id, true) {
     Ok(_) => {},
     Err(e) => {

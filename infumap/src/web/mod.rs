@@ -45,10 +45,10 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
     Err(e) => { println!("Could not setup configuration {e}"); return; }
   };
 
-  let data_dir = config.get_string("data_dir").unwrap();
+  let db_dir = config.get_string("db_dir").unwrap();
   let init_stores = |rocket: Rocket<Build>| async move {
     rocket.manage(Mutex::new(
-      match Store::new(&data_dir) {
+      match Store::new(&db_dir) {
         Ok(store) => store,
         Err(e) => {
           println!("Failed to initialize store: {}", e);

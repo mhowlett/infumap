@@ -33,9 +33,9 @@ pub struct SessionStore {
 }
 
 impl SessionStore {
-  pub fn init(data_dir: &str) -> InfuResult<SessionStore> {
+  pub fn init(db_dir: &str) -> InfuResult<SessionStore> {
     const LOG_FILENAME: &str = "sessions.json";
-    let mut store: KVStore<Session> = KVStore::init(data_dir, LOG_FILENAME)?;
+    let mut store: KVStore<Session> = KVStore::init(db_dir, LOG_FILENAME)?;
 
     let mut to_remove = vec![];
     for (id, session) in store.get_iter() {

@@ -35,11 +35,11 @@ pub struct Store {
 }
 
 impl Store {
-  pub fn new(data_dir: &str) -> InfuResult<Store> {
+  pub fn new(db_dir: &str) -> InfuResult<Store> {
     Ok(Store {
-      user: UserStore::init(data_dir)?,
-      session: SessionStore::init(data_dir)?,
-      item: ItemStore::init(data_dir)
+      user: UserStore::init(db_dir)?,
+      session: SessionStore::init(db_dir)?,
+      item: ItemStore::init(db_dir)
     })
   }
 }

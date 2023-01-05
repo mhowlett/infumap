@@ -26,7 +26,7 @@ use super::item::Item;
 /// Store for Item instances.
 /// Not threadsafe.
 pub struct ItemStore {
-  data_dir: String,
+  db_dir: String,
   store_by_user_id: HashMap<Uid, KVStore<Item>>,
 
   // indexes
@@ -36,9 +36,9 @@ pub struct ItemStore {
 }
 
 impl ItemStore {
-  pub fn init(data_dir: &str) -> ItemStore {
+  pub fn init(db_dir: &str) -> ItemStore {
     ItemStore {
-      data_dir: String::from(data_dir),
+      db_dir: String::from(db_dir),
       store_by_user_id: HashMap::new(),
       owner_id_by_item_id: HashMap::new(),
       children_of: HashMap::new(),
@@ -65,7 +65,7 @@ impl ItemStore {
       }
     }
 
-    let store: KVStore<Item> = KVStore::init(&self.data_dir, &log_filename)?;
+    let store: KVStore<Item> = KVStore::init(&self.db_dir, &log_filename)?;
     for (_id, item) in store.get_iter() {
       self.add_to_indexes(item)?;
     }

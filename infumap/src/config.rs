@@ -40,7 +40,9 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
             return Err(format!("An error occurred building env var-only configuration: '{e}'").into());
           }
         };
-      let env_has_all_mandatory_config = match config.get_string("data_dir") { Ok(_) => true, Err(_) => false };
+      let env_has_all_mandatory_config =
+        match config.get_string("db_dir") { Ok(_) => true, Err(_) => false } &&
+        match config.get_string("data_dir") { Ok(_) => true, Err(_) => false };
 
       if !env_has_all_mandatory_config {
         // If mandatory config is not all available via env vars, then the settings file must be read as well.
@@ -65,14 +67,22 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
           }
         }
 
+        pb.push("db");
+        if !pb.as_path().exists() {
+          if let Err(e) = std::fs::create_dir(pb.as_path()) {
+            return Err(format!("Could not create db directory: '{e}'").into());
+          }
+        }
+        pb.pop();
+
         pb.push("data");
         if !pb.as_path().exists() {
           if let Err(e) = std::fs::create_dir(pb.as_path()) {
             return Err(format!("Could not create data directory: '{e}'").into());
           }
         }
-
         pb.pop();
+
         pb.push("settings.toml");
         if !pb.as_path().exists() {
           let f = match std::fs::File::create(pb.as_path()) {
@@ -132,6 +142,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
     }
   };
 
+  println!("Using db directory: {}", config.get_string("db_dir").unwrap());
   println!("Using data directory: {}", config.get_string("data_dir").unwrap());
 
   Ok(config)
