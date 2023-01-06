@@ -59,7 +59,7 @@ pub fn login(db: &State<Mutex<Db>>, request: Json<LoginRequest>) -> Json<LoginRe
     return Json(LoginResponse { success: false, session_id: None, user_id: None, root_page_id: None });
   }
 
-  match db.session.create_session(&user.id) {
+  match db.session.create_session(&user.id, &request.username, &request.password) {
     Ok(session) => {
       let result = LoginResponse {
         success: true,

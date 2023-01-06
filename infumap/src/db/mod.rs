@@ -38,7 +38,7 @@ impl Db {
   pub fn new(db_dir: &str) -> InfuResult<Db> {
     Ok(Db {
       user: UserDb::init(db_dir)?,
-      session: SessionDb::init(db_dir)?,
+      session: SessionDb::init(),
       item: ItemDb::init(db_dir)
     })
   }

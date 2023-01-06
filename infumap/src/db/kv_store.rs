@@ -113,7 +113,7 @@ impl<T> KVStore<T> where T: JsonLogSerializable<T> {
     Ok(())
   }
 
-  pub fn remove(&mut self, id: &str) -> InfuResult<()> {
+  pub fn _remove(&mut self, id: &str) -> InfuResult<()> {
     if !self.map.contains_key(id) {
       return Err(format!("Entry with id {} does not exist.", id).into());
     }

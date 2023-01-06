@@ -35,12 +35,11 @@ export const fetchUser: (() => Promise<User>) = async () => {
   });
   let r = await fetchResult.json();
   if (!r.success) { throwExpression("login failed!"); }
-  return { username, password, userId: r.userId, sessionId: r.sessionId, rootPageId: r.rootPageId };
+  return { username, userId: r.userId, sessionId: r.sessionId, rootPageId: r.rootPageId };
 }
 
 export type User = {
   username: string | null,
-  password: string | null,
   userId: Uid | null,
   sessionId: Uid | null,
   rootPageId: Uid | null
@@ -58,7 +57,7 @@ export interface UserStoreContextProps {
 const UserStoreContext = createContext<UserStoreContextModel>();
 
 export function UserStoreProvider(props: UserStoreContextProps) {
-  const [user, setUser] = createStore<User>({ username: null, password: null, userId: null, sessionId: null, rootPageId: null });
+  const [user, setUser] = createStore<User>({ username: null, userId: null, sessionId: null, rootPageId: null });
   const value: UserStoreContextModel = { user, setUser };
   return (
     <UserStoreContext.Provider value={value}>

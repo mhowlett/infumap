@@ -19,52 +19,33 @@ use std::collections::HashMap;
 
 use crate::util::infu::InfuResult;
 use crate::util::uid::{new_uid, Uid};
-use super::{kv_store::KVStore, session::Session};
+use super::session::Session;
 
 
-/// Db for Session instances.
-/// Not threadsafe.
-/// Sessions are automatically removed if expired on init, or on get_session.
-/// TODO (LOW): Remove expired sessions periodically as well.
-/// TODO (LOW): Log compaction.
+/// In memory Db for Session instances.
 pub struct SessionDb {
-  store: KVStore<Session>,
+  store: HashMap<Uid, Session>,
   ids_by_user: HashMap<String, Vec<String>>,
 }
 
 impl SessionDb {
-  pub fn init(db_dir: &str) -> InfuResult<SessionDb> {
-    const LOG_FILENAME: &str = "sessions.json";
-    let mut store: KVStore<Session> = KVStore::init(db_dir, LOG_FILENAME)?;
-
-    let mut to_remove = vec![];
-    for (id, session) in store.get_iter() {
-      if session.expires < SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?.as_secs() as i64 {
-        to_remove.push(id.clone());
-      }
+  pub fn init() -> SessionDb {
+    SessionDb {
+      store: HashMap::new(),
+      ids_by_user: HashMap::new()
     }
-    for id in to_remove { store.remove(&id)? }
-
-    let mut ids_by_user: HashMap<String, Vec<Uid>> = HashMap::new();
-    for (id, session) in store.get_iter() {
-      if let Some(vec) = ids_by_user.get_mut(&session.user_id) {
-        vec.push(id.clone());
-      } else {
-        ids_by_user.insert(session.user_id.clone(), vec![id.clone()]);
-      }
-    }
-
-    Ok(SessionDb { store, ids_by_user })
   }
 
-  pub fn create_session(&mut self, user_id: &str) -> InfuResult<Session> {
+  pub fn create_session(&mut self, user_id: &str, username: &str, password: &str) -> InfuResult<Session> {
     const THIRTY_DAYS_AS_SECONDS: u64 = 60*60*24*30;
     let session = Session {
       id: new_uid(),
-      user_id: String::from(user_id).clone(),
-      expires: (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)? + Duration::from_secs(THIRTY_DAYS_AS_SECONDS)).as_secs() as i64
+      user_id: String::from(user_id),
+      expires: (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)? + Duration::from_secs(THIRTY_DAYS_AS_SECONDS)).as_secs() as i64,
+      username: String::from(username),
+      password: String::from(password)
     };
-    self.store.add(session.clone())?;
+    self.store.insert(session.id.clone(), session.clone());
 
     if !self.ids_by_user.contains_key(user_id) {
       self.ids_by_user.insert(String::from(user_id), vec![]);
@@ -80,7 +61,7 @@ impl SessionDb {
       else { return Err(format!("Session '{}' does not exist.", id).into()); };
     let user_id = session.user_id.clone();
   
-    self.store.remove(id)?;
+    self.store.remove(id);
     let current_ids_for_user =
       if let Some(ids) = self.ids_by_user.remove(&user_id) { ids }
       else { return Err(format!("Session '{}' does not exist in ids_by_user map.", id).into()); };
@@ -89,18 +70,6 @@ impl SessionDb {
       current_ids_for_user.iter().filter(|vid| *vid != id).map(|v| v.clone()).collect();
     if new_ids_for_user.len() > 0 {
       self.ids_by_user.insert(user_id, new_ids_for_user);
-    }
-
-    Ok(())
-  }
-
-  pub fn _delete_sessions_for_user(&mut self, user_id: &str) -> InfuResult<()> {
-    let ids =
-      if let Some(ids) = self.ids_by_user.remove(user_id) { ids }
-      else { return Ok(()) };
-
-    for id in ids {
-      self.store.remove(&id)?
     }
 
     Ok(())
