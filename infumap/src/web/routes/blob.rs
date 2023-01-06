@@ -19,7 +19,7 @@ use std::sync::Mutex;
 use rocket::{State, http::ContentType};
 
 use crate::db::Db;
-use crate::blobs::BlobStore;
+use crate::blob::BlobStore;
 use crate::web::responders::BlobResponse;
 use crate::util::infu::InfuError;
 
