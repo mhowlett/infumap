@@ -46,8 +46,6 @@ export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
         <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title} {props.item.passwordName != "default" ? " (plain)" : "(encrypted)"}</span>
       </div>
-      <div class={`absolute opacity-0 cursor-nwse-resize`}
-           style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
     </div>
   );
 }

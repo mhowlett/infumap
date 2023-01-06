@@ -107,7 +107,7 @@ export function mouseDownHandler(
   } else if (ev.button == MOUSE_RIGHT) {
     mouseRightDownHandler(itemStore, layoutStore, renderArea, ev);
   } else {
-    console.log("unknown mouse button: " + ev.button);
+    console.log("unsupported mouse button: " + ev.button);
   }
 }
 
@@ -168,8 +168,20 @@ export function mouseRightDownHandler(
 export function mouseMoveHandler(
     itemStore: ItemStoreContextModel,
     _layoutStore: LayoutStoreContextModel,
-    _renderArea: RenderArea,
+    renderArea: RenderArea,
     ev: MouseEvent) {
+
+  let hitInfo = getHitInfo(renderArea, desktopPxFromMouseEvent(ev));
+  if (hitInfo != null) {
+    if (hitInfo.hitbox.type == HitboxType.Resize) {
+      document.body.style.cursor = "nwse-resize";
+    } else {
+      document.body.style.cursor = "default";
+    }
+  } else {
+    document.body.style.cursor = "default"
+  }
+
   if (mouseAction == null) { return; }
 
   let deltaPx = subtract(desktopPxFromMouseEvent(ev), startPx!);

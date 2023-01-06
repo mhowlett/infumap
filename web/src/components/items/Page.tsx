@@ -55,8 +55,6 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
             {props.item.title}
           </div>
         </div>
-        <div class={`absolute opacity-0 cursor-nwse-resize`}
-             style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
       </div>
     );
   }
@@ -73,8 +71,6 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
           {props.item.title}
         </div>
       </div>
-      <div class={`absolute opacity-0 cursor-nwse-resize`}
-           style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
     </div>
   );
 }

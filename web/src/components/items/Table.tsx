@@ -37,9 +37,6 @@ export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (pro
       </div>
       <div class={`absolute border border-slate-700 rounded-sm shadow-lg`}
            style={`left: 0px; top: ${headerHeightPx}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h - headerHeightPx}px;`}>
-        <div class={`absolute opacity-0 cursor-nwse-resize`}
-             style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}>
-        </div>
       </div>
     </div>
   );
