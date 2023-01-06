@@ -30,8 +30,8 @@ pub struct BlobStore {
 
 impl BlobStore {
   pub fn new(blob_dir: &str) -> InfuResult<BlobStore> {
-    let path = expand_tilde(blob_dir).ok_or("Could not interpret blob store path.")?;
-    Ok(BlobStore { blob_dir: path })
+    let blob_dir = expand_tilde(blob_dir).ok_or(format!("Blob store path '{}' is not valid.", blob_dir))?;
+    Ok(BlobStore { blob_dir })
   }
 
   pub fn get(&self, id: &Uid) -> InfuResult<Vec<u8>> {
@@ -40,8 +40,7 @@ impl BlobStore {
     path.push(id);
 
     let mut f = File::open(&path)?;
-    let metadata = fs::metadata(&path)?;
-    let mut buffer = vec![0; metadata.len() as usize];
+    let mut buffer = vec![0; fs::metadata(&path)?.len() as usize];
     f.read(&mut buffer)?;
     Ok(buffer)
   }
