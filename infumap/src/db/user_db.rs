@@ -22,22 +22,22 @@ use super::kv_store::KVStore;
 use super::user::User;
 
 
-/// Store for User instances.
+/// Db for User instances.
 /// Not threadsafe.
-pub struct UserStore {
+pub struct UserDb {
   store: KVStore<User>,
   id_by_username: HashMap<String, String>
 }
 
-impl UserStore {
-  pub fn init(db_dir: &str) -> InfuResult<UserStore> {
+impl UserDb {
+  pub fn init(db_dir: &str) -> InfuResult<UserDb> {
     const LOG_FILENAME: &str = "users.json";
     let store: KVStore<User> = KVStore::init(db_dir, LOG_FILENAME)?;
     let mut id_by_username = HashMap::new();
     for (id, user) in store.get_iter() {
       id_by_username.insert(user.username.clone(), id.clone());
     }
-    Ok(UserStore { store, id_by_username })
+    Ok(UserDb { store, id_by_username })
   }
 
   pub fn _get_iter(&self) -> Iter<String, User> {

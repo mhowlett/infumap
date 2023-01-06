@@ -22,7 +22,7 @@ use std::sync::Mutex;
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use clap::{App, ArgMatches, Arg};
-use crate::store::Store;
+use crate::db::Db;
 use crate::config::setup_config;
 
 
@@ -46,12 +46,12 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
   };
 
   let db_dir = config.get_string("db_dir").unwrap();
-  let init_stores = |rocket: Rocket<Build>| async move {
+  let init_db = |rocket: Rocket<Build>| async move {
     rocket.manage(Mutex::new(
-      match Store::new(&db_dir) {
-        Ok(store) => store,
+      match Db::new(&db_dir) {
+        Ok(db) => db,
         Err(e) => {
-          println!("Failed to initialize store: {}", e);
+          println!("Failed to initialize db: {}", e);
           panic!();
         }
       }))
@@ -64,5 +64,5 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
         routes::account::logout,
         routes::command::command,
       ])
-      .attach(AdHoc::on_ignite("Initialize Store", init_stores))).launch().await;
+      .attach(AdHoc::on_ignite("Initialize Db", init_db))).launch().await;
 }

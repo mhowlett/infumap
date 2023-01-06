@@ -15,31 +15,31 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::util::infu::InfuResult;
-use self::item_store::ItemStore;
-use self::session_store::SessionStore;
-use self::user_store::UserStore;
+use self::item_db::ItemDb;
+use self::session_db::SessionDb;
+use self::user_db::UserDb;
 
 pub mod user;
-pub mod user_store;
+pub mod user_db;
 pub mod session;
-pub mod session_store;
+pub mod session_db;
 pub mod item;
-pub mod item_store;
+pub mod item_db;
 pub mod kv_store;
 
 
-pub struct Store {
-  pub user: UserStore,
-  pub item: ItemStore,
-  pub session: SessionStore
+pub struct Db {
+  pub user: UserDb,
+  pub item: ItemDb,
+  pub session: SessionDb
 }
 
-impl Store {
-  pub fn new(db_dir: &str) -> InfuResult<Store> {
-    Ok(Store {
-      user: UserStore::init(db_dir)?,
-      session: SessionStore::init(db_dir)?,
-      item: ItemStore::init(db_dir)
+impl Db {
+  pub fn new(db_dir: &str) -> InfuResult<Db> {
+    Ok(Db {
+      user: UserDb::init(db_dir)?,
+      session: SessionDb::init(db_dir)?,
+      item: ItemDb::init(db_dir)
     })
   }
 }

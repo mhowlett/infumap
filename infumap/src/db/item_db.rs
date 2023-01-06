@@ -23,9 +23,9 @@ use super::kv_store::{KVStore, JsonLogSerializable};
 use super::item::Item;
 
 
-/// Store for Item instances.
+/// Db for Item instances.
 /// Not threadsafe.
-pub struct ItemStore {
+pub struct ItemDb {
   db_dir: String,
   store_by_user_id: HashMap<Uid, KVStore<Item>>,
 
@@ -35,9 +35,9 @@ pub struct ItemStore {
   attachments_of: HashMap<Uid, Vec<Uid>>,
 }
 
-impl ItemStore {
-  pub fn init(db_dir: &str) -> ItemStore {
-    ItemStore {
+impl ItemDb {
+  pub fn init(db_dir: &str) -> ItemDb {
+    ItemDb {
       db_dir: String::from(db_dir),
       store_by_user_id: HashMap::new(),
       owner_id_by_item_id: HashMap::new(),

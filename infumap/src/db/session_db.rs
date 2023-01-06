@@ -22,18 +22,18 @@ use crate::util::uid::{new_uid, Uid};
 use super::{kv_store::KVStore, session::Session};
 
 
-/// Store for Session instances.
+/// Db for Session instances.
 /// Not threadsafe.
 /// Sessions are automatically removed if expired on init, or on get_session.
 /// TODO (LOW): Remove expired sessions periodically as well.
 /// TODO (LOW): Log compaction.
-pub struct SessionStore {
+pub struct SessionDb {
   store: KVStore<Session>,
   ids_by_user: HashMap<String, Vec<String>>,
 }
 
-impl SessionStore {
-  pub fn init(db_dir: &str) -> InfuResult<SessionStore> {
+impl SessionDb {
+  pub fn init(db_dir: &str) -> InfuResult<SessionDb> {
     const LOG_FILENAME: &str = "sessions.json";
     let mut store: KVStore<Session> = KVStore::init(db_dir, LOG_FILENAME)?;
 
@@ -54,7 +54,7 @@ impl SessionStore {
       }
     }
 
-    Ok(SessionStore { store, ids_by_user })
+    Ok(SessionDb { store, ids_by_user })
   }
 
   pub fn create_session(&mut self, user_id: &str) -> InfuResult<Session> {

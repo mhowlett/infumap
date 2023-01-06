@@ -18,10 +18,10 @@ use std::io::{BufRead, Write};
 use std::time::SystemTime;
 use clap::{ArgMatches, App, Arg};
 use crate::config::setup_config;
-use crate::store::item::{Item, RelationshipToParent};
-use crate::store::item_store::ItemStore;
-use crate::store::kv_store::KVStore;
-use crate::store::user::User;
+use crate::db::item::{Item, RelationshipToParent};
+use crate::db::item_db::ItemDb;
+use crate::db::kv_store::KVStore;
+use crate::db::user::User;
 use crate::util::geometry::{Vector, GRID_SIZE};
 use crate::util::uid::{new_uid, Uid};
 
@@ -89,7 +89,7 @@ pub fn execute<'a>(sub_matches: &ArgMatches) {
     }
   }
 
-  let mut item_store = ItemStore::init(db_dir);
+  let mut item_store = ItemDb::init(db_dir);
   match item_store.load_user_items(&user.id, true) {
     Ok(_) => {},
     Err(e) => {
@@ -130,7 +130,7 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     natural_aspect: Some(2.0),
     background_color_index: Some(0),
     popup_position_gr: Some(Vector { x: 30 * GRID_SIZE, y: 15 * GRID_SIZE }),
-    popup_alignment_point: Some(crate::store::item::AlignmentPoint::Center),
+    popup_alignment_point: Some(crate::db::item::AlignmentPoint::Center),
     popup_width_gr: Some(10 * GRID_SIZE),
     url: None,
     image_size_px: None,
