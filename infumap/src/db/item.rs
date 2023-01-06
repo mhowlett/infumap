@@ -152,12 +152,12 @@ const ALL_JSON_FIELDS: [&'static str; 26] = ["__recordType",
   "imageSizePx", "thumbnail", "mimeType", "fileSizeBytes"];
 
 
-/// The Item type, used for all items, and corresponding serialization / validation logic.
-/// All of this is largely done by hand, rather than make use of the defualt Rust serde
-/// Serialize/Deserialize attributes or JSON Schema for validation, because the requirements
-/// are quite specialized:
+/// All-encompassing Item type and corresponding serialization / validation logic.
+/// The implementation is largely hand-rolled - doesn't leverage the defualt Rust serde
+/// Serialize/Deserialize attributes or JSON Schema for validation. This is because
+/// the requirements are quite specialized:
 ///  - Different serialized data for web apis vs db log use.
-///  - Handling of updates, where not all fields present.
+///  - Handling of updates, where only a subset of fields are present.
 ///  - Custom validation logic (e.g. related to item type classes).
 ///  - A flat (straightforward) serialized structure of a more complex object model.
 #[derive(Debug)]
