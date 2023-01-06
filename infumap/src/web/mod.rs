@@ -22,7 +22,7 @@ use std::sync::Mutex;
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use clap::{App, ArgMatches, Arg};
-use crate::blob_store::BlobStore;
+use crate::blobs::BlobStore;
 use crate::db::Db;
 use crate::config::setup_config;
 

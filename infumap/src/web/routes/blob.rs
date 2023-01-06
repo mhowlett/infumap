@@ -18,7 +18,10 @@ use std::sync::Mutex;
 
 use rocket::{State, http::ContentType};
 
-use crate::{db::Db, blob_store::BlobStore, web::responders::BlobResponse, util::infu::InfuError};
+use crate::db::Db;
+use crate::blobs::BlobStore;
+use crate::web::responders::BlobResponse;
+use crate::util::infu::InfuError;
 
 #[get("/blob/<uid>")]
 pub fn get(db: &State<Mutex<Db>>, blob_store: &State<Mutex<BlobStore>>, uid: &str) -> Result<BlobResponse, InfuError> {
