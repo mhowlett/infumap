@@ -16,31 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { base62 } from "./base62";
 import { uuid } from "./uuid";
 
 export type Uid = string;
 
 export function newUid(): Uid {
-  return base62.encode(uuid.toBytes(uuid.createV4()));
-}
-
-export function testUid(): void {
-  let uid = "3d14c109-9934-4717-aef0-be64a95a8550";
-  let bytes = uuid.toBytes(uid);
-  let encoded = base62.encode(bytes);
-  let decoded = base62.decode(encoded);
-  let reconstructed = uuid.fromBytes(decoded);
-  console.log(uid);
-  console.log(reconstructed, encoded);
-
-  for (let i=0; i<10; ++i) {
-    let id = uuid.createV4();
-    let bytes = uuid.toBytes(id);
-    let encoded = base62.encode(bytes);
-    let decoded = base62.decode(encoded);
-    let reconstructed = uuid.fromBytes(decoded);
-    console.log(id);
-    console.log(reconstructed, encoded);
-  }
+  return uuid.createV4().replace("-", "");
 }

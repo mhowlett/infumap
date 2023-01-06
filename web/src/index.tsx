@@ -25,13 +25,9 @@ import { ItemStoreProvider } from './store/ItemStoreProvider';
 import { LayoutStoreProvider } from './store/LayoutStoreProvider';
 import { UserStoreProvider } from './store/UserStoreProvider';
 
-// import { testUid } from './items';
-// import { testEncodeDecode } from './util/base62';
 // import { testOrdering } from './util/ordering';
 
 if (false) {
-  // testUid();
-  // testEncodeDecode();
   // testOrdering();
 }
 

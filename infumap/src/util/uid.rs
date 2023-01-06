@@ -18,5 +18,5 @@
 pub type Uid = String;
 
 pub fn new_uid() -> Uid {
-  super::base62::encode(&uuid::Uuid::new_v4().as_bytes().clone())
+  uuid::Uuid::new_v4().to_string().replace("-", "")
 }

@@ -18,7 +18,6 @@ use rocket::State;
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
 use crate::store::{Store, user::User};
-use crate::util::base62;
 use uuid::{uuid, Uuid};
 use std::sync::Mutex;
 use std::time::SystemTime;
@@ -99,12 +98,11 @@ pub fn logout(_store: &State<Mutex<Store>>, _payload: Json<LogoutRequest>) -> Js
 
 #[get("/gen")]
 fn _gen() -> String {
-  // TODO (HIGH): remove. playing with OTP / base62 uuids.
+  // TODO (HIGH): remove. playing with OTP / uuids.
 
   const ID: Uuid = uuid!("3d14c109-9934-4717-aef0-be64a95a8550");
   // let key_uuid = uuid::Uuid::new_v4();
-  let b = ID.as_bytes().clone();
-  let a = base62::encode(&b);
+  let a = ID.to_string().replace("-", "");
   println!("{}", a);
 
   // The secret should be randomly generated of N bits length (look it up)
