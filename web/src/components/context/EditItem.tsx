@@ -18,14 +18,24 @@
 
 import { Component, Match, Switch } from "solid-js";
 import { Item } from "../../store/items/base/item";
+import { useUserStore } from "../../store/UserStoreProvider";
 import { EditNote } from "./EditNote";
 import { EditPage } from "./EditPage";
 
 
 export const EditItem: Component<{item: Item}> = (props: {item: Item}) => {
+  let userStore = useUserStore();
+
+  const copyClickHandler = () => { navigator.clipboard.writeText(props.item.id); }
+  const linkClickHandler = () => { navigator.clipboard.writeText(window.location.origin + "/" + userStore.user.username + "/" + props.item.id); }
+
   return (
-    <div class="border rounded w-[300px] h-[150px] bg-slate-50">
-      <div class="text-slate-800 text-sm ml-1">Edit {props.item.itemType} <span class="ml-4 font-mono text-slate-400">{`${props.item.id}`}</span> <i class={`fa fa-copy text-slate-400`} /></div>
+    <div class="border rounded w-[400px] h-[150px] bg-slate-50">
+      <div class="text-slate-800 text-sm ml-1">Edit {props.item.itemType}
+        <span class="ml-4 font-mono text-slate-400">{`${props.item.id}`}</span>
+        <i class={`fa fa-copy text-slate-400 cursor-pointer ml-1`} onclick={copyClickHandler} />
+        <i class={`fa fa-link text-slate-400 cursor-pointer ml-1`} onclick={linkClickHandler} />
+      </div>
       <Switch fallback={<div>Not Found</div>}>
         <Match when={props.item.itemType == "page"}>
           <EditPage item={props.item} />
