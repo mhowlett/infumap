@@ -34,6 +34,8 @@ export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props
 
   let scale = Math.min(heightScale, widthScale);
 
+  const clickHandler = () => { window.location.href = "/blob/" + props.item.id }
+
   return (
     <div ref={outerDiv}
          id={props.item.id}
@@ -42,7 +44,7 @@ export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props
       <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
                   `line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left; ` +
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
-        <span class="text-green-800">{props.item.title}</span>
+        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title} {props.item.passwordName != "default" ? " (plain)" : "(encrypted)"}</span>
       </div>
       <div class={`absolute opacity-0 cursor-nwse-resize`}
            style={`left: ${props.boundsPx.w-RESIZE_BOX_SIZE_PX}px; top: ${props.boundsPx.h-RESIZE_BOX_SIZE_PX}px; width: ${RESIZE_BOX_SIZE_PX}px; height: ${RESIZE_BOX_SIZE_PX}px;`}></div>
@@ -55,6 +57,8 @@ export const FileInTable: Component<{ item: FileItem, parentTable: TableItem, bo
   let widthBl = props.parentTable.spatialWidthGr / GRID_SIZE;
   let oneBlockWidthPx = props.boundsPx.w / widthBl;
 
+  const clickHandler = () => { window.location.href = "/blob/" + props.item.id }
+
   return (
     <>
     <div class="absolute"
@@ -63,10 +67,10 @@ export const FileInTable: Component<{ item: FileItem, parentTable: TableItem, bo
         <i class={`fas fa-file`} />
       </div>
     </div>
-    <div class="absolute overflow-hidden text-green-800"
+    <div class="absolute overflow-hidden"
          style={`left: ${props.boundsPx.x + oneBlockWidthPx}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w - oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
       <div style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
-        { props.item.title }
+        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title} {props.item.passwordName != "default" ? " (plain)" : "(encrypted)"}</span>
       </div>
     </div>
     </>
