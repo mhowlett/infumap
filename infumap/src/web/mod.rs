@@ -22,6 +22,7 @@ use std::sync::Mutex;
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use clap::{App, ArgMatches, Arg};
+use crate::blob_store::BlobStore;
 use crate::db::Db;
 use crate::config::setup_config;
 
@@ -57,12 +58,26 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
       }))
   };
 
+  let blob_dir = config.get_string("blob_dir").unwrap();
+  let init_blob_store = |rocket: Rocket<Build>| async move {
+    rocket.manage(Mutex::new(
+      match BlobStore::new(&blob_dir) {
+        Ok(blob) => blob,
+        Err(e) => {
+          println!("Failed to initialize blob store: {}", e);
+          panic!();
+        }
+      }))
+  };
+
   _ = dist_handlers::mount(
     rocket::build()
       .mount("/", routes![
+        routes::blob::get,
         routes::account::login,
         routes::account::logout,
         routes::command::command,
       ])
-      .attach(AdHoc::on_ignite("Initialize Db", init_db))).launch().await;
+      .attach(AdHoc::on_ignite("Initialize Db", init_db)))
+      .attach(AdHoc::on_ignite("Initialize Blob Store", init_blob_store)).launch().await;
 }

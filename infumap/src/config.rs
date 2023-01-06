@@ -42,7 +42,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         };
       let env_has_all_mandatory_config =
         match config.get_string("db_dir") { Ok(_) => true, Err(_) => false } &&
-        match config.get_string("data_dir") { Ok(_) => true, Err(_) => false };
+        match config.get_string("blob_dir") { Ok(_) => true, Err(_) => false };
 
       if !env_has_all_mandatory_config {
         // If mandatory config is not all available via env vars, then the settings file must be read as well.
@@ -143,7 +143,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
   };
 
   println!("Using db directory: {}", config.get_string("db_dir").unwrap());
-  println!("Using data directory: {}", config.get_string("data_dir").unwrap());
+  println!("Using blob directory: {}", config.get_string("blob_dir").unwrap());
 
   Ok(config)
 }

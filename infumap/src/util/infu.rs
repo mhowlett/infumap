@@ -17,6 +17,8 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::time::SystemTimeError;
+use rocket::response::{self, Responder};
+use rocket::request::Request;
 
 pub type InfuResult<T> = Result<T, InfuError>;
 
@@ -71,5 +73,11 @@ impl From<String> for InfuError {
 impl From<&str> for InfuError {
   fn from(err: &str) -> Self {
     Self::new(&err)
+  }
+}
+
+impl<'r> Responder<'r, 'static> for InfuError {
+  fn respond_to(self, request: &'r Request<'_>) -> response::Result<'static> {
+    rocket::response::status::BadRequest(Some(self.message)).respond_to(request)
   }
 }

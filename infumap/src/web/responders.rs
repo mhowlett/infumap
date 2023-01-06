@@ -21,6 +21,7 @@ use rocket::Response;
 use std::io::Cursor;
 
 
+
 pub struct RawPngImage<T> {
   pub image_data: T
 }
@@ -47,3 +48,18 @@ impl<'r> Responder<'r, 'static> for RawIcoImage<&'static [u8]> {
       .ok()
   }
 }
+
+pub struct BlobResponse {
+  pub data: Vec<u8>,
+  pub mime_type: ContentType,
+}
+
+impl<'r> Responder<'r, 'static> for BlobResponse {
+  fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
+    Response::build()
+      .header(self.mime_type)
+      .sized_body(self.data.len(), Cursor::new(self.data))
+      .ok()
+  }
+}
+

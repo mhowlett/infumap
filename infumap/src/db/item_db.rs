@@ -183,6 +183,14 @@ impl ItemDb {
     self.add_to_indexes(item)
   }
 
+  pub fn get(&self, id: &Uid) -> InfuResult<&Item> {
+    let owner_id = self.owner_id_by_item_id.get(id)
+      .ok_or(format!("Unknown item '{}' - corresponding user item store might not be loaded.", id))?;
+    let store = self.store_by_user_id.get(owner_id)
+      .ok_or(format!("Item store is not loaded for user '{}'.", owner_id))?;
+    Ok(store.get(id).ok_or(format!("Item with id '{}' is missing.", id))?)
+  }
+
   pub fn get_children(&mut self, parent_id: &Uid) -> InfuResult<Vec<&Item>> {
     let owner_id = self.owner_id_by_item_id.get(parent_id)
       .ok_or(format!("Unknown item '{}' - corresponding user item store might not be loaded.", parent_id))?;

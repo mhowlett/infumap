@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Matt Howlett
+// Copyright (C) 2023 Matt Howlett
 // This file is part of Infumap.
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,15 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde_json::{Map, Value};
+use std::path::PathBuf;
+use std::fs;
+use std::fs::File;
+use std::io::Read;
+
 use crate::util::infu::InfuResult;
-
-pub mod blob;
-pub mod account;
-pub mod command;
+use crate::util::uid::Uid;
+use crate::util::fs::expand_tilde;
 
 
-pub trait WebApiJsonSerializable<T> {
-  fn to_api_json(&self) -> InfuResult<Map<String, Value>>;
-  fn from_api_json(map: &Map<String, Value>) -> InfuResult<T>;
+pub struct BlobStore {
+  blob_dir: PathBuf,
+}
+
+impl BlobStore {
+  pub fn new(blob_dir: &str) -> InfuResult<BlobStore> {
+    let path = expand_tilde(blob_dir).ok_or("Could not interpret blob store path.")?;
+    Ok(BlobStore { blob_dir: path })
+  }
+
+  pub fn get(&self, id: &Uid) -> InfuResult<Vec<u8>> {
+    let mut path = self.blob_dir.clone();
+    path.push(&id[..2]);
+    path.push(id);
+
+    let mut f = File::open(&path)?;
+    let metadata = fs::metadata(&path)?;
+    let mut buffer = vec![0; metadata.len() as usize];
+    f.read(&mut buffer)?;
+    Ok(buffer)
+  }
 }
