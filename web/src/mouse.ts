@@ -18,7 +18,6 @@
 
 import { GRID_SIZE, MOUSE_MOVE_AMBIGUOUS_PX } from "./constants";
 import { Hitbox, HitboxType } from "./hitbox";
-import { ItemGeometry } from "./item-geometry";
 import { RenderArea } from "./render-area";
 import { server } from "./server";
 import { calcSizeForSpatialBl, Item } from "./store/items/base/item";
