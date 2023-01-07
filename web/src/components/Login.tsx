@@ -17,13 +17,38 @@
 */
 
 import { Component } from "solid-js";
+import { server } from "../server";
+import { useItemStore } from "../store/ItemStoreProvider";
+import { useLayoutStore } from "../store/LayoutStoreProvider";
+import { useUserStore } from "../store/UserStoreProvider";
 
 export const Login: Component = () => {
+  let userStore = useUserStore();
+  let itemStore = useItemStore();
+  let layoutStore = useLayoutStore();
+
+  const handleClick = async () => {
+    let success = await userStore.login("test", "qwerty");
+    if (success) {
+      try {
+        let user = userStore.getUser()!;
+        let rootId = user.rootPageId!;
+        let r = await server.fetchChildItems(user, rootId);
+        itemStore.setChildItems(rootId, r);
+        layoutStore.setCurrentPageId(rootId);
+      } catch {
+        console.log("problem loading root page, clearing session II.");
+        userStore.clear();
+      }
+    }
+  }
+
   return (
     <div class="border border-slate-700">
       <div>Login</div>
       <div>Username: <input type="text" /></div>
       <div>Password: <input type="password" /></div>
+      <button onclick={handleClick}>login</button>
     </div>
   )
 }

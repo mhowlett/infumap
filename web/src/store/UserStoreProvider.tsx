@@ -24,6 +24,7 @@ import { Uid } from "../util/uid";
 
 
 const SESSION_NAME = "infusession";
+const EXPIRE_DAYS = 30;
 
 export type User = {
   username: string,
@@ -33,7 +34,7 @@ export type User = {
 }
 
 export interface UserStoreContextModel {
-  login: (username: string, password: string) => Promise<void>,
+  login: (username: string, password: string) => Promise<boolean>,
   logout: () => Promise<void>,
   getUser: () => User | null,
   clear: () => void,
@@ -49,7 +50,7 @@ export function UserStoreProvider(props: UserStoreContextProps) {
   const [sessionDataString, setSessionDataString] = createSignal<string | null>(getCookie(SESSION_NAME));
 
   const value: UserStoreContextModel = {
-    login: async (username: string, password: string): Promise<void> => {
+    login: async (username: string, password: string): Promise<boolean> => {
       let fetchResult = await fetch('/account/login', {
         method: 'POST',
         headers: {
@@ -60,12 +61,14 @@ export function UserStoreProvider(props: UserStoreContextProps) {
       });
       let r = await fetchResult.json();
       if (!r.success) {
+        eraseCookie(SESSION_NAME);
         setSessionDataString(null);
-        throwExpression("login failed!");
+        return false;
       }
       const cookiePayload = JSON.stringify({ username, userId: r.userId, sessionId: r.sessionId, rootPageId: r.rootPageId });
+      setCookie(SESSION_NAME, cookiePayload, EXPIRE_DAYS);
       setSessionDataString(cookiePayload);
-      setCookie(SESSION_NAME, cookiePayload, 30);
+      return true;
     },
 
     logout: async (): Promise<void> => {
@@ -86,8 +89,8 @@ export function UserStoreProvider(props: UserStoreContextProps) {
       });
 
       let r = await fetchResult.json();
-      setSessionDataString(null);
       eraseCookie(SESSION_NAME);
+      setSessionDataString(null);
 
       if (!r.success) {
         throwExpression("logout failed!");
@@ -99,6 +102,7 @@ export function UserStoreProvider(props: UserStoreContextProps) {
       if (data == null) { return null };
       if (getCookie(SESSION_NAME) == null) {
         // Session cookie has expired. Update SolidJS state to reflect this.
+        console.log("Session cookie has expired.");
         setSessionDataString(null);
         return null;
       }
@@ -106,8 +110,8 @@ export function UserStoreProvider(props: UserStoreContextProps) {
     },
 
     clear: (): void => {
-      setSessionDataString(null);
       eraseCookie(SESSION_NAME);
+      setSessionDataString(null);
     }
   };
 

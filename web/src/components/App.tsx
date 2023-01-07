@@ -16,12 +16,13 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onMount } from 'solid-js';
+import { Component, Match, onMount, Switch } from 'solid-js';
 import { server } from '../server';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
 import { useUserStore } from '../store/UserStoreProvider';
 import { Desktop } from './Desktop';
+import { Login } from './Login';
 import { Toolbar } from './Toolbar';
 
 
@@ -30,35 +31,32 @@ const App: Component = () => {
   let layoutStore = useLayoutStore();
   let itemStore = useItemStore();
 
-  const init = async () => {
-    if (userStore.getUser() == null) {
-      console.log("logging in");
-      await userStore.login("test", "qwerty");
-    } else {
-      console.log("using previous session");
-    }
-    let user = userStore.getUser()!;
-    let rootId = user.rootPageId!;
-    itemStore.setRoot(rootId);
-    let r = await server.fetchChildItems(user, rootId);
-    itemStore.setChildItems(rootId, r);
-    layoutStore.setCurrentPageId(rootId);
-  }
-
   onMount(async () => {
-    try {
-      await init();
-    } catch {
-      console.log("clearing session and retrying. session probably gone from server.");
-      userStore.clear();
-      await init();
+    let user = userStore.getUser()!;
+    if (user != null) {
+      try {
+        let rootId = user.rootPageId!;
+        let r = await server.fetchChildItems(user, rootId);
+        itemStore.setChildItems(rootId, r);
+        layoutStore.setCurrentPageId(rootId);
+      } catch {
+        console.log("problem loading root page, clearing session.");
+        userStore.clear();
+      }
     }
   });
 
   return (
     <div class="fixed top-0 left-0 right-0 bottom-0 select-none touch-none overflow-hidden">
-      <Desktop />
-      <Toolbar />
+      <Switch>
+        <Match when={userStore.getUser() != null}>
+          <Desktop />
+          <Toolbar />
+        </Match>
+        <Match when={userStore.getUser() == null}>
+          <Login />
+        </Match>
+      </Switch>
     </div>
   );
 };
