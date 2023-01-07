@@ -75,7 +75,7 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         }
         pb.pop();
 
-        pb.push("data");
+        pb.push("blob");
         if !pb.as_path().exists() {
           if let Err(e) = std::fs::create_dir(pb.as_path()) {
             return Err(format!("Could not create data directory: '{e}'").into());
