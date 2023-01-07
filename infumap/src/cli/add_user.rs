@@ -122,7 +122,6 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     spatial_position_gr: Vector { x: 0, y: 0 },
     spatial_width_gr: Some(60 * GRID_SIZE),
     spatial_height_gr: None,
-    password_name: None,
     original_creation_date: None,
     mime_type: None,
     file_size_bytes: None,

@@ -44,7 +44,7 @@ export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props
       <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
                   `line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left; ` +
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
-        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title} {props.item.passwordName != "default" ? " (plain)" : "(encrypted)"}</span>
+        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title}</span>
       </div>
     </div>
   );
@@ -68,7 +68,7 @@ export const FileInTable: Component<{ item: FileItem, parentTable: TableItem, bo
     <div class="absolute overflow-hidden"
          style={`left: ${props.boundsPx.x + oneBlockWidthPx}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w - oneBlockWidthPx}px; height: ${props.boundsPx.h}px; `}>
       <div style={`line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left;`}>
-        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title} {props.item.passwordName != "default" ? " (plain)" : "(encrypted)"}</span>
+        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title}</span>
       </div>
     </div>
     </>

@@ -107,7 +107,6 @@ export function cloneFileItem(item: FileItem): FileItem {
 
     spatialWidthGr: item.spatialWidthGr,
 
-    passwordName: item.passwordName,
     originalCreationDate: item.originalCreationDate,
     mimeType: item.mimeType,
     fileSizeBytes: item.fileSizeBytes,

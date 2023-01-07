@@ -23,7 +23,6 @@ import { Item } from "./item";
 const ITEM_TYPES = ["image", "file"];
 
 export interface DataItem extends Item {
-  passwordName: string | null,
   originalCreationDate: number,
   mimeType: string,
   fileSizeBytes: number,

@@ -142,13 +142,13 @@ fn is_y_sizeable(item_type: &str) -> bool {
   item_type == ITEM_TYPE_TABLE
 }
 
-const ALL_JSON_FIELDS: [&'static str; 26] = ["__recordType",
+const ALL_JSON_FIELDS: [&'static str; 25] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
   "spatialPositionGr", "spatialWidthGr", "innerSpatialWidthGr",
   "naturalAspect", "backgroundColorIndex", "popupPositionGr",
   "popupAlignmentPoint", "popupWidthGr", "url",
-  "originalCreationDate", "spatialHeightGr", "passwordName",
+  "originalCreationDate", "spatialHeightGr",
   "imageSizePx", "thumbnail", "mimeType", "fileSizeBytes"];
 
 
@@ -180,7 +180,6 @@ pub struct Item {
   pub spatial_height_gr: Option<i64>,
 
   // data
-  pub password_name: Option<String>,
   pub original_creation_date: Option<i64>,
   pub mime_type: Option<String>,
   pub file_size_bytes: Option<i64>,
@@ -220,7 +219,6 @@ impl Clone for Item {
       spatial_position_gr: self.spatial_position_gr.clone(),
       spatial_width_gr: self.spatial_width_gr.clone(),
       spatial_height_gr: self.spatial_height_gr.clone(),
-      password_name: self.password_name.clone(),
       original_creation_date: self.original_creation_date.clone(),
       mime_type: self.mime_type.clone(),
       file_size_bytes: self.file_size_bytes.clone(),
@@ -316,11 +314,6 @@ impl JsonLogSerializable<Item> for Item {
 
     // data
     // Like the data file, all these fields are immutable.
-    if let Some(new_password_name) = &new.password_name {
-      if match &old.password_name { Some(o) => o != new_password_name, None => { true } } {
-        cannot_modify_err("passwordName", &old.id)?;
-      }
-    }
     if let Some(new_original_creation_date) = new.original_creation_date {
       if match old.original_creation_date { Some(o) => o != new_original_creation_date, None => { true } } {
         cannot_modify_err("originalCreationDate", &old.id)?;
@@ -455,9 +448,6 @@ impl JsonLogSerializable<Item> for Item {
 
     // data
     // Like the data file, all these fields are immutable.
-    if let Ok(v) = json::get_string_field(map, "passwordName") {
-      if v.is_some() { cannot_update_err("passwordName", &self.id)?; }
-    }
     if let Ok(v) = json::get_integer_field(map, "originalCreationDate") {
       if v.is_some() { cannot_update_err("originalCreationDate", &self.id)?; }
     }
@@ -573,10 +563,6 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   }
 
   // data
-  if let Some(password_name) = &item.password_name {
-    if !is_data_item(&item.item_type) { unexpected_field_err("passwordName", &item.id, &item.item_type)? }
-    result.insert(String::from("passwordName"), Value::String(password_name.clone()));
-  }
   if let Some(original_creation_date) = item.original_creation_date {
     if !is_data_item(&item.item_type) { unexpected_field_err("originalCreationDate", &item.id, &item.item_type)? }
     result.insert(String::from("originalCreationDate"), Value::Number(original_creation_date.into()));
@@ -693,10 +679,6 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     }?,
 
     // data
-    password_name: match json::get_string_field(map, "passwordName")? {
-      Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("passwordName", &item_type)) } },
-      None => { if is_data_item(&item_type) { Err(expected_for_err("passwordName", &item_type)) } else { Ok(None) } }
-    }?,
     original_creation_date: match json::get_integer_field(map, "originalCreationDate")? {
       Some(v) => { if is_data_item(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("originalCreationDate", &item_type)) } },
       None => { if is_data_item(&item_type) { Err(expected_for_err("originalCreationDate", &item_type)) } else { Ok(None) } }
