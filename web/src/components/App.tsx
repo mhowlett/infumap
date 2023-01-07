@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ import { Component, onMount } from 'solid-js';
 import { server } from '../server';
 import { useItemStore } from '../store/ItemStoreProvider';
 import { useLayoutStore } from '../store/LayoutStoreProvider';
-import { fetchUser, useUserStore } from '../store/UserStoreProvider';
+import { useUserStore } from '../store/UserStoreProvider';
 import { Desktop } from './Desktop';
 import { Toolbar } from './Toolbar';
 
@@ -30,14 +30,29 @@ const App: Component = () => {
   let layoutStore = useLayoutStore();
   let itemStore = useItemStore();
 
-  onMount(async () => {
-    let user = await fetchUser();
+  const init = async () => {
+    if (userStore.getUser() == null) {
+      console.log("logging in");
+      await userStore.login("test", "qwerty");
+    } else {
+      console.log("using previous session");
+    }
+    let user = userStore.getUser()!;
     let rootId = user.rootPageId!;
-    userStore.setUser(user);
     itemStore.setRoot(rootId);
     let r = await server.fetchChildItems(user, rootId);
     itemStore.setChildItems(rootId, r);
     layoutStore.setCurrentPageId(rootId);
+  }
+
+  onMount(async () => {
+    try {
+      await init();
+    } catch {
+      console.log("clearing session and retrying. session probably gone from server.");
+      userStore.clear();
+      await init();
+    }
   });
 
   return (

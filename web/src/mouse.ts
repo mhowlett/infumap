@@ -242,10 +242,10 @@ export function mouseUpHandler(
       break;
     case MouseAction.Moving:
       itemStore.transitionMovingToFixed();
-      server.updateItem(userStore.user, itemStore.getItem(activeItem!.id)!);
+      server.updateItem(userStore.getUser()!, itemStore.getItem(activeItem!.id)!);
       break;
     case MouseAction.Resizing:
-      server.updateItem(userStore.user, itemStore.getItem(activeItem!.id)!);
+      server.updateItem(userStore.getUser()!, itemStore.getItem(activeItem!.id)!);
       break;
     default:
       panic();

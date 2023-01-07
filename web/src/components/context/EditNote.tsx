@@ -33,10 +33,10 @@ export const EditNote: Component<{item: Item}> = (props: {item: Item}) => {
   let noteItem = asNoteItem(props.item);
 
   const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => item.title = v); };
-  const handleTextChanged = (v: string) => { server.updateItem(userStore.user, itemStore.getItem(noteId)!); }
+  const handleTextChanged = (v: string) => { server.updateItem(userStore.getUser()!, itemStore.getItem(noteId)!); }
   const handleUrlChange = (v: string) => {
     itemStore.updateItem(noteId, item => asNoteItem(item).url = v);
-    server.updateItem(userStore.user, itemStore.getItem(noteId)!);
+    server.updateItem(userStore.getUser()!, itemStore.getItem(noteId)!);
   };
 
   return (

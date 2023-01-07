@@ -52,7 +52,7 @@ export const Desktop: Component = () => {
 
   function loadChildItems(containerId: string) {
     layoutStore.setChildrenLoaded(containerId);
-    server.fetchChildItems(userStore.user, containerId)
+    server.fetchChildItems(userStore.getUser()!, containerId)
       .catch(e => {
         console.log(`Error occurred feching items for '${containerId}': ${e}.`);
       })

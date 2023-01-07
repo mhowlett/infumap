@@ -27,7 +27,7 @@ export const EditItem: Component<{item: Item}> = (props: {item: Item}) => {
   let userStore = useUserStore();
 
   const copyClickHandler = () => { navigator.clipboard.writeText(props.item.id); }
-  const linkClickHandler = () => { navigator.clipboard.writeText(window.location.origin + "/" + userStore.user.username + "/" + props.item.id); }
+  const linkClickHandler = () => { navigator.clipboard.writeText(window.location.origin + "/" + userStore.getUser()!.username + "/" + props.item.id); }
 
   return (
     <div class="border rounded w-[400px] h-[150px] bg-slate-50">

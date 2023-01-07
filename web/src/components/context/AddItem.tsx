@@ -49,31 +49,31 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newPage = newPageItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newPage = newPageItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
       newPage.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
 
       itemStore.addItem(newPage);
-      server.addItem(userStore.user, newPage);
+      server.addItem(userStore.getUser()!, newPage);
       layoutStore.hideContextMenu();
     }
   };
 
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newNote = newNoteItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newNote = newNoteItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
       newNote.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
-      server.addItem(userStore.user, newNote);
+      server.addItem(userStore.getUser()!, newNote);
       layoutStore.hideContextMenu();
     }
   }
 
   const newTableInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newTable = newTableItem(userStore.user.userId!, props.contextItem?.id!, Child, "my new table", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newTable = newTableItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new table", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
       newTable.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newTable);
-      server.addItem(userStore.user, newTable);
+      server.addItem(userStore.getUser()!, newTable);
       layoutStore.hideContextMenu();
     }
   }

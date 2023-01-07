@@ -79,8 +79,10 @@ pub fn login(db: &State<Mutex<Db>>, request: Json<LoginRequest>) -> Json<LoginRe
 
 #[derive(Deserialize)]
 pub struct LogoutRequest {
-    _user_id: String,
-    _session_id: Option<String>,
+  #[serde(rename="userId")]
+  _user_id: String,
+  #[serde(rename="sessionId")]
+  _session_id: String,
 }
 
 #[derive(Serialize)]

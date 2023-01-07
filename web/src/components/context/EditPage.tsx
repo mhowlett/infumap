@@ -36,14 +36,14 @@ export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
 
   const handleBlockWidthChange = (v: string) => {
     itemStore.updateItem(pageId, item => asPageItem(item).innerSpatialWidthGr = parseInt(v) * GRID_SIZE);
-    server.updateItem(userStore.user, itemStore.getItem(pageId)!);
+    server.updateItem(userStore.getUser()!, itemStore.getItem(pageId)!);
   };
   const handleNaturalAspectChange = (v: string) => {
     itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v));
-    server.updateItem(userStore.user, itemStore.getItem(pageId)!);
+    server.updateItem(userStore.getUser()!, itemStore.getItem(pageId)!);
   };
   const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => item.title = v); };
-  const handleTitleChanged = (v: string) => { server.updateItem(userStore.user, itemStore.getItem(pageId)!); }
+  const handleTitleChanged = (v: string) => { server.updateItem(userStore.getUser()!, itemStore.getItem(pageId)!); }
 
   return (
     <div class="m-1">
