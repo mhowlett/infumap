@@ -24,11 +24,17 @@ import { useItemStore } from "../../store/ItemStoreProvider";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { Vector } from "../../util/geometry";
 import ToolbarIcon from "../ToolbarIcon";
-import { ContexMenuProps } from "./ContextMenu";
 import { server } from "../../server";
 import { useUserStore } from "../../store/UserStoreProvider";
 import { newTableItem } from "../../store/items/table-item";
 import { GRID_SIZE } from "../../constants";
+import { Item } from "../../store/items/base/item";
+
+
+type ContexMenuProps = {
+  clickPosPx: Vector,
+  contextItem: Item
+};
 
 export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
   const userStore = useUserStore();

@@ -321,6 +321,7 @@ export const Desktop: Component = () => {
 
   function draw() {
     let geom = calcFixedGeometryMemoized();
+    console.log(geom.itemGeometry.length);
 
     return (
     <>
@@ -349,10 +350,7 @@ export const Desktop: Component = () => {
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
       { draw() }
-      <Show when={layoutStore.contextMenuInfo() != null}>
-        <ContextMenu clickPosPx={layoutStore.contextMenuInfo()!.posPx}
-                     contextItem={layoutStore.contextMenuInfo()!.item} />
-      </Show>
+      <ContextMenu />
     </div>
   );
 }

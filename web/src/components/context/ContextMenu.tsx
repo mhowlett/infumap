@@ -16,19 +16,14 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, onCleanup, onMount, Show } from "solid-js";
-import { Item } from "../../store/items/base/item";
-import { Vector } from "../../util/geometry";
+import { Component, onCleanup, onMount } from "solid-js";
+import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { AddItem } from "./AddItem";
 import { EditItem } from "./EditItem";
 
 
-export type ContexMenuProps = {
-  clickPosPx: Vector,
-  contextItem: Item
-};
-
-export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) => {
+const ContextMenuInner: Component = () => {
+  const layoutStore = useLayoutStore();
 
   let contextMenuDiv: HTMLDivElement | undefined;
 
@@ -37,12 +32,22 @@ export const ContextMenu: Component<ContexMenuProps> = (props: ContexMenuProps) 
   onMount(() => contextMenuDiv!.addEventListener('mousedown', mouseDownListener));
   onCleanup(() => contextMenuDiv!.removeEventListener('mousedown', mouseDownListener));
 
+  let clickPosPx = layoutStore.contextMenuInfo()!.posPx;
+  let contextItem = layoutStore.contextMenuInfo()!.item;
   return (
     <div ref={contextMenuDiv}
-         class="absolute"
-         style={`left: ${props.clickPosPx.x}px; top: ${props.clickPosPx.y}px`}>
-      <AddItem clickPosPx={props.clickPosPx} contextItem={props.contextItem} />
-      <EditItem item={props.contextItem!} />
+        class="absolute"
+        style={`left: ${clickPosPx.x}px; top: ${clickPosPx.y}px`}>
+      <AddItem clickPosPx={clickPosPx} contextItem={contextItem} />
+      <EditItem item={contextItem} />
     </div>
   );
+}
+
+
+export const ContextMenu: Component = () => {
+  const layoutStore = useLayoutStore();
+
+  if (layoutStore.contextMenuInfo() != null) { return <ContextMenuInner />; }
+  else { return <></>; }
 }
