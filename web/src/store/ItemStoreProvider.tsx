@@ -23,23 +23,31 @@ import { panic, throwExpression } from "../util/lang";
 import { asPageItem } from "./items/page-item";
 import { Item, setFromParentId } from "./items/base/item";
 import { Uid } from "../util/uid";
-import { Items } from "./items";
 import { Child, NoParent } from "../relationship-to-parent";
-import { ContainerItem, isContainerItem } from "./items/base/container-item";
+import { asContainerItem, ContainerItem, isContainerItem } from "./items/base/container-item";
+import { newOrderingAtEnd } from "../util/ordering";
 
+
+export type Items = {
+  rootId: Uid | null,
+  fixed: { [id: Uid]: Item },
+  moving: Array<Item>
+  // Also need some way to keep track of parent pages that haven't been loaded yet.
+}
 
 export interface ItemStoreContextModel {
-  items: Items
-
   setRoot: (id: Uid) => void,
   setChildItems: (parentId: Uid, items: Array<Item>) => void,
   setAttachmentItems: (items: Array<Item>) => void
   updateItem: (id: Uid, f: (item: Item) => void) => void,
   getItem: (id: Uid) => Item | null,
+  getFixedItem: (id: Uid) => Item | null,
+  getMovingItems: () => Array<Item>,
   transitionToMove: (id: Uid) => void,
   transitionMovingToFixed: () => void,
   addItem: (item: Item) => void,
   replaceWithClone: (pageId: Uid) => void,
+  newOrderingAtEndOfChildren: (parentId: Uid) => Uint8Array,
 }
 
 export interface ItemStoreContextProps {
@@ -86,6 +94,17 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     }
     return null;
   };
+
+  const getFixedItem = (id: Uid): Item | null => {
+    if (items.fixed.hasOwnProperty(id)) {
+      return items.fixed[id];
+    }
+    return null;
+  };
+
+  const getMovingItems = (): Array<Item> => {
+    return items.moving;
+  }
 
   const transitionToMove = (id: Uid): void => {
     setItems(produce(items => {
@@ -153,7 +172,18 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
     }));
   };
 
-  const value: ItemStoreContextModel = { items, setRoot, setChildItems, setAttachmentItems, updateItem, getItem, transitionToMove, transitionMovingToFixed, addItem, replaceWithClone };
+  const newOrderingAtEndOfChildren = (parentId: Uid): Uint8Array => {
+    let parent = asContainerItem(items.fixed[parentId]);
+    let children = parent.computed_children.map(c => items.fixed[c].ordering);
+    return newOrderingAtEnd(children);
+  }
+
+  const value: ItemStoreContextModel = {
+    setRoot, setChildItems, setAttachmentItems, updateItem,
+    getItem, getFixedItem, getMovingItems, transitionToMove,
+    transitionMovingToFixed, addItem, replaceWithClone,
+    newOrderingAtEndOfChildren
+  };
 
   return (
     <ItemStoreContext.Provider value={value}>

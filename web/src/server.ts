@@ -16,12 +16,24 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { setDefaultComputed } from "./store/items";
+import { AttachmentsItem, isAttachmentsItem } from "./store/items/base/attachments-item";
+import { ContainerItem, isContainerItem } from "./store/items/base/container-item";
 import { Item } from "./store/items/base/item";
 import { User } from "./store/UserStoreProvider";
 import { throwExpression } from "./util/lang";
 import { Uid } from "./util/uid";
 
+
+export function setDefaultComputed(item: Item) {
+  item.computed_fromParentIdMaybe = null;
+  if (isContainerItem(item)) {
+    (item as ContainerItem).computed_children = [];
+  }
+  if (isAttachmentsItem(item)) {
+    (item as AttachmentsItem).computed_attachments = [];
+  }
+  return item;
+}
 
 export const server = {
   fetchChildItems: async (user: User, parentId: Uid): Promise<Array<Item>> => {

@@ -18,7 +18,6 @@
 
 import { Component } from "solid-js";
 import { Child } from "../../relationship-to-parent";
-import { newOrderingAtEndOfChildren } from "../../store/items";
 import { newNoteItem } from "../../store/items/note-item";
 import { asPageItem, isPageItem, newPageItem, PageItem } from "../../store/items/page-item";
 import { useItemStore } from "../../store/ItemStoreProvider";
@@ -49,7 +48,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newPageInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newPage = newPageItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new page", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newPage = newPageItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new page", itemStore.newOrderingAtEndOfChildren(props.contextItem?.id!));
       newPage.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
 
       itemStore.addItem(newPage);
@@ -60,7 +59,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newNoteInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newNote = newNoteItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new note", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newNote = newNoteItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new note", itemStore.newOrderingAtEndOfChildren(props.contextItem?.id!));
       newNote.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
       server.addItem(userStore.getUser()!, newNote);
@@ -70,7 +69,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
   const newTableInContext = () => {
     if (isPageItem(props.contextItem)) {
-      let newTable = newTableItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new table", newOrderingAtEndOfChildren(itemStore.items.fixed, props.contextItem?.id!));
+      let newTable = newTableItem(userStore.getUser()!.userId, props.contextItem?.id!, Child, "my new table", itemStore.newOrderingAtEndOfChildren(props.contextItem?.id!));
       newTable.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newTable);
       server.addItem(userStore.getUser()!, newTable);

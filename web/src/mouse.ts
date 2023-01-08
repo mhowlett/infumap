@@ -124,7 +124,7 @@ export function mouseLeftDownHandler(
   }
 
   hitboxType = hitInfo.hitbox.type;
-  activeItem = itemStore.items.fixed[hitInfo.itemId];
+  activeItem = itemStore.getItem(hitInfo.itemId)!;
   mouseAction = MouseAction.Ambiguous;
   startPx = desktopPxFromMouseEvent(ev);
   scale = {
@@ -151,13 +151,13 @@ export function mouseRightDownHandler(
     _ev: MouseEvent) {
   layoutStore.setContextMenuInfo(null);
 
-  let item = itemStore.items.fixed[layoutStore.currentPageId()!];
+  let item = itemStore.getFixedItem(layoutStore.currentPageId()!)!;
   let parentId = item.parentId;
   let loopCount = 0;
-  while (!isPageItem(itemStore.items.fixed[parentId!]))
+  while (!isPageItem(itemStore.getFixedItem(parentId!)!))
   {
     if (parentId == null) { panic(); }
-    item = itemStore.items.fixed[parentId];
+    item = itemStore.getFixedItem(parentId)!;
     parentId = item.parentId;
     if (loopCount++ > 10) { panic(); }
   }
@@ -242,10 +242,10 @@ export function mouseUpHandler(
       break;
     case MouseAction.Moving:
       itemStore.transitionMovingToFixed();
-      server.updateItem(userStore.getUser()!, itemStore.getItem(activeItem!.id)!);
+      server.updateItem(userStore.getUser()!, itemStore.getFixedItem(activeItem!.id)!);
       break;
     case MouseAction.Resizing:
-      server.updateItem(userStore.getUser()!, itemStore.getItem(activeItem!.id)!);
+      server.updateItem(userStore.getUser()!, itemStore.getFixedItem(activeItem!.id)!);
       break;
     default:
       panic();

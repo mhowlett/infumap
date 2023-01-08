@@ -82,7 +82,7 @@ export const Desktop: Component = () => {
       return;
     }
 
-    page.computed_children.map(childId => itemStore.items.fixed[childId]).forEach(childItem => {
+    page.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childItem => {
       let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, level);
       renderArea.itemGeometry.push(itemGeometry);
       if (isPageItem(childItem)) {
@@ -132,7 +132,7 @@ export const Desktop: Component = () => {
 
     for (let idx=0; idx<table.computed_children.length; ++idx) {
       const childId = table.computed_children[idx];
-      const childItem = itemStore.items.fixed[childId];
+      const childItem = itemStore.getFixedItem(childId)!;
       const itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx, level);
       result.push(itemGeometry);
     }
@@ -160,7 +160,7 @@ export const Desktop: Component = () => {
       };
     }
     const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.desktopSizePx().w, h: layoutStore.desktopSizePx().h };
-    const currentPage = asPageItem(itemStore.items.fixed[currentPageId!]);
+    const currentPage = asPageItem(itemStore.getFixedItem(currentPageId!)!);
     let ra: RenderArea = {
       itemId: currentPageId,
       boundsPx: currentPageBoundsPx,
@@ -176,10 +176,10 @@ export const Desktop: Component = () => {
     let renderArea = calcFixedGeometryMemoized();
 
     let result: Array<ItemGeometry> = [];
-    for (let i=0; i<itemStore.items.moving.length; ++i) {
-      let item = itemStore.items.moving[i];
+    for (let i=0; i<itemStore.getMovingItems().length; ++i) {
+      let item = itemStore.getMovingItems()[i];
       let parentGeometry = renderArea?.itemGeometry.find(a => a.itemId == item.parentId);
-      let parentPage = asPageItem(itemStore.getItem(parentGeometry!.itemId)!);
+      let parentPage = asPageItem(itemStore.getFixedItem(parentGeometry!.itemId)!);
       let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
       let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
       if (isPageItem(item)) {
@@ -207,7 +207,7 @@ export const Desktop: Component = () => {
     let lastClientPx = clientPxFromMouseEvent(lastMouseMoveEvent!);
     let el = document.elementsFromPoint(lastClientPx.x, lastClientPx.y)!.find(e => e.id != null && e.id != "");
     if (el == null) { return; }
-    let item = itemStore.items.fixed[el.id];
+    let item = itemStore.getFixedItem(el.id)!;
     layoutStore.setContextMenuInfo({ posPx: desktopPxFromMouseEvent(lastMouseMoveEvent!), item });
   };
 
