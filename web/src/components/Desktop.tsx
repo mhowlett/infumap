@@ -19,7 +19,7 @@
 import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
-import { calcGeometryOfItemInPage, calcGeometryOfItemInTable, Item } from "../store/items/base/item";
+import { calcGeometryOfItemInPage, calcGeometryOfItemInTable } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem, PageItem } from "../store/items/page-item";
 import { Note, NoteInTable } from "./items/Note";
@@ -40,6 +40,8 @@ import { ImageItem, isImageItem } from "../store/items/image-item";
 import { Image, ImageInTable } from "./items/Image";
 import { FileItem, isFileItem } from "../store/items/file-item";
 import { File, FileInTable } from "./items/File";
+import { isRatingItem, RatingItem } from "../store/items/rating-item";
+import { Rating, RatingInTable } from "./items/Rating";
 
 
 export const Desktop: Component = () => {
@@ -285,6 +287,9 @@ export const Desktop: Component = () => {
         <Match when={isFileItem(toDrawItem.item)}>
           <File item={toDrawItem.item as FileItem} boundsPx={toDrawItem.boundsPx} />
         </Match>
+        <Match when={isRatingItem(toDrawItem.item)}>
+          <Rating item={toDrawItem.item as RatingItem} boundsPx={toDrawItem.boundsPx} />
+        </Match>
       </Switch>
     }</For>
   }
@@ -308,6 +313,9 @@ export const Desktop: Component = () => {
           </Match>
           <Match when={isFileItem(toDrawItem.item)}>
             <FileInTable item={toDrawItem.item as FileItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
+          </Match>
+          <Match when={isRatingItem(toDrawItem.item)}>
+            <RatingInTable item={toDrawItem.item as RatingItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
           </Match>
         </Switch>
       }</For>

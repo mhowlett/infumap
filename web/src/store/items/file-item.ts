@@ -20,15 +20,15 @@ import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from '
 import { HitboxType } from '../../hitbox';
 import { ItemGeometry } from '../../item-geometry';
 import { BoundingBox, cloneVector, Dimensions } from '../../util/geometry';
-import { currentUnixTimeSeconds, panic } from '../../util/lang';
-import { newUid, Uid } from '../../util/uid';
+import { panic } from '../../util/lang';
 import { AttachmentsItem } from './base/attachments-item';
 import { Item } from './base/item';
 import { XSizableItem } from './base/x-sizeable-item';
 import { DataItem } from "./base/data-item";
+import { TitledItem } from './base/titled-item';
 
 
-export interface FileItem extends XSizableItem, AttachmentsItem, DataItem {
+export interface FileItem extends XSizableItem, AttachmentsItem, DataItem, TitledItem {
 }
 
 function measureLineCount(s: string, widthBl: number): number {

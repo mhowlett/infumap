@@ -17,7 +17,7 @@
 */
 
 import { Component } from "solid-js";
-import { GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { GRID_SIZE, LINE_HEIGHT_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
 import { BoundingBox } from "../../util/geometry";
 

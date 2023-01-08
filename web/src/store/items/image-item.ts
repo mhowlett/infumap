@@ -24,10 +24,11 @@ import { panic } from "../../util/lang";
 import { AttachmentsItem } from "./base/attachments-item";
 import { DataItem } from "./base/data-item";
 import { Item } from "./base/item";
+import { TitledItem } from "./base/titled-item";
 import { XSizableItem } from "./base/x-sizeable-item";
 
 
-export interface ImageItem extends XSizableItem, AttachmentsItem, DataItem {
+export interface ImageItem extends XSizableItem, AttachmentsItem, DataItem, TitledItem {
   imageSizePx: Dimensions,
   thumbnail: string,
 }

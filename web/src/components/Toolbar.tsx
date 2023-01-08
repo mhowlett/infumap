@@ -19,6 +19,7 @@
 import { Component, Show } from "solid-js";
 import imgUrl from '../assets/circle.png'
 import { TOOLBAR_WIDTH } from "../constants";
+import { asTitledItem } from "../store/items/base/titled-item";
 import { asPageItem } from "../store/items/page-item";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
@@ -37,7 +38,7 @@ export const Toolbar: Component = () => {
         <img src={imgUrl} class="w-[28px] mt-[12px] ml-[5px]" />
         <div class="mt-[16px] uppercase rotate-90 whitespace-pre text-[22px]">
           <Show when={layoutStore.currentPageId() != null}>
-            {itemStore.items.fixed[layoutStore.currentPageId()!].title}
+            {asTitledItem(itemStore.items.fixed[layoutStore.currentPageId()!]).title}
           </Show>
         </div>
         <div class="absolute bottom-0">

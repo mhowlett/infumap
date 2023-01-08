@@ -19,14 +19,14 @@
 import { Component, Show } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
 import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
-import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
 
 
 export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, boundsPx: BoundingBox }) => {
   let outerDiv: HTMLDivElement | undefined;
 
-  let naturalWidthPx = props.item.spatialWidthGr / GRID_SIZE * LINE_HEIGHT_PX;
+  let naturalWidthPx = calcNoteSizeForSpatialBl(props.item).w * LINE_HEIGHT_PX;
   let widthScale = props.boundsPx.w / naturalWidthPx;
 
   let naturalHeightPx = calcNoteSizeForSpatialBl(props.item).h * LINE_HEIGHT_PX;

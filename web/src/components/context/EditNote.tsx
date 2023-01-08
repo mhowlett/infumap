@@ -32,7 +32,7 @@ export const EditNote: Component<{item: Item}> = (props: {item: Item}) => {
   let noteId = props.item.id;
   let noteItem = asNoteItem(props.item);
 
-  const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => item.title = v); };
+  const handleTextChange = (v: string) => { itemStore.updateItem(noteId, item => asNoteItem(item).title = v); };
   const handleTextChanged = (v: string) => { server.updateItem(userStore.getUser()!, itemStore.getItem(noteId)!); }
   const handleUrlChange = (v: string) => {
     itemStore.updateItem(noteId, item => asNoteItem(item).url = v);

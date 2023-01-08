@@ -127,6 +127,7 @@ const ITEM_TYPE_NOTE: &'static str = "note";
 const ITEM_TYPE_FILE: &'static str = "file";
 const ITEM_TYPE_TABLE: &'static str = "table";
 const ITEM_TYPE_IMAGE: &'static str = "image";
+const ITEM_TYPE_RATING: &'static str = "rating";
 
 fn is_data_item(item_type: &str) -> bool {
   item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_IMAGE
@@ -142,14 +143,20 @@ fn is_y_sizeable(item_type: &str) -> bool {
   item_type == ITEM_TYPE_TABLE
 }
 
-const ALL_JSON_FIELDS: [&'static str; 25] = ["__recordType",
+fn is_titled(item_type: &str) -> bool {
+  item_type == ITEM_TYPE_FILE || item_type == ITEM_TYPE_NOTE ||
+  item_type == ITEM_TYPE_PAGE || item_type == ITEM_TYPE_TABLE ||
+  item_type == ITEM_TYPE_IMAGE
+}
+
+const ALL_JSON_FIELDS: [&'static str; 26] = ["__recordType",
   "itemType", "ownerId", "id", "parentId", "relationshipToParent",
   "creationDate", "lastModifiedDate", "ordering", "title",
   "spatialPositionGr", "spatialWidthGr", "innerSpatialWidthGr",
   "naturalAspect", "backgroundColorIndex", "popupPositionGr",
   "popupAlignmentPoint", "popupWidthGr", "url",
-  "originalCreationDate", "spatialHeightGr",
-  "imageSizePx", "thumbnail", "mimeType", "fileSizeBytes"];
+  "originalCreationDate", "spatialHeightGr", "imageSizePx",
+  "thumbnail", "mimeType", "fileSizeBytes", "rating"];
 
 
 /// All-encompassing Item type and corresponding serialization / validation logic.
@@ -170,7 +177,6 @@ pub struct Item {
   pub creation_date: i64,
   pub last_modified_date: i64,
   pub ordering: Vec<u8>,
-  pub title: String,
   pub spatial_position_gr: Vector<i64>,
 
   // x-sizeable
@@ -178,6 +184,9 @@ pub struct Item {
 
   // y-sizeable
   pub spatial_height_gr: Option<i64>,
+
+  // titled
+  pub title: Option<String>,
 
   // data
   pub original_creation_date: Option<i64>,
@@ -202,6 +211,9 @@ pub struct Item {
   // image
   pub image_size_px: Option<Dimensions<i64>>,
   pub thumbnail: Option<String>,
+
+  // rating
+  pub rating: Option<i64>,
 }
 
 impl Clone for Item {
@@ -215,10 +227,10 @@ impl Clone for Item {
       creation_date: self.creation_date.clone(),
       last_modified_date: self.last_modified_date.clone(),
       ordering: self.ordering.clone(),
-      title: self.title.clone(),
       spatial_position_gr: self.spatial_position_gr.clone(),
       spatial_width_gr: self.spatial_width_gr.clone(),
       spatial_height_gr: self.spatial_height_gr.clone(),
+      title: self.title.clone(),
       original_creation_date: self.original_creation_date.clone(),
       mime_type: self.mime_type.clone(),
       file_size_bytes: self.file_size_bytes.clone(),
@@ -230,7 +242,8 @@ impl Clone for Item {
       popup_width_gr: self.popup_width_gr.clone(),
       url: self.url.clone(),
       image_size_px: self.image_size_px.clone(),
-      thumbnail: self.thumbnail.clone()
+      thumbnail: self.thumbnail.clone(),
+      rating: self.rating.clone(),
     }
   }
 }
@@ -295,12 +308,12 @@ impl JsonLogSerializable<Item> for Item {
     if old.creation_date != new.creation_date { cannot_modify_err("creationDate", &old.id)?; }
     if old.last_modified_date != new.last_modified_date { result.insert(String::from("lastModifiedDate"), Value::Number(new.last_modified_date.into())); }
     if old.ordering != new.ordering { result.insert(String::from("ordering"), Value::Array(new.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>())); }
-    if old.title != new.title { result.insert(String::from("title"), Value::String(new.title.clone())); }
     if old.spatial_position_gr != new.spatial_position_gr { result.insert(String::from("spatialPositionGr"), json::vector_to_object(&new.spatial_position_gr)?); }
 
     // x-sizable
     if let Some(new_spatial_width_gr) = new.spatial_width_gr {
       if match old.spatial_width_gr { Some(o) => o != new_spatial_width_gr, None => { true } } {
+        if !is_x_sizeable(&old.item_type) { cannot_modify_err("spatialWidthGr", &old.id)?; }
         result.insert(String::from("spatialWidthGr"), Value::Number(new_spatial_width_gr.into()));
       }
     }
@@ -308,7 +321,16 @@ impl JsonLogSerializable<Item> for Item {
     // y-sizable
     if let Some(new_spatial_height_gr) = new.spatial_height_gr {
       if match old.spatial_height_gr { Some(o) => o != new_spatial_height_gr, None => { true } } {
+        if !is_y_sizeable(&old.item_type) { cannot_modify_err("spatialHeightGr", &old.id)?; }
         result.insert(String::from("spatialHeightGr"), Value::Number(new_spatial_height_gr.into()));
+      }
+    }
+
+    // titled
+    if let Some(new_title) = &new.title {
+      if match &old.title { Some(o) => o != new_title, None => { true } } {
+        if !is_titled(&old.item_type) { cannot_modify_err("title", &old.id)?; }
+        result.insert(String::from("title"), Value::String(new_title.clone()));
       }
     }
 
@@ -394,6 +416,14 @@ impl JsonLogSerializable<Item> for Item {
       }
     }
 
+    // rating
+    if let Some(new_rating) = new.rating {
+      if match old.rating { Some(o) => o != new_rating, None => { true } } {
+        if old.item_type != ITEM_TYPE_RATING { cannot_modify_err("rating", &old.id)?; }
+        result.insert(String::from("rating"), Value::Number(new_rating.into()));
+      }
+    }
+
     Ok(result)
   }
 
@@ -433,17 +463,24 @@ impl JsonLogSerializable<Item> for Item {
           None => None })
         .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field in an update for item '{}' was invalid.", &self.id))?;
     }
-    if let Ok(v) = json::get_string_field(map, "title") { if let Some(u) = v { self.title = u; } }
     if let Ok(v) = json::get_vector_field(map, "spatialPositionGr") { if let Some(u) = v { self.spatial_position_gr = u; } }
 
     // x-sizable
     if let Ok(v) = json::get_integer_field(map, "spatialWidthGr") {
+      if !is_x_sizeable(&self.item_type) { not_applicable_err("spatialWidthGr", &self.item_type)?; }
       if let Some(u) = v { self.spatial_width_gr = Some(u); }
     }
 
     // y-sizable
     if let Ok(v) = json::get_integer_field(map, "spatialHeightGr") {
+      if !is_y_sizeable(&self.item_type) { not_applicable_err("spatialHeightGr", &self.item_type)?; }
       if let Some(u) = v { self.spatial_height_gr = Some(u); }
+    }
+
+    // titled
+    if let Ok(v) = json::get_string_field(map, "title") {
+      if !is_titled(&self.item_type) { not_applicable_err("title", &self.item_type)?; }
+      if let Some(u) = v { self.title = Some(u); }
     }
 
     // data
@@ -461,37 +498,37 @@ impl JsonLogSerializable<Item> for Item {
     // page
     if let Ok(v) = json::get_integer_field(map, "innerSpatialWidthGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("innerSpatialWidthGr", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("innerSpatialWidthGr", &self.item_type)?; }
         self.inner_spatial_width_gr = Some(u);
       }
     }
     if let Ok(v) = json::get_float_field(map, "naturalAspect") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("naturalAspect", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("naturalAspect", &self.item_type)?; }
         self.natural_aspect = Some(u);
       }
     }
     if let Ok(v) = json::get_integer_field(map, "backgroundColorIndex") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("backgroundColorIndex", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("backgroundColorIndex", &self.item_type)?; }
         self.background_color_index = Some(u);
       }
     }
     if let Ok(v) = json::get_vector_field(map, "popupPositionGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupPositionGr", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupPositionGr", &self.item_type)?; }
         self.popup_position_gr = Some(u);
       }
     }
     if let Ok(v) = json::get_string_field(map, "popupAlignmentPoint") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupAlignmentPoint", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupAlignmentPoint", &self.item_type)?; }
         self.popup_alignment_point = Some(AlignmentPoint::from_string(&u)?);
       }
     }
     if let Ok(v) = json::get_integer_field(map, "popupWidthGr") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupWidthGr", ITEM_TYPE_PAGE)?; }
+        if self.item_type != ITEM_TYPE_PAGE { not_applicable_err("popupWidthGr", &self.item_type)?; }
         self.popup_width_gr = Some(u);
       }
     }
@@ -500,7 +537,7 @@ impl JsonLogSerializable<Item> for Item {
     if let Ok(v) = json::get_string_field(map, "url") {
       if let Some(u) = v {
         if self.item_type == ITEM_TYPE_PAGE { self.url = Some(u); }
-        else { not_applicable_err("url", ITEM_TYPE_PAGE)?; }
+        else { not_applicable_err("url", &self.item_type)?; }
       }
     }
 
@@ -511,14 +548,22 @@ impl JsonLogSerializable<Item> for Item {
     // image
     if let Ok(v) = json::get_dimensions_field(map, "imageSizePx") {
       if let Some(u) = v {
-        if self.item_type != ITEM_TYPE_IMAGE { not_applicable_err("imageSizePx", ITEM_TYPE_IMAGE)?; }
+        if self.item_type != ITEM_TYPE_IMAGE { not_applicable_err("imageSizePx", &self.item_type)?; }
         self.image_size_px = Some(u);
       }
     }
     if let Ok(v) = json::get_string_field(map, "thumbnail") {
       if let Some(u) = v {
         if self.item_type == ITEM_TYPE_IMAGE { self.thumbnail = Some(u); }
-        else { not_applicable_err("thumbnail", ITEM_TYPE_IMAGE)?; }
+        else { not_applicable_err("thumbnail", &self.item_type)?; }
+      }
+    }
+
+    // rating
+    if let Ok(v) = json::get_integer_field(map, "rating") {
+      if let Some(u) = v {
+        if self.item_type != ITEM_TYPE_RATING { not_applicable_err("rating", &self.item_type)?; }
+        self.rating = Some(u);
       }
     }
 
@@ -547,7 +592,6 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   result.insert(String::from("creationDate"), Value::Number(item.creation_date.into()));
   result.insert(String::from("lastModifiedDate"), Value::Number(item.last_modified_date.into()));
   result.insert(String::from("ordering"), Value::Array(item.ordering.iter().map(|v| Value::Number((*v).into())).collect::<Vec<_>>()));
-  result.insert(String::from("title"), Value::String(item.title.clone()));
   result.insert(String::from("spatialPositionGr"), json::vector_to_object(&item.spatial_position_gr)?);
 
   // x-sizeable
@@ -560,6 +604,12 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
   if let Some(spatial_height_gr) = item.spatial_height_gr {
     if !is_y_sizeable(&item.item_type) { unexpected_field_err("spatialHeightGr", &item.id, &item.item_type)? }
     result.insert(String::from("spatialHeightGr"), Value::Number(spatial_height_gr.into()));
+  }
+
+  // titled
+  if let Some(title) = &item.title {
+    if !is_titled(&item.item_type) { unexpected_field_err("title", &item.id, &item.item_type)? }
+    result.insert(String::from("title"), Value::String(title.clone()));
   }
 
   // data
@@ -624,6 +674,12 @@ fn to_json(item: &Item) -> InfuResult<serde_json::Map<String, serde_json::Value>
     result.insert(String::from("thumbnail"), Value::String(thumbnail.clone()));
   }
 
+  // rating
+  if let Some(rating) = item.rating {
+    if item.item_type != ITEM_TYPE_RATING { unexpected_field_err("rating", &item.id, &item.item_type)? }
+    result.insert(String::from("rating"), Value::Number(rating.into()));
+  }
+
   Ok(result)
 }
 
@@ -663,7 +719,6 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
         None => None
       })
       .collect::<Option<Vec<_>>>().ok_or(format!("One or more element of the 'ordering' field for item '{}' was invalid.", &id))?,
-    title: json::get_string_field(map, "title")?.ok_or("'title' field was missing.")?,
     spatial_position_gr: json::get_vector_field(map, "spatialPositionGr")?.ok_or("'spatialPositionGr' field was missing.")?,
 
     // x-sizeable
@@ -676,6 +731,12 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
     spatial_height_gr: match json::get_integer_field(map, "spatialHeightGr")? {
       Some(v) => { if is_y_sizeable(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("spatialHeightGr", &item_type)) } },
       None => { if is_y_sizeable(&item_type) { Err(expected_for_err("spatialHeightGr", &item_type)) } else { Ok(None) } }
+    }?,
+
+    // titled
+    title: match json::get_string_field(map, "title")? {
+      Some(v) => { if is_titled(&item_type) { Ok(Some(v)) } else { Err(not_applicable_err("title", &item_type)) } },
+      None => { if is_titled(&item_type) { Err(expected_for_err("title", &item_type)) } else { Ok(None) } }
     }?,
 
     // data
@@ -740,5 +801,10 @@ fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> InfuResult<Ite
       None => { if item_type == ITEM_TYPE_IMAGE { Err(expected_for_err("thumbnail", &item_type)) } else { Ok(None) } }
     }?,
 
+    // rating
+    rating: match json::get_integer_field(map, "rating")? {
+      Some(v) => { if item_type == ITEM_TYPE_RATING { Ok(Some(v)) } else { Err(not_applicable_err("rating", &item_type)) } },
+      None => { if item_type == ITEM_TYPE_RATING { Err(expected_for_err("rating", &item_type)) } else { Ok(None) } }
+    }?,
   })
 }

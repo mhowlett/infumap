@@ -20,7 +20,7 @@ import { Component } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
 import { PageItem } from "../../store/items/page-item";
-import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, LINE_HEIGHT_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, LINE_HEIGHT_PX } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
 import { TableItem } from "../../store/items/table-item";

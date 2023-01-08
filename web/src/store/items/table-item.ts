@@ -25,10 +25,11 @@ import { newUid, Uid } from "../../util/uid";
 import { AttachmentsItem } from "./base/attachments-item";
 import { ContainerItem } from "./base/container-item";
 import { Item } from "./base/item";
+import { TitledItem } from "./base/titled-item";
 import { XSizableItem } from "./base/x-sizeable-item";
 import { YSizableItem } from "./base/y-sizeable-item";
 
-export interface TableItem extends XSizableItem, YSizableItem, ContainerItem, AttachmentsItem {
+export interface TableItem extends XSizableItem, YSizableItem, ContainerItem, AttachmentsItem, TitledItem {
 }
 
 export function calcTableSizeForSpatialBl(item: TableItem): Dimensions {

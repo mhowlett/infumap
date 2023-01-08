@@ -118,10 +118,10 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     creation_date: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as i64,
     last_modified_date: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as i64,
     ordering: vec![128],
-    title: username.to_string(),
     spatial_position_gr: Vector { x: 0, y: 0 },
     spatial_width_gr: Some(60 * GRID_SIZE),
     spatial_height_gr: None,
+    title: Some(username.to_string()),
     original_creation_date: None,
     mime_type: None,
     file_size_bytes: None,
@@ -134,5 +134,6 @@ fn default_page(owner_id: &str, username: &str, root_page_id: Uid) -> Item {
     url: None,
     image_size_px: None,
     thumbnail: None,
+    rating: None,
   }
 }

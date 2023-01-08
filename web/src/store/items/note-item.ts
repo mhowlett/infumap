@@ -24,12 +24,13 @@ import { currentUnixTimeSeconds, panic } from '../../util/lang';
 import { newUid, Uid } from '../../util/uid';
 import { AttachmentsItem } from './base/attachments-item';
 import { Item } from './base/item';
+import { TitledItem } from './base/titled-item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
 // TODO: re-imagine this as something more general. note == combination of paragraphs and other things.
 
-export interface NoteItem extends XSizableItem, AttachmentsItem {
+export interface NoteItem extends XSizableItem, AttachmentsItem, TitledItem {
   url: string,
 }
 

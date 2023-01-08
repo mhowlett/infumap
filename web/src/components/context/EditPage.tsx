@@ -42,7 +42,7 @@ export const EditPage: Component<{item: Item}> = (props: {item: Item}) => {
     itemStore.updateItem(pageId, item => asPageItem(item).naturalAspect = parseFloat(v));
     server.updateItem(userStore.getUser()!, itemStore.getItem(pageId)!);
   };
-  const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => item.title = v); };
+  const handleTitleChange = (v: string) => { itemStore.updateItem(pageId, item => asPageItem(item).title = v); };
   const handleTitleChanged = (v: string) => { server.updateItem(userStore.getUser()!, itemStore.getItem(pageId)!); }
 
   return (

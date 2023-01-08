@@ -24,6 +24,7 @@ import { asFileItem, calcFileSizeForSpatialBl, calcGeometryOfFileItem, calcGeome
 import { asImageItem, calcGeometryOfImageItem, calcGeometryOfImageItemInTable, calcImageSizeForSpatialBl, cloneImageItem, isImageItem } from '../image-item';
 import { asNoteItem, calcGeometryOfNoteItem, calcGeometryOfNoteItemInTable, calcNoteSizeForSpatialBl, cloneNoteItem, isNoteItem } from '../note-item';
 import { asPageItem, calcGeometryOfPageItem, calcGeometryOfPageItemInTable, calcPageSizeForSpatialBl, clonePageItem, isPageItem } from '../page-item';
+import { asRatingItem, calcGeometryOfRatingItem, calcGeometryOfRatingItemInTable, calcRatingSizeForSpatialBl, cloneRatingItem, isRatingItem } from '../rating-item';
 import { asTableItem, calcGeometryOfTableItem, calcGeometryOfTableItemInTable, calcTableSizeForSpatialBl, cloneTableItem, isTableItem } from '../table-item';
 
 
@@ -36,7 +37,6 @@ export interface Item {
   creationDate: number,
   lastModifiedDate: number,
   ordering: Uint8Array,
-  title: string,
   spatialPositionGr: Vector,
 
   computed_fromParentIdMaybe: Uid | null, // when moving.
@@ -48,6 +48,7 @@ export function cloneItem(item: Item): Item {
   if (isNoteItem(item)) { return cloneNoteItem(asNoteItem(item)); }
   if (isImageItem(item)) { return cloneImageItem(asImageItem(item)); }
   if (isFileItem(item)) { return cloneFileItem(asFileItem(item)); }
+  if (isRatingItem(item)) { return cloneRatingItem(asRatingItem(item)); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
@@ -57,6 +58,7 @@ export function calcSizeForSpatialBl(item: Item): Dimensions {
   if (isNoteItem(item)) { return calcNoteSizeForSpatialBl(asNoteItem(item)); }
   if (isImageItem(item)) { return calcImageSizeForSpatialBl(asImageItem(item)); }
   if (isFileItem(item)) { return calcFileSizeForSpatialBl(asFileItem(item)); }
+  if (isRatingItem(item)) { return calcRatingSizeForSpatialBl(asRatingItem(item)); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
@@ -66,6 +68,7 @@ export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: Bounding
   if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   if (isImageItem(item)) { return calcGeometryOfImageItem(asImageItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   if (isFileItem(item)) { return calcGeometryOfFileItem(asFileItem(item), containerBoundsPx, containerInnerSizeBl, level); }
+  if (isRatingItem(item)) { return calcGeometryOfRatingItem(asRatingItem(item), containerBoundsPx, containerInnerSizeBl, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
@@ -75,6 +78,7 @@ export function calcGeometryOfItemInTable(item: Item, blockSizePx: Dimensions, r
   if (isNoteItem(item)) { return calcGeometryOfNoteItemInTable(asNoteItem(item), blockSizePx, rowWidthBl, index, level); }
   if (isImageItem(item)) { return calcGeometryOfImageItemInTable(asImageItem(item), blockSizePx, rowWidthBl, index, level); }
   if (isFileItem(item)) { return calcGeometryOfFileItemInTable(asFileItem(item), blockSizePx, rowWidthBl, index, level); }
+  if (isRatingItem(item)) { return calcGeometryOfRatingItemInTable(asRatingItem(item), blockSizePx, rowWidthBl, index, level); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 

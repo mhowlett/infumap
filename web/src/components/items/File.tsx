@@ -16,10 +16,10 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, Show } from "solid-js";
+import { Component } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
 import { calcFileSizeForSpatialBl, FileItem } from "../../store/items/file-item";
-import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX, RESIZE_BOX_SIZE_PX } from "../../constants";
+import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
 
 

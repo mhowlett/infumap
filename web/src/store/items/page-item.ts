@@ -25,10 +25,11 @@ import { newUid, Uid } from '../../util/uid';
 import { AttachmentsItem } from './base/attachments-item';
 import { ContainerItem } from './base/container-item';
 import { Item } from './base/item';
+import { TitledItem } from './base/titled-item';
 import { XSizableItem } from './base/x-sizeable-item';
 
 
-export interface PageItem extends XSizableItem, ContainerItem, AttachmentsItem {
+export interface PageItem extends XSizableItem, ContainerItem, AttachmentsItem, TitledItem {
   innerSpatialWidthGr: number;
   naturalAspect: number;
   backgroundColorIndex: number;
