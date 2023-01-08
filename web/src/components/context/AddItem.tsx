@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
 
       itemStore.addItem(newPage);
       server.addItem(userStore.getUser()!, newPage);
-      layoutStore.hideContextMenu();
+      layoutStore.setContextMenuInfo(null);
     }
   };
 
@@ -64,7 +64,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
       newNote.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newNote);
       server.addItem(userStore.getUser()!, newNote);
-      layoutStore.hideContextMenu();
+      layoutStore.setContextMenuInfo(null);
     }
   }
 
@@ -74,7 +74,7 @@ export const AddItem: Component<ContexMenuProps> = (props: ContexMenuProps) => {
       newTable.spatialPositionGr = calcBlockPositionGr(asPageItem(props.contextItem!), props.clickPosPx.x, props.clickPosPx.y);
       itemStore.addItem(newTable);
       server.addItem(userStore.getUser()!, newTable);
-      layoutStore.hideContextMenu();
+      layoutStore.setContextMenuInfo(null);
     }
   }
 

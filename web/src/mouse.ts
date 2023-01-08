@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 Matt Howlett
+  Copyright (C) 2022-2023 Matt Howlett
   This file is part of Infumap.
 
   This program is free software: you can redistribute it and/or modify
@@ -115,7 +115,7 @@ export function mouseLeftDownHandler(
     layoutStore: LayoutStoreContextModel,
     renderArea: RenderArea,
     ev: MouseEvent) {
-  layoutStore.hideContextMenu();
+  layoutStore.setContextMenuInfo(null);
 
   let hitInfo = getHitInfo(renderArea, desktopPxFromMouseEvent(ev));
   if (hitInfo == null) {
@@ -149,7 +149,7 @@ export function mouseRightDownHandler(
     layoutStore: LayoutStoreContextModel,
     _renderArea: RenderArea,
     _ev: MouseEvent) {
-  layoutStore.hideContextMenu();
+  layoutStore.setContextMenuInfo(null);
 
   let item = itemStore.items.fixed[layoutStore.currentPageId()!];
   let parentId = item.parentId;

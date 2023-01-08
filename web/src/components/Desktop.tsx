@@ -18,7 +18,7 @@
 
 import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
-import { currentDesktopSize, useLayoutStore } from "../store/LayoutStoreProvider";
+import { useLayoutStore } from "../store/LayoutStoreProvider";
 import { calcGeometryOfItemInPage, calcGeometryOfItemInTable } from "../store/items/base/item";
 import { isNoteItem, NoteItem } from "../store/items/note-item";
 import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem, PageItem } from "../store/items/page-item";
@@ -26,7 +26,6 @@ import { Note, NoteInTable } from "./items/Note";
 import { Page, PageInTable } from "./items/Page";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
-import { produce } from "solid-js/store";
 import { BoundingBox, clientPxFromMouseEvent, desktopPxFromMouseEvent } from "../util/geometry";
 import { useUserStore } from "../store/UserStoreProvider";
 import { server } from "../server";
@@ -53,7 +52,7 @@ export const Desktop: Component = () => {
 
 
   function loadChildItems(containerId: string) {
-    layoutStore.setChildrenLoaded(containerId);
+    layoutStore.childrenLoaded[containerId] = true;
     server.fetchChildItems(userStore.getUser()!, containerId)
       .catch(e => {
         console.log(`Error occurred feching items for '${containerId}': ${e}.`);
@@ -78,7 +77,7 @@ export const Desktop: Component = () => {
     let page = asPageItem(itemStore.getItem(pageId)!);
     let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
 
-    if (!layoutStore.childrenLoaded(page.id)) {
+    if (!layoutStore.childrenLoaded[page.id]) {
       loadChildItems(page.id);
       return;
     }
@@ -90,7 +89,7 @@ export const Desktop: Component = () => {
         let childPage = asPageItem(childItem);
         if (childPage.spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
           if (level < 2) {
-            if (layoutStore.childrenLoaded(childPage.id)) {
+            if (layoutStore.childrenLoaded[childPage.id]) {
               calcPageNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1, renderArea);
             } else {
               loadChildItems(childPage.id);
@@ -101,7 +100,7 @@ export const Desktop: Component = () => {
       else if (isTableItem(childItem)) {
         let childTable = asTableItem(childItem);
         if (level < 2) {
-          if (layoutStore.childrenLoaded(childTable.id)) {
+          if (layoutStore.childrenLoaded[childTable.id]) {
             calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, level+1, renderArea);
           } else {
             loadChildItems(childTable.id);
@@ -115,7 +114,7 @@ export const Desktop: Component = () => {
   function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
     let table = asTableItem(itemStore.getItem(tableId)!);
 
-    if (!layoutStore.childrenLoaded(table.id)) {
+    if (!layoutStore.childrenLoaded[table.id]) {
       console.log("DEBUG: should never get here, because table child items should always be loaded on parent page load.");
       loadChildItems(table.id);
       return null;
@@ -160,7 +159,7 @@ export const Desktop: Component = () => {
         children: []
       };
     }
-    const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.layout.desktopPx.w, h: layoutStore.layout.desktopPx.h };
+    const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.desktopSizePx().w, h: layoutStore.desktopSizePx().h };
     const currentPage = asPageItem(itemStore.items.fixed[currentPageId!]);
     let ra: RenderArea = {
       itemId: currentPageId,
@@ -205,14 +204,11 @@ export const Desktop: Component = () => {
     // TODO (HIGH): Something better - this doesn't allow slash in data entry in context menu.
     if (ev.code != "Slash") { return; }
 
-    layoutStore.setLayout(produce(state => {
-      state.contextMenuPosPx = desktopPxFromMouseEvent(lastMouseMoveEvent!);
-      let lastClientPx = clientPxFromMouseEvent(lastMouseMoveEvent!);
-      let el = document.elementsFromPoint(lastClientPx.x, lastClientPx.y)!.find(e => e.id != null && e.id != "");
-      if (el == null) { return; }
-      let item = itemStore.items.fixed[el.id];
-      state.contexMenuItem = item;
-    }));
+    let lastClientPx = clientPxFromMouseEvent(lastMouseMoveEvent!);
+    let el = document.elementsFromPoint(lastClientPx.x, lastClientPx.y)!.find(e => e.id != null && e.id != "");
+    if (el == null) { return; }
+    let item = itemStore.items.fixed[el.id];
+    layoutStore.setContextMenuInfo({ posPx: desktopPxFromMouseEvent(lastMouseMoveEvent!), item });
   };
 
   const mouseDownListener = (ev: MouseEvent) => {
@@ -241,7 +237,7 @@ export const Desktop: Component = () => {
   }
 
   const windowResizeListener = () => {
-    layoutStore.setLayout(produce(state => state.desktopPx = currentDesktopSize()));
+    layoutStore.resetDesktopSizePx();
   }
 
   const contextMenuListener = (ev: Event) => {
@@ -353,8 +349,9 @@ export const Desktop: Component = () => {
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
       { draw() }
-      <Show when={layoutStore.layout.contextMenuPosPx != null && layoutStore.layout.contexMenuItem != null}>
-        <ContextMenu clickPosPx={layoutStore.layout.contextMenuPosPx!} contextItem={layoutStore.layout.contexMenuItem!} />
+      <Show when={layoutStore.contextMenuInfo() != null}>
+        <ContextMenu clickPosPx={layoutStore.contextMenuInfo()!.posPx}
+                     contextItem={layoutStore.contextMenuInfo()!.item} />
       </Show>
     </div>
   );
