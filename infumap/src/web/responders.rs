@@ -49,12 +49,12 @@ impl<'r> Responder<'r, 'static> for RawIcoImage<&'static [u8]> {
   }
 }
 
-pub struct BlobResponse {
+pub struct FileResponse {
   pub data: Vec<u8>,
   pub mime_type: ContentType,
 }
 
-impl<'r> Responder<'r, 'static> for BlobResponse {
+impl<'r> Responder<'r, 'static> for FileResponse {
   fn respond_to(self, _request: &'r Request<'_>) -> response::Result<'static> {
     Response::build()
       .header(self.mime_type)

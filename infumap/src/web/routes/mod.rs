@@ -17,7 +17,7 @@
 use serde_json::{Map, Value};
 use crate::util::infu::InfuResult;
 
-pub mod blob;
+pub mod files;
 pub mod account;
 pub mod command;
 

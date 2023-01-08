@@ -24,18 +24,18 @@ use crate::util::uid::Uid;
 use crate::util::fs::expand_tilde;
 
 
-pub struct BlobStore {
-  blob_dir: PathBuf,
+pub struct FileStore {
+  files_dir: PathBuf,
 }
 
-impl BlobStore {
-  pub fn new(blob_dir: &str) -> InfuResult<BlobStore> {
-    let blob_dir = expand_tilde(blob_dir).ok_or(format!("Blob store path '{}' is not valid.", blob_dir))?;
-    Ok(BlobStore { blob_dir })
+impl FileStore {
+  pub fn new(files_dir: &str) -> InfuResult<FileStore> {
+    let files_dir = expand_tilde(files_dir).ok_or(format!("File store path '{}' is not valid.", files_dir))?;
+    Ok(FileStore { files_dir })
   }
 
   pub fn get(&self, id: &Uid) -> InfuResult<Vec<u8>> {
-    let mut path = self.blob_dir.clone();
+    let mut path = self.files_dir.clone();
     path.push(&id[..2]);
     path.push(id);
 

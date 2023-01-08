@@ -15,4 +15,4 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 db_dir = "~/.infumap/db"
-blob_dir = "~/.infumap/blob"
+files_dir = "~/.infumap/files"

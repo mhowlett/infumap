@@ -34,7 +34,7 @@ export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props
 
   let scale = Math.min(heightScale, widthScale);
 
-  const clickHandler = () => { window.location.href = "/blob/" + props.item.id }
+  const clickHandler = () => { window.location.href = "/files/" + props.item.id }
 
   return (
     <div ref={outerDiv}
@@ -55,7 +55,7 @@ export const FileInTable: Component<{ item: FileItem, parentTable: TableItem, bo
   let widthBl = props.parentTable.spatialWidthGr / GRID_SIZE;
   let oneBlockWidthPx = props.boundsPx.w / widthBl;
 
-  const clickHandler = () => { window.location.href = "/blob/" + props.item.id }
+  const clickHandler = () => { window.location.href = "/files/" + props.item.id }
 
   return (
     <>

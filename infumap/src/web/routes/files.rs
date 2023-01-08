@@ -19,14 +19,14 @@ use std::sync::Mutex;
 use rocket::{State, http::ContentType};
 
 use crate::db::Db;
-use crate::blob::BlobStore;
-use crate::web::responders::BlobResponse;
+use crate::file::FileStore;
+use crate::web::responders::FileResponse;
 use crate::util::infu::InfuError;
 
-#[get("/blob/<uid>")]
-pub fn get(db: &State<Mutex<Db>>, blob_store: &State<Mutex<BlobStore>>, uid: &str) -> Result<BlobResponse, InfuError> {
+#[get("/files/<uid>")]
+pub fn get(db: &State<Mutex<Db>>, file_store: &State<Mutex<FileStore>>, uid: &str) -> Result<FileResponse, InfuError> {
   let db = db.lock().unwrap();
-  let blob_store = blob_store.lock().unwrap();
+  let file_store = file_store.lock().unwrap();
 
   let item = db.item.get(&String::from(uid))?;
   let mime_type_string = item.mime_type.as_ref().ok_or(format!("mime type is not available for item '{}'.", uid))?;
@@ -35,9 +35,9 @@ pub fn get(db: &State<Mutex<Db>>, blob_store: &State<Mutex<BlobStore>>, uid: &st
     None => ContentType::Binary
   };
   
-  let data = blob_store.get(&String::from(uid))?;
+  let data = file_store.get(&String::from(uid))?;
 
-  Ok(BlobResponse {
+  Ok(FileResponse {
     data,
     mime_type
   })

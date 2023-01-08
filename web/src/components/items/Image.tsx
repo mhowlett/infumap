@@ -29,7 +29,7 @@ export const Image: Component<{ item: ImageItem, boundsPx: BoundingBox }> = (pro
          class="absolute border border-slate-700 rounded-sm shadow-lg"
          style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
       <img style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}
-           src={"/blob/" + props.item.id} />
+           src={"/files/" + props.item.id} />
     </div>
   );
 }

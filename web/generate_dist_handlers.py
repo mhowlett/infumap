@@ -65,7 +65,7 @@ use super::responders::{RawPngImage, RawIcoImage};
 """
 
 def fn_name(filename):
-    return filename.replace(".", "_")
+    return filename.replace(".", "_").replace("-", "_")
 
 for f in js_files:
     output += "#[get(\"/" + f + "\")] fn " + fn_name(f) + "() -> RawJavaScript<&'static str> { RawJavaScript(include_str!(\"../../../web/dist/assets/" + f + "\")) }\n"
