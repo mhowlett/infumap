@@ -16,14 +16,11 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Component, createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import { Component, createMemo, For, onCleanup, onMount } from "solid-js";
 import { useItemStore } from "../store/ItemStoreProvider";
 import { useLayoutStore } from "../store/LayoutStoreProvider";
 import { calcGeometryOfItemInPage, calcGeometryOfItemInTable } from "../store/items/base/item";
-import { isNoteItem, NoteItem } from "../store/items/note-item";
-import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem, PageItem } from "../store/items/page-item";
-import { Note, NoteInTable } from "./items/Note";
-import { Page, PageInTable } from "./items/Page";
+import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem } from "../store/items/page-item";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
 import { BoundingBox, clientPxFromMouseEvent, desktopPxFromMouseEvent } from "../util/geometry";
@@ -33,14 +30,9 @@ import { Uid } from "../util/uid";
 import { ItemGeometry } from "../item-geometry";
 import { mouseDownHandler, mouseMoveHandler, mouseUpHandler } from "../mouse";
 import { asTableItem, isTableItem, TableItem } from "../store/items/table-item";
-import { Table, TableInTable } from "./items/Table";
 import { RenderArea } from "../render-area";
-import { ImageItem, isImageItem } from "../store/items/image-item";
-import { Image, ImageInTable } from "./items/Image";
-import { FileItem, isFileItem } from "../store/items/file-item";
-import { File, FileInTable } from "./items/File";
-import { isRatingItem, RatingItem } from "../store/items/rating-item";
-import { Rating, RatingInTable } from "./items/Rating";
+import { ItemOnDesktop } from "./ItemOnDesktop";
+import { ItemInTable } from "./ItemInTable";
 
 
 export const Desktop: Component = () => {
@@ -172,32 +164,32 @@ export const Desktop: Component = () => {
   });
 
 
-  const calcMovingGeometry = (): Array<ItemGeometry> => {
-    let renderArea = calcFixedGeometryMemoized();
+  // const calcMovingGeometry = (): Array<ItemGeometry> => {
+  //   let renderArea = calcFixedGeometryMemoized();
 
-    let result: Array<ItemGeometry> = [];
-    for (let i=0; i<itemStore.getMovingItems().length; ++i) {
-      let item = itemStore.getMovingItems()[i];
-      let parentGeometry = renderArea?.itemGeometry.find(a => a.itemId == item.parentId);
-      let parentPage = asPageItem(itemStore.getFixedItem(parentGeometry!.itemId)!);
-      let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
-      let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
-      if (isPageItem(item)) {
-        let ra: RenderArea = {
-          itemId: item.id,
-          boundsPx: movingItemGeometry.boundsPx,
-          itemGeometry: [movingItemGeometry],
-          children: []
-        }
-        calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, 1, ra);
-        result = ra.itemGeometry;
-      } else {
-        result = [movingItemGeometry];
-      }
-    }
+  //   let result: Array<ItemGeometry> = [];
+  //   for (let i=0; i<itemStore.getMovingItems().length; ++i) {
+  //     let item = itemStore.getMovingItems()[i];
+  //     let parentGeometry = renderArea?.itemGeometry.find(a => a.itemId == item.parentId);
+  //     let parentPage = asPageItem(itemStore.getFixedItem(parentGeometry!.itemId)!);
+  //     let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
+  //     let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
+  //     if (isPageItem(item)) {
+  //       let ra: RenderArea = {
+  //         itemId: item.id,
+  //         boundsPx: movingItemGeometry.boundsPx,
+  //         itemGeometry: [movingItemGeometry],
+  //         children: []
+  //       }
+  //       calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, 1, ra);
+  //       result = ra.itemGeometry;
+  //     } else {
+  //       result = [movingItemGeometry];
+  //     }
+  //   }
 
-    return result;
-  }
+  //   return result;
+  // }
 
 
   const keyListener = (ev: KeyboardEvent) => {
@@ -265,59 +257,16 @@ export const Desktop: Component = () => {
 
 
   function drawItems(itemGeometry: Array<ItemGeometry>) {
-    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
-    return <For each={toDrawItems}>{toDrawItem =>
-      <Switch fallback={<div>Not Found</div>}>
-        <Match when={isPageItem(toDrawItem.item)}>
-          <Page item={toDrawItem.item as PageItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isTableItem(toDrawItem.item)}>
-          <Table item={toDrawItem.item as TableItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isNoteItem(toDrawItem.item)}>
-          <Note item={toDrawItem.item as NoteItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isImageItem(toDrawItem.item)}>
-          <Image item={toDrawItem.item as ImageItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isFileItem(toDrawItem.item)}>
-          <File item={toDrawItem.item as FileItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-        <Match when={isRatingItem(toDrawItem.item)}>
-          <Rating item={toDrawItem.item as RatingItem} boundsPx={toDrawItem.boundsPx} />
-        </Match>
-      </Switch>
-    }</For>
+    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId)!, boundsPx: geom.boundsPx }));
+    return <For each={toDrawItems}>{ toDraw => <ItemOnDesktop item={toDraw.item} boundsPx={toDraw.boundsPx} /> }</For>
   }
 
   function drawTableItems(itemGeometry: Array<ItemGeometry>, parentTable: TableItem) {
-    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId), boundsPx: geom.boundsPx }));
+    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId)!, boundsPx: geom.boundsPx }));
     if (toDrawItems.length > 0) {
-      return <For each={toDrawItems}>{toDrawItem =>
-        <Switch fallback={<div>Not Found</div>}>
-          <Match when={isPageItem(toDrawItem.item)}>
-            <PageInTable item={toDrawItem.item as PageItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-          <Match when={isTableItem(toDrawItem.item)}>
-            <TableInTable item={toDrawItem.item as TableItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-          <Match when={isNoteItem(toDrawItem.item)}>
-            <NoteInTable item={toDrawItem.item as NoteItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-          <Match when={isImageItem(toDrawItem.item)}>
-            <ImageInTable item={toDrawItem.item as ImageItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-          <Match when={isFileItem(toDrawItem.item)}>
-            <FileInTable item={toDrawItem.item as FileItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-          <Match when={isRatingItem(toDrawItem.item)}>
-            <RatingInTable item={toDrawItem.item as RatingItem} parentTable={parentTable} boundsPx={toDrawItem.boundsPx} />
-          </Match>
-        </Switch>
-      }</For>
+      return <For each={toDrawItems}>{ toDraw => <ItemInTable item={toDraw.item} parentTable={parentTable} boundsPx={toDraw.boundsPx} /> }</For>
     }
   }
-
 
   function draw() {
     let geom = calcFixedGeometryMemoized();
@@ -342,9 +291,10 @@ export const Desktop: Component = () => {
       })()
     }</For>
 
-    { drawItems(calcMovingGeometry()) }
     </>);
   }
+
+  // { drawItems(calcMovingGeometry()) }
 
   return (
     <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
