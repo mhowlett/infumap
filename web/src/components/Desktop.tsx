@@ -44,7 +44,7 @@ export const Desktop: Component = () => {
 
 
   function loadChildItems(containerId: string) {
-    layoutStore.childrenLoaded[containerId] = true;
+    layoutStore.childrenLoadedInitiated[containerId] = true;
     server.fetchChildItems(userStore.getUser()!, containerId)
       .catch(e => {
         console.log(`Error occurred feching items for '${containerId}': ${e}.`);
@@ -59,14 +59,8 @@ export const Desktop: Component = () => {
   }
 
 
-  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number): RenderArea | null {
+  function calcTableItemGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number): RenderArea {
     let table = asTableItem(itemStore.getItem(tableId)!);
-
-    if (!layoutStore.childrenLoaded[table.id]) {
-      console.log("DEBUG: should never get here, because table child items should always be loaded on parent page load.");
-      loadChildItems(table.id);
-      return null;
-    }
 
     let result: Array<ItemGeometry> = [];
 
@@ -92,7 +86,7 @@ export const Desktop: Component = () => {
         w: tableBoundsPx.w, h: tableBoundsPx.h - headerHeightPx
       },
       itemGeometry: result,
-      tableItems: true,
+      areaType: "table",
     };
   }
 
@@ -104,10 +98,10 @@ export const Desktop: Component = () => {
       itemId: pageId,
       boundsPx: pageBoundsPx,
       itemGeometry: [calcCurrentPageItemGeometry(page, pageBoundsPx)],
-      tableItems: false,
+      areaType: "page",
     }
 
-    if (!layoutStore.childrenLoaded[page.id]) {
+    if (!layoutStore.childrenLoadedInitiated[page.id]) {
       loadChildItems(page.id);
       return [renderArea];
     }
@@ -122,9 +116,9 @@ export const Desktop: Component = () => {
       if (isPageItem(childItem)) {
         let childPage = asPageItem(childItem);
         if (childPage.spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          if (layoutStore.childrenLoaded[childPage.id]) {
+          if (layoutStore.childrenLoadedInitiated[childPage.id]) {
             if (twoLevel) {
-              if (!layoutStore.childrenLoaded[page.id]) {
+              if (!layoutStore.childrenLoadedInitiated[page.id]) {
                 loadChildItems(childPage.id);
               } else {
                 let childPageBoundsPx = itemGeometry.boundsPx;
@@ -142,11 +136,8 @@ export const Desktop: Component = () => {
       } else if (isTableItem(childItem)) {
         if (twoLevel) {
           let childTable = asTableItem(childItem);
-          if (layoutStore.childrenLoaded[childTable.id]) {
-            let ra = calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, 2);
-            if (ra != null) {
-              result.push(ra);
-            }
+          if (layoutStore.childrenLoadedInitiated[childTable.id]) {
+            result.push(calcTableItemGeometry(childTable.id, itemGeometry.boundsPx, 2));
           } else {
             loadChildItems(childTable.id);
           }
@@ -159,6 +150,7 @@ export const Desktop: Component = () => {
 
 
   const calcFixedGeometryMemoized = createMemo((): Array<RenderArea> | null => {
+    console.log("calculating..");
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) { return null; }
     const currentPageBoundsPx: BoundingBox = layoutStore.desktopBoundsPx();
@@ -276,10 +268,10 @@ export const Desktop: Component = () => {
 
     return (
     <>
-    { drawItems(renderAreas[0].itemGeometry) }
-
     <For each={renderAreas}>{renderArea => (() => {
-      if (renderArea.tableItems) {
+      if (renderArea.areaType == "page") {
+        return drawItems(renderArea.itemGeometry);
+      } else if (renderArea.areaType == "table") {
         let tableItem = asTableItem(itemStore.getItem(renderArea.itemId)!);
         let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
         let heightPx = renderArea.boundsPx.h;

@@ -40,7 +40,7 @@ export interface LayoutStoreContextModel {
   contextMenuInfo: Accessor<ContextMenuInfo | null>,
   setContextMenuInfo: Setter<ContextMenuInfo | null>,
 
-  childrenLoaded: { [id: Uid]: boolean }
+  childrenLoadedInitiated: { [id: Uid]: boolean }
 }
 
 export interface LayoutStoreContextProps {
@@ -73,7 +73,7 @@ export function LayoutStoreProvider(props: LayoutStoreContextProps) {
     currentPageId, setCurrentPageId,
     desktopBoundsPx, resetDesktopSizePx,
     contextMenuInfo, setContextMenuInfo,
-    childrenLoaded: {}
+    childrenLoadedInitiated: {}
   };
 
   return (
