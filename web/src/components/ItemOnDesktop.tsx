@@ -29,27 +29,21 @@ import { Rating } from "./items/Rating";
 import { Table } from "./items/Table";
 import { Image } from "./items/Image";
 import { File } from "./items/File";
-import { Item } from "../store/items/base/item";
-import { BoundingBox } from "../util/geometry";
+import { ItemGeometry } from "../item-geometry";
 
 
-export interface ItemAndBounds {
-  item: Item,
-  boundsPx: BoundingBox,
-}
-
-export const ItemOnDesktop: Component<ItemAndBounds> = (props: ItemAndBounds) => {
-  let { item, boundsPx } = props;
+export const ItemOnDesktop: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
 
   return (
     <Switch fallback={<div>unkown item type '{item.itemType}'</div>}>
       <Match when={isPageItem(item)}>
         <Page item={item as PageItem} boundsPx={boundsPx} />
       </Match>
-      <Match when={isTableItem(props.item)}>
+      <Match when={isTableItem(item)}>
         <Table item={item as TableItem} boundsPx={boundsPx} />
       </Match>
-      <Match when={isNoteItem(props.item)}>
+      <Match when={isNoteItem(item)}>
         <Note item={item as NoteItem} boundsPx={boundsPx} />
       </Match>
       <Match when={isImageItem(item)}>

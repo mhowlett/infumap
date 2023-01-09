@@ -41,7 +41,7 @@ enum MouseAction {
 }
 
 interface HitInfo {
-  itemId: Uid,
+  item: Item,
   hitbox: Hitbox,
   itemBoundsPx: BoundingBox
 }
@@ -64,7 +64,7 @@ function getHitInfo(renderArea: RenderArea, desktopPx: Vector): HitInfo | null {
     for (let j=geom[i].hitboxes.length-1; j>=0; --j) {
       if (isInside(hitPointPx, geom[i].hitboxes[j].boundsPx)) {
         return {
-          itemId: geom[i].itemId,
+          item: geom[i].item,
           hitbox: geom[i].hitboxes[j],
           itemBoundsPx: geom[i].boundsPx
         };
@@ -124,7 +124,7 @@ export function mouseLeftDownHandler(
   }
 
   hitboxType = hitInfo.hitbox.type;
-  activeItem = itemStore.getItem(hitInfo.itemId)!;
+  activeItem = hitInfo.item;
   mouseAction = MouseAction.Ambiguous;
   startPx = desktopPxFromMouseEvent(ev);
   scale = {

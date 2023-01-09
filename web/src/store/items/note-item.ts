@@ -58,7 +58,7 @@ export function calcGeometryOfNoteItem(item: NoteItem, containerBoundsPx: Boundi
     h: calcNoteSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: level != 1 ? [] : [
       { type: HitboxType.Move, boundsPx },
@@ -78,7 +78,7 @@ export function calcGeometryOfNoteItemInTable(item: NoteItem, blockSizePx: Dimen
     h: blockSizePx.h
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level

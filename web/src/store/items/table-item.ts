@@ -44,7 +44,7 @@ export function calcGeometryOfTableItem(item: TableItem, containerBoundsPx: Boun
     h: calcTableSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: level != 1 ? [] : [
       { type: HitboxType.Move, boundsPx },
@@ -64,7 +64,7 @@ export function calcGeometryOfTableItemInTable(item: TableItem, blockSizePx: Dim
     h: blockSizePx.h
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level

@@ -17,12 +17,12 @@
 */
 
 import { Hitbox } from "./hitbox";
+import { Item } from "./store/items/base/item";
 import { BoundingBox } from "./util/geometry";
-import { Uid } from "./util/uid";
 
 
 export interface ItemGeometry {
-  itemId: Uid,
+  item: Item,
   boundsPx: BoundingBox,
   hitboxes: Array<Hitbox>, // higher index => takes precedence.
   level: number,

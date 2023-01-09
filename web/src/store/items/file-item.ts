@@ -55,7 +55,7 @@ export function calcGeometryOfFileItem(item: FileItem, containerBoundsPx: Boundi
     h: calcFileSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: level != 1 ? [] : [
       { type: HitboxType.Move, boundsPx },
@@ -75,7 +75,7 @@ export function calcGeometryOfFileItemInTable(item: FileItem, blockSizePx: Dimen
     h: blockSizePx.h
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level

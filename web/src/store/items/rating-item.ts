@@ -40,7 +40,7 @@ export function calcGeometryOfRatingItem(item: RatingItem, containerBoundsPx: Bo
     h: calcRatingSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [],
     level,
@@ -55,7 +55,7 @@ export function calcGeometryOfRatingItemInTable(item: RatingItem, blockSizePx: D
     h: blockSizePx.h
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level

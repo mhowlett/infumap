@@ -55,10 +55,6 @@ export const Desktop: Component = () => {
         } else {
           console.log(`No items were fetched for '${containerId}'.`);
         }
-        // Invalidate the item-geometry calc.
-        // Without this, the list elements don't show automatically.
-        // TODO (HIGH): figure out why...
-        itemStore.replaceWithClone(layoutStore.currentPageId()!);
       });
   }
 
@@ -256,21 +252,24 @@ export const Desktop: Component = () => {
   });
 
 
-  function drawItems(itemGeometry: Array<ItemGeometry>) {
-    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId)!, boundsPx: geom.boundsPx }));
-    return <For each={toDrawItems}>{ toDraw => <ItemOnDesktop item={toDraw.item} boundsPx={toDraw.boundsPx} /> }</For>
+  function drawItems(itemGeometries: Array<ItemGeometry>) {
+    return (
+      <For each={itemGeometries}>
+        { itemGeometry => <ItemOnDesktop itemGeometry={itemGeometry} /> }
+      </For>
+    );
   }
 
-  function drawTableItems(itemGeometry: Array<ItemGeometry>, parentTable: TableItem) {
-    let toDrawItems = itemGeometry.map(geom => ({ item: itemStore.getItem(geom.itemId)!, boundsPx: geom.boundsPx }));
-    if (toDrawItems.length > 0) {
-      return <For each={toDrawItems}>{ toDraw => <ItemInTable item={toDraw.item} parentTable={parentTable} boundsPx={toDraw.boundsPx} /> }</For>
-    }
+  function drawTableItems(itemGeometries: Array<ItemGeometry>, parentTable: TableItem) {
+    return (
+      <For each={itemGeometries}>
+        { itemGeometry => <ItemInTable itemGeometry={itemGeometry} parentTable={parentTable} /> }
+      </For>
+    );
   }
 
   function draw() {
     let geom = calcFixedGeometryMemoized();
-    console.log(geom.itemGeometry.length);
 
     return (
     <>

@@ -29,28 +29,27 @@ import { RatingInTable } from "./items/Rating";
 import { TableInTable } from "./items/Table";
 import { ImageInTable } from "./items/Image";
 import { FileInTable } from "./items/File";
-import { Item } from "../store/items/base/item";
-import { BoundingBox } from "../util/geometry";
+import { ItemGeometry } from "../item-geometry";
 
 
 export interface ItemAndParentTableAndBounds {
-  item: Item,
+  itemGeometry: ItemGeometry,
   parentTable: TableItem,
-  boundsPx: BoundingBox,
 }
 
 export const ItemInTable: Component<ItemAndParentTableAndBounds> = (props: ItemAndParentTableAndBounds) => {
-  let { item, parentTable, boundsPx } = props;
+  let { parentTable } = props;
+  let { item, boundsPx } = props.itemGeometry;
 
   return (
     <Switch fallback={<div>unkown item type '{item.itemType}'</div>}>
       <Match when={isPageItem(item)}>
         <PageInTable item={item as PageItem} parentTable={parentTable} boundsPx={boundsPx} />
       </Match>
-      <Match when={isTableItem(props.item)}>
+      <Match when={isTableItem(item)}>
         <TableInTable item={item as TableItem} parentTable={parentTable} boundsPx={boundsPx} />
       </Match>
-      <Match when={isNoteItem(props.item)}>
+      <Match when={isNoteItem(item)}>
         <NoteInTable item={item as NoteItem} parentTable={parentTable} boundsPx={boundsPx} />
       </Match>
       <Match when={isImageItem(item)}>

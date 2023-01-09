@@ -58,7 +58,7 @@ export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: Boundi
     h: calcPageSizeForSpatialBl(item).h / containerInnerSizeBl.h * containerBoundsPx.h,
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: level != 1 ? [] : [
       { type: HitboxType.Move, boundsPx },
@@ -78,7 +78,7 @@ export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimen
     h: blockSizePx.h
   };
   return {
-    itemId: item.id,
+    item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
     level
@@ -87,7 +87,7 @@ export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimen
 
 export function calcCurrentPageItemGeometry(item: PageItem, desktopBoundsPx: BoundingBox): ItemGeometry {
   return {
-    itemId: item.id,
+    item,
     boundsPx: desktopBoundsPx,
     hitboxes: [],
     level: 0,
