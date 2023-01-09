@@ -147,7 +147,7 @@ export const Desktop: Component = () => {
         children: []
       };
     }
-    const currentPageBoundsPx: BoundingBox = { x: 0.0, y: 0.0, w: layoutStore.desktopSizePx().w, h: layoutStore.desktopSizePx().h };
+    const currentPageBoundsPx: BoundingBox = layoutStore.desktopBoundsPx();
     const currentPage = asPageItem(itemStore.getFixedItem(currentPageId!)!);
     let ra: RenderArea = {
       itemId: currentPageId,

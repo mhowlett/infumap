@@ -19,7 +19,7 @@
 import { Accessor, createContext, createSignal, Setter, useContext } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { TOOLBAR_WIDTH } from "../constants";
-import { Dimensions, Vector } from "../util/geometry";
+import { BoundingBox, Dimensions, Vector } from "../util/geometry";
 import { panic } from "../util/lang";
 import { Uid } from "../util/uid";
 import { Item } from "./items/base/item";
@@ -34,7 +34,7 @@ export interface LayoutStoreContextModel {
   currentPageId: Accessor<Uid | null>,
   setCurrentPageId: Setter<Uid | null>,
 
-  desktopSizePx: Accessor<Dimensions>,
+  desktopBoundsPx: () => BoundingBox,
   resetDesktopSizePx: () => void,
 
   contextMenuInfo: Accessor<ContextMenuInfo | null>,
@@ -64,10 +64,14 @@ export function LayoutStoreProvider(props: LayoutStoreContextProps) {
   const [contextMenuInfo, setContextMenuInfo] = createSignal<ContextMenuInfo | null>(null);
 
   const resetDesktopSizePx = () => { setDesktopSizePx(currentDesktopSize()); }
-
+  const desktopBoundsPx = () => {
+    const dimensionsPx = desktopSizePx();
+    return { x: 0.0, y: 0.0, w: dimensionsPx.w, h: dimensionsPx.h }
+  }
+    
   const value: LayoutStoreContextModel = {
     currentPageId, setCurrentPageId,
-    desktopSizePx, resetDesktopSizePx,
+    desktopBoundsPx, resetDesktopSizePx,
     contextMenuInfo, setContextMenuInfo,
     childrenLoaded: {}
   };
