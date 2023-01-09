@@ -97,11 +97,15 @@ export const Desktop: Component = () => {
   }
 
 
-  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, renderArea: RenderArea, twoLevel: boolean): Array<RenderArea> {
-    if (pageId == null) { return [renderArea]; }
-
+  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, twoLevel: boolean): Array<RenderArea> {
     let page = asPageItem(itemStore.getItem(pageId)!);
-    let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
+
+    let renderArea: RenderArea = {
+      itemId: pageId,
+      boundsPx: pageBoundsPx,
+      itemGeometry: [calcCurrentPageItemGeometry(page, pageBoundsPx)],
+      tableItems: false,
+    }
 
     if (!layoutStore.childrenLoaded[page.id]) {
       loadChildItems(page.id);
@@ -110,6 +114,8 @@ export const Desktop: Component = () => {
 
     let result = [renderArea];
 
+    let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
+
     page.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childItem => {
       let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, 1);
       renderArea.itemGeometry.push(itemGeometry);
@@ -117,7 +123,6 @@ export const Desktop: Component = () => {
         let childPage = asPageItem(childItem);
         if (childPage.spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
           if (layoutStore.childrenLoaded[childPage.id]) {
-            // calcPageNestedGeometry(childPage.id, itemGeometry.boundsPx, renderArea);
             if (twoLevel) {
               if (!layoutStore.childrenLoaded[page.id]) {
                 loadChildItems(childPage.id);
@@ -153,30 +158,16 @@ export const Desktop: Component = () => {
   }
 
 
-  const calcFixedGeometryMemoized = createMemo((): Array<RenderArea> => {
+  const calcFixedGeometryMemoized = createMemo((): Array<RenderArea> | null => {
     const currentPageId = layoutStore.currentPageId();
-    if (currentPageId == null) {
-      return [{
-        itemId: "",
-        boundsPx: { x: 0, y: 0, w: 0, h: 0 },
-        itemGeometry: [],
-        tableItems: false,
-      }];
-    }
+    if (currentPageId == null) { return null; }
     const currentPageBoundsPx: BoundingBox = layoutStore.desktopBoundsPx();
-    const currentPage = asPageItem(itemStore.getFixedItem(currentPageId!)!);
-    let renderArea: RenderArea = {
-      itemId: currentPageId,
-      boundsPx: currentPageBoundsPx,
-      itemGeometry: [calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx)],
-      tableItems: false,
-    }
-    return calcPageNestedGeometry(currentPageId, currentPageBoundsPx, renderArea, true);
+    return calcPageNestedGeometry(currentPageId!, currentPageBoundsPx, true);
   });
 
 
   const calcMovingGeometry = (): Array<ItemGeometry> => {
-    let renderAreas = calcFixedGeometryMemoized();
+    let renderAreas = calcFixedGeometryMemoized()!;
 
     let result: Array<ItemGeometry> = [];
     for (let i=0; i<itemStore.getMovingItems().length; ++i) {
@@ -185,17 +176,9 @@ export const Desktop: Component = () => {
       let parentPage = asPageItem(itemStore.getFixedItem(parentGeometry!.item.id)!);
       let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
       let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
-      if (isPageItem(item)) {
-        let ra: RenderArea = {
-          itemId: item.id,
-          boundsPx: movingItemGeometry.boundsPx,
-          itemGeometry: [movingItemGeometry],
-          tableItems: false,
-        }
-        if (asPageItem(item).spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, renderAreas[0], false);
-        }
-        result = ra.itemGeometry;
+      if (isPageItem(item) && asPageItem(item).spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
+        let ra = calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, false);
+        result = ra[0].itemGeometry;
       } else {
         result = [movingItemGeometry];
       }
@@ -287,6 +270,9 @@ export const Desktop: Component = () => {
 
   function draw() {
     let renderAreas = calcFixedGeometryMemoized();
+    if (renderAreas == null) {
+      return <></>;
+    }
 
     return (
     <>
