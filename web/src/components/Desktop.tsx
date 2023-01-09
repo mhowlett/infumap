@@ -280,22 +280,22 @@ export const Desktop: Component = () => {
   }
 
   function draw() {
-    let geom = calcFixedGeometryMemoized();
+    let fixedGeometry = calcFixedGeometryMemoized();
 
     return (
     <>
-    { drawItems(geom.itemGeometry) }
+    { drawItems(fixedGeometry.itemGeometry) }
 
-    <For each={geom.children}>{ra => (() => {
-      let tableItem = asTableItem(itemStore.getItem(ra.itemId)!);
+    <For each={fixedGeometry.children}>{renderArea => (() => {
+      let tableItem = asTableItem(itemStore.getItem(renderArea.itemId)!);
       let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
-      let heightPx = ra.boundsPx.h;
+      let heightPx = renderArea.boundsPx.h;
       let blockHeightPx = heightPx / heightBr;
       let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
       return (
-        <div class="absolute" style={`left: ${ra.boundsPx.x}px; top: ${ra.boundsPx.y}px; width: ${ra.boundsPx.w}px; height: ${ra.boundsPx.h}px; overflow-y: auto;`}>
-          <div class="absolute" style={`width: ${ra.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
-            { drawTableItems(ra.itemGeometry, tableItem) }
+        <div class="absolute" style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px; overflow-y: auto;`}>
+          <div class="absolute" style={`width: ${renderArea.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
+            { drawTableItems(renderArea.itemGeometry, tableItem) }
           </div>
         </div>)
       })()
