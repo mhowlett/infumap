@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2023 Matt Howlett
+# Copyright (C) 2023 Matt Howlett
 # This file is part of Infumap.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,3 +16,4 @@
 
 db_dir = "~/.infumap/db"
 files_dir = "~/.infumap/files"
+cache_dir = "~/.infumap/cache"

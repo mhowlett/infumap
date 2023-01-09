@@ -18,8 +18,8 @@ use std::sync::Mutex;
 
 use rocket::{State, http::ContentType};
 
-use crate::db::Db;
-use crate::file::FileStore;
+use crate::storage::db::Db;
+use crate::storage::file::FileStore;
 use crate::web::responders::FileResponse;
 use crate::util::infu::InfuError;
 

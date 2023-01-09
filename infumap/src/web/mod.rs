@@ -22,8 +22,9 @@ use std::sync::Mutex;
 use rocket::{Rocket, Build};
 use rocket::fairing::AdHoc;
 use clap::{App, ArgMatches, Arg};
-use crate::file::FileStore;
-use crate::db::Db;
+use crate::storage::cache::FileCache;
+use crate::storage::file::FileStore;
+use crate::storage::db::Db;
 use crate::config::setup_config;
 
 
@@ -70,6 +71,18 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
       }))
   };
 
+  let cache_dir = config.get_string("cache_dir").unwrap();
+  let init_cache = |rocket: Rocket<Build>| async move {
+    rocket.manage(Mutex::new(
+      match FileCache::new(&cache_dir) {
+        Ok(file_cache) => file_cache,
+        Err(e) => {
+          println!("Failed to initialize file cache: {}", e);
+          panic!();
+        }
+      }))
+  };
+
   _ = dist_handlers::mount(
     rocket::build()
       .mount("/", routes![
@@ -79,5 +92,6 @@ pub async fn execute<'a>(arg_matches: &ArgMatches) {
         routes::command::command,
       ])
       .attach(AdHoc::on_ignite("Initialize Db", init_db)))
+      .attach(AdHoc::on_ignite("Initialize Cache", init_cache))
       .attach(AdHoc::on_ignite("Initialize File Store", init_file_store)).launch().await;
 }

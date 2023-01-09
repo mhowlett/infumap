@@ -17,11 +17,12 @@
 use rocket::State;
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
-use crate::db::{Db, user::User};
 use uuid::{uuid, Uuid};
 use std::sync::Mutex;
 use std::time::SystemTime;
 use totp_rs::{Algorithm, TOTP};
+use crate::storage::db::Db;
+use crate::storage::db::user::User;
 
 
 #[derive(Deserialize)]

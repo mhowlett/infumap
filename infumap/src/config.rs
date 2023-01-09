@@ -42,7 +42,8 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
         };
       let env_has_all_mandatory_config =
         match config.get_string("db_dir") { Ok(_) => true, Err(_) => false } &&
-        match config.get_string("files_dir") { Ok(_) => true, Err(_) => false };
+        match config.get_string("files_dir") { Ok(_) => true, Err(_) => false } &&
+        match config.get_string("cache_dir") { Ok(_) => true, Err(_) => false };
 
       if !env_has_all_mandatory_config {
         // If mandatory config is not all available via env vars, then the settings file must be read as well.
@@ -66,6 +67,14 @@ pub fn setup_config(settings_path: Option<&str>) -> InfuResult<Config> {
             }
           }
         }
+
+        pb.push("cache");
+        if !pb.as_path().exists() {
+          if let Err(e) = std::fs::create_dir(pb.as_path()) {
+            return Err(format!("Could not create cache directory: '{e}'").into());
+          }
+        }
+        pb.pop();
 
         pb.push("db");
         if !pb.as_path().exists() {
