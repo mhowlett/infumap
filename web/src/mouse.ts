@@ -46,11 +46,12 @@ interface HitInfo {
   itemBoundsPx: BoundingBox
 }
 
-function getHitInfo(renderArea: RenderArea, desktopPx: Vector): HitInfo | null {
+function getHitInfo(renderAreas: Array<RenderArea>, desktopPx: Vector): HitInfo | null {
   let hitPointPx = desktopPx;
+  let renderArea = renderAreas[0];
 
-  for (let i=0; i<renderArea.children.length; ++i) {
-    let childRenderArea = renderArea.children[i];
+  for (let i=1; i<renderAreas.length; ++i) {
+    let childRenderArea = renderAreas[i];
     if (isInside(desktopPx, childRenderArea.boundsPx)) {
       renderArea = childRenderArea;
       hitPointPx = subtract(desktopPx, { x: childRenderArea.boundsPx.x, y: childRenderArea.boundsPx.y });
@@ -99,12 +100,12 @@ function clearState() {
 export function mouseDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    renderArea: RenderArea,
+    renderAreas: Array<RenderArea>,
     ev: MouseEvent) {
   if (ev.button == MOUSE_LEFT) {
-    mouseLeftDownHandler(itemStore, layoutStore, renderArea, ev);
+    mouseLeftDownHandler(itemStore, layoutStore, renderAreas, ev);
   } else if (ev.button == MOUSE_RIGHT) {
-    mouseRightDownHandler(itemStore, layoutStore, renderArea, ev);
+    mouseRightDownHandler(itemStore, layoutStore, renderAreas, ev);
   } else {
     console.log("unsupported mouse button: " + ev.button);
   }
@@ -113,11 +114,11 @@ export function mouseDownHandler(
 export function mouseLeftDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    renderArea: RenderArea,
+    renderAreas: Array<RenderArea>,
     ev: MouseEvent) {
   layoutStore.setContextMenuInfo(null);
 
-  let hitInfo = getHitInfo(renderArea, desktopPxFromMouseEvent(ev));
+  let hitInfo = getHitInfo(renderAreas, desktopPxFromMouseEvent(ev));
   if (hitInfo == null) {
     clearState();
     return;
@@ -147,7 +148,7 @@ export function mouseLeftDownHandler(
 export function mouseRightDownHandler(
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    _renderArea: RenderArea,
+    _renderAreas: Array<RenderArea>,
     _ev: MouseEvent) {
   layoutStore.setContextMenuInfo(null);
 
@@ -167,10 +168,10 @@ export function mouseRightDownHandler(
 export function mouseMoveHandler(
     itemStore: ItemStoreContextModel,
     _layoutStore: LayoutStoreContextModel,
-    renderArea: RenderArea,
+    renderAreas: Array<RenderArea>,
     ev: MouseEvent) {
 
-  let hitInfo = getHitInfo(renderArea, desktopPxFromMouseEvent(ev));
+  let hitInfo = getHitInfo(renderAreas, desktopPxFromMouseEvent(ev));
   if (hitInfo != null) {
     if (hitInfo.hitbox.type == HitboxType.Resize) {
       document.body.style.cursor = "nwse-resize";
@@ -229,7 +230,7 @@ export function mouseUpHandler(
     userStore: UserStoreContextModel,
     itemStore: ItemStoreContextModel,
     layoutStore: LayoutStoreContextModel,
-    _renderArea: RenderArea,
+    _renderAreas: Array<RenderArea>,
     _ev: MouseEvent) {
 
   if (mouseAction == null) { return; }

@@ -25,7 +25,7 @@ export interface RenderArea {
   itemId: Uid,
   boundsPx: BoundingBox,
   itemGeometry: Array<ItemGeometry>,
-  children: Array<RenderArea>
+  tableItems: boolean,
   // scrollXPx,
   // scrollYPx,
 }

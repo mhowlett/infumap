@@ -59,7 +59,7 @@ export const Desktop: Component = () => {
   }
 
 
-  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
+  function calcTableNestedGeometry(tableId: Uid, tableBoundsPx: BoundingBox, level: number): RenderArea | null {
     let table = asTableItem(itemStore.getItem(tableId)!);
 
     if (!layoutStore.childrenLoaded[table.id]) {
@@ -85,28 +85,30 @@ export const Desktop: Component = () => {
       result.push(itemGeometry);
     }
 
-    renderArea.children.push({
+    return {
       itemId: tableId,
       boundsPx: {
         x: tableBoundsPx.x, y: tableBoundsPx.y + headerHeightPx,
         w: tableBoundsPx.w, h: tableBoundsPx.h - headerHeightPx
       },
       itemGeometry: result,
-      children: []
-    });
+      tableItems: true,
+    };
   }
 
 
-  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, renderArea: RenderArea, twoLevel: boolean) {
-    if (pageId == null) { return; }
+  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, renderArea: RenderArea, twoLevel: boolean): Array<RenderArea> {
+    if (pageId == null) { return [renderArea]; }
 
     let page = asPageItem(itemStore.getItem(pageId)!);
     let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(page);
 
     if (!layoutStore.childrenLoaded[page.id]) {
       loadChildItems(page.id);
-      return;
+      return [renderArea];
     }
+
+    let result = [renderArea];
 
     page.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childItem => {
       let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, 1);
@@ -136,25 +138,30 @@ export const Desktop: Component = () => {
         if (twoLevel) {
           let childTable = asTableItem(childItem);
           if (layoutStore.childrenLoaded[childTable.id]) {
-            calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, 2, renderArea);
+            let ra = calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, 2);
+            if (ra != null) {
+              result.push(ra);
+            }
           } else {
             loadChildItems(childTable.id);
           }
         }
       }
     });
+
+    return result;
   }
 
 
-  const calcFixedGeometryMemoized = createMemo((): RenderArea => {
+  const calcFixedGeometryMemoized = createMemo((): Array<RenderArea> => {
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) {
-      return {
+      return [{
         itemId: "",
         boundsPx: { x: 0, y: 0, w: 0, h: 0 },
         itemGeometry: [],
-        children: []
-      };
+        tableItems: false,
+      }];
     }
     const currentPageBoundsPx: BoundingBox = layoutStore.desktopBoundsPx();
     const currentPage = asPageItem(itemStore.getFixedItem(currentPageId!)!);
@@ -162,20 +169,19 @@ export const Desktop: Component = () => {
       itemId: currentPageId,
       boundsPx: currentPageBoundsPx,
       itemGeometry: [calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx)],
-      children: []
+      tableItems: false,
     }
-    calcPageNestedGeometry(currentPageId, currentPageBoundsPx, renderArea, true);
-    return renderArea;
+    return calcPageNestedGeometry(currentPageId, currentPageBoundsPx, renderArea, true);
   });
 
 
   const calcMovingGeometry = (): Array<ItemGeometry> => {
-    let renderArea = calcFixedGeometryMemoized();
+    let renderAreas = calcFixedGeometryMemoized();
 
     let result: Array<ItemGeometry> = [];
     for (let i=0; i<itemStore.getMovingItems().length; ++i) {
       let item = itemStore.getMovingItems()[i];
-      let parentGeometry = renderArea?.itemGeometry.find(a => a.item.id == item.parentId);
+      let parentGeometry = renderAreas[0]!.itemGeometry.find(a => a.item.id == item.parentId);
       let parentPage = asPageItem(itemStore.getFixedItem(parentGeometry!.item.id)!);
       let pageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(parentPage);
       let movingItemGeometry = calcGeometryOfItemInPage(item, parentGeometry!.boundsPx, pageInnerDimensionsBl, 1);
@@ -184,10 +190,10 @@ export const Desktop: Component = () => {
           itemId: item.id,
           boundsPx: movingItemGeometry.boundsPx,
           itemGeometry: [movingItemGeometry],
-          children: []
+          tableItems: false,
         }
         if (asPageItem(item).spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, renderArea, false);
+          calcPageNestedGeometry(item.id, movingItemGeometry.boundsPx, renderAreas[0], false);
         }
         result = ra.itemGeometry;
       } else {
@@ -212,26 +218,26 @@ export const Desktop: Component = () => {
 
   const mouseDownListener = (ev: MouseEvent) => {
     ev.preventDefault();
-    let renderArea = calcFixedGeometryMemoized();
-    if (renderArea != null) {
-      mouseDownHandler(itemStore, layoutStore, renderArea, ev);
+    let renderAreas = calcFixedGeometryMemoized();
+    if (renderAreas != null) {
+      mouseDownHandler(itemStore, layoutStore, renderAreas, ev);
     }
   }
 
   const mouseMoveListener = (ev: MouseEvent) => {
     ev.preventDefault();
     lastMouseMoveEvent = ev;
-    let renderArea = calcFixedGeometryMemoized();
-    if (renderArea != null) {
-      mouseMoveHandler(itemStore, layoutStore, renderArea, ev);
+    let renderAreas = calcFixedGeometryMemoized();
+    if (renderAreas != null) {
+      mouseMoveHandler(itemStore, layoutStore, renderAreas, ev);
     }
   }
 
   const mouseUpListener = (ev: MouseEvent) => {
     ev.preventDefault();
-    let renderArea = calcFixedGeometryMemoized();
-    if (renderArea != null) {
-      mouseUpHandler(userStore, itemStore, layoutStore, renderArea, ev);
+    let renderAreas = calcFixedGeometryMemoized();
+    if (renderAreas != null) {
+      mouseUpHandler(userStore, itemStore, layoutStore, renderAreas, ev);
     }
   }
 
@@ -280,24 +286,28 @@ export const Desktop: Component = () => {
   }
 
   function draw() {
-    let fixedGeometry = calcFixedGeometryMemoized();
+    let renderAreas = calcFixedGeometryMemoized();
 
     return (
     <>
-    { drawItems(fixedGeometry.itemGeometry) }
+    { drawItems(renderAreas[0].itemGeometry) }
 
-    <For each={fixedGeometry.children}>{renderArea => (() => {
-      let tableItem = asTableItem(itemStore.getItem(renderArea.itemId)!);
-      let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
-      let heightPx = renderArea.boundsPx.h;
-      let blockHeightPx = heightPx / heightBr;
-      let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
-      return (
-        <div class="absolute" style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px; overflow-y: auto;`}>
-          <div class="absolute" style={`width: ${renderArea.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
-            { drawTableItems(renderArea.itemGeometry, tableItem) }
-          </div>
-        </div>)
+    <For each={renderAreas}>{renderArea => (() => {
+      if (renderArea.tableItems) {
+        let tableItem = asTableItem(itemStore.getItem(renderArea.itemId)!);
+        let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
+        let heightPx = renderArea.boundsPx.h;
+        let blockHeightPx = heightPx / heightBr;
+        let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
+        return (
+          <div class="absolute" style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px; overflow-y: auto;`}>
+            <div class="absolute" style={`width: ${renderArea.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
+              { drawTableItems(renderArea.itemGeometry, tableItem) }
+            </div>
+          </div>)
+      } else {
+        return <></>
+      }
       })()
     }</For>
 
