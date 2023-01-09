@@ -108,29 +108,33 @@ export function ItemStoreProvider(props: ItemStoreContextProps) {
   }
 
   const transitionToMove = (id: Uid): void => {
-    let itemSignal = fixed[id];
-    delete fixed[id];
-    let itemClone = cloneItem(itemSignal.item());
-    itemClone.computed_fromParentIdMaybe = itemClone.parentId;
-    itemSignal.setItem(itemClone);
-    moving.push(itemSignal);
+    batch(() => { // must be atomic
+      let itemSignal = fixed[id];
+      delete fixed[id];
+      let itemClone = cloneItem(itemSignal.item());
+      itemClone.computed_fromParentIdMaybe = itemClone.parentId;
+      itemSignal.setItem(itemClone);
+      moving.push(itemSignal);
 
-    let parent = asPageItem(cloneItem(fixed[itemSignal.item().parentId ?? panic()].item()));
-    parent.computed_children = parent.computed_children.filter(item => item != id);
-    fixed[parent.id].setItem(parent);
+      let parent = asPageItem(cloneItem(fixed[itemSignal.item().parentId ?? panic()].item()));
+      parent.computed_children = parent.computed_children.filter(item => item != id);
+      fixed[parent.id].setItem(parent);
+    });
   };
 
   const transitionMovingToFixed = (): void => {
-    moving.forEach(itemSignal => {
-      let cloned = cloneItem(itemSignal.item());
-      cloned.computed_fromParentIdMaybe = null
-      itemSignal.setItem(cloned);
-      fixed[itemSignal.item().id] = itemSignal;
+    batch(() => { // must be atomic
+      moving.forEach(itemSignal => {
+        let cloned = cloneItem(itemSignal.item());
+        cloned.computed_fromParentIdMaybe = null
+        itemSignal.setItem(cloned);
+        fixed[itemSignal.item().id] = itemSignal;
 
-      let parentId = itemSignal.item().parentId ?? panic();
-      let parent = asPageItem(cloneItem(fixed[parentId].item()));
-      parent.computed_children.push(itemSignal.item().id);
-      fixed[parentId].setItem(parent);
+        let parentId = itemSignal.item().parentId ?? panic();
+        let parent = asPageItem(cloneItem(fixed[parentId].item()));
+        parent.computed_children.push(itemSignal.item().id);
+        fixed[parentId].setItem(parent);
+      });
     });
     moving = [];
   };
