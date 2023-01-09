@@ -59,7 +59,7 @@ export const Desktop: Component = () => {
   }
 
 
-  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, level: number, renderArea: RenderArea) {
+  function calcPageNestedGeometry(pageId: Uid, pageBoundsPx: BoundingBox, renderArea: RenderArea) {
     if (pageId == null) { return; }
 
     let page = asPageItem(itemStore.getItem(pageId)!);
@@ -71,28 +71,34 @@ export const Desktop: Component = () => {
     }
 
     page.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childItem => {
-      let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, level);
+      let itemGeometry = calcGeometryOfItemInPage(childItem, pageBoundsPx, pageInnerDimensionsBl, 1);
       renderArea.itemGeometry.push(itemGeometry);
       if (isPageItem(childItem)) {
         let childPage = asPageItem(childItem);
         if (childPage.spatialWidthGr / GRID_SIZE >= CHILD_ITEMS_VISIBLE_WIDTH_BL) {
-          if (level < 2) {
-            if (layoutStore.childrenLoaded[childPage.id]) {
-              calcPageNestedGeometry(childPage.id, itemGeometry.boundsPx, level+1, renderArea);
-            } else {
+          if (layoutStore.childrenLoaded[childPage.id]) {
+            // calcPageNestedGeometry(childPage.id, itemGeometry.boundsPx, renderArea);
+            if (!layoutStore.childrenLoaded[page.id]) {
               loadChildItems(childPage.id);
+            } else {
+              let childPageBoundsPx = itemGeometry.boundsPx;
+              let childPageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(childPage);
+              childPage.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childChildItem => {
+                let childItemGeometry = calcGeometryOfItemInPage(childChildItem, childPageBoundsPx, childPageInnerDimensionsBl, 2);
+                renderArea.itemGeometry.push(childItemGeometry);
+              });
             }
+
+          } else {
+            loadChildItems(childPage.id);
           }
         }
-      }
-      else if (isTableItem(childItem)) {
+      } else if (isTableItem(childItem)) {
         let childTable = asTableItem(childItem);
-        if (level < 2) {
-          if (layoutStore.childrenLoaded[childTable.id]) {
-            calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, level+1, renderArea);
-          } else {
-            loadChildItems(childTable.id);
-          }
+        if (layoutStore.childrenLoaded[childTable.id]) {
+          calcTableNestedGeometry(childTable.id, itemGeometry.boundsPx, 2, renderArea);
+        } else {
+          loadChildItems(childTable.id);
         }
       }
     });
@@ -155,7 +161,7 @@ export const Desktop: Component = () => {
       itemGeometry: [calcCurrentPageItemGeometry(currentPage, currentPageBoundsPx)],
       children: []
     }
-    calcPageNestedGeometry(currentPageId, currentPageBoundsPx, 1, ra);
+    calcPageNestedGeometry(currentPageId, currentPageBoundsPx, ra);
     return ra;
   });
 
