@@ -62,23 +62,23 @@ export function calcSizeForSpatialBl(item: Item): Dimensions {
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
-export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
-  if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeBl, level); }
-  if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeBl, level); }
-  if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeBl, level); }
-  if (isImageItem(item)) { return calcGeometryOfImageItem(asImageItem(item), containerBoundsPx, containerInnerSizeBl, level); }
-  if (isFileItem(item)) { return calcGeometryOfFileItem(asFileItem(item), containerBoundsPx, containerInnerSizeBl, level); }
-  if (isRatingItem(item)) { return calcGeometryOfRatingItem(asRatingItem(item), containerBoundsPx, containerInnerSizeBl, level); }
+export function calcGeometryOfItemInPage(item: Item, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, emitHitboxes: boolean): ItemGeometry {
+  if (isPageItem(item)) { return calcGeometryOfPageItem(asPageItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
+  if (isTableItem(item)) { return calcGeometryOfTableItem(asTableItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
+  if (isNoteItem(item)) { return calcGeometryOfNoteItem(asNoteItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
+  if (isImageItem(item)) { return calcGeometryOfImageItem(asImageItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
+  if (isFileItem(item)) { return calcGeometryOfFileItem(asFileItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
+  if (isRatingItem(item)) { return calcGeometryOfRatingItem(asRatingItem(item), containerBoundsPx, containerInnerSizeBl, emitHitboxes); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 
-export function calcGeometryOfItemInTable(item: Item, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
-  if (isPageItem(item)) { return calcGeometryOfPageItemInTable(asPageItem(item), blockSizePx, rowWidthBl, index, level); }
-  if (isTableItem(item)) { return calcGeometryOfTableItemInTable(asTableItem(item), blockSizePx, rowWidthBl, index, level); }
-  if (isNoteItem(item)) { return calcGeometryOfNoteItemInTable(asNoteItem(item), blockSizePx, rowWidthBl, index, level); }
-  if (isImageItem(item)) { return calcGeometryOfImageItemInTable(asImageItem(item), blockSizePx, rowWidthBl, index, level); }
-  if (isFileItem(item)) { return calcGeometryOfFileItemInTable(asFileItem(item), blockSizePx, rowWidthBl, index, level); }
-  if (isRatingItem(item)) { return calcGeometryOfRatingItemInTable(asRatingItem(item), blockSizePx, rowWidthBl, index, level); }
+export function calcGeometryOfItemInTable(item: Item, blockSizePx: Dimensions, rowWidthBl: number, index: number): ItemGeometry {
+  if (isPageItem(item)) { return calcGeometryOfPageItemInTable(asPageItem(item), blockSizePx, rowWidthBl, index); }
+  if (isTableItem(item)) { return calcGeometryOfTableItemInTable(asTableItem(item), blockSizePx, rowWidthBl, index); }
+  if (isNoteItem(item)) { return calcGeometryOfNoteItemInTable(asNoteItem(item), blockSizePx, rowWidthBl, index); }
+  if (isImageItem(item)) { return calcGeometryOfImageItemInTable(asImageItem(item), blockSizePx, rowWidthBl, index); }
+  if (isFileItem(item)) { return calcGeometryOfFileItemInTable(asFileItem(item), blockSizePx, rowWidthBl, index); }
+  if (isRatingItem(item)) { return calcGeometryOfRatingItemInTable(asRatingItem(item), blockSizePx, rowWidthBl, index); }
   throwExpression(`Unknown item type: ${item.itemType}`);
 }
 

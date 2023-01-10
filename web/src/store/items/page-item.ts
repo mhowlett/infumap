@@ -50,7 +50,7 @@ export function calcPageInnerSpatialDimensionsBl(page: PageItem): Dimensions {
   };
 }
 
-export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, emitHitboxes: boolean): ItemGeometry {
   const boundsPx = {
     x: (item.spatialPositionGr.x / (containerInnerSizeBl.w * GRID_SIZE)) * containerBoundsPx.w + containerBoundsPx.x,
     y: (item.spatialPositionGr.y / (containerInnerSizeBl.h * GRID_SIZE)) * containerBoundsPx.h + containerBoundsPx.y,
@@ -60,17 +60,16 @@ export function calcGeometryOfPageItem(item: PageItem, containerBoundsPx: Boundi
   return {
     item,
     boundsPx,
-    hitboxes: level != 1 ? [] : [
+    hitboxes: !emitHitboxes ? [] : [
       { type: HitboxType.Move, boundsPx },
       { type: HitboxType.Resize,
         boundsPx: { x: boundsPx.x + boundsPx.w - RESIZE_BOX_SIZE_PX, y: boundsPx.y + boundsPx.h - RESIZE_BOX_SIZE_PX,
                     w: RESIZE_BOX_SIZE_PX, h: RESIZE_BOX_SIZE_PX } }
     ],
-    level,
   };
 }
 
-export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
+export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimensions, rowWidthBl: number, index: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
     y: blockSizePx.h * index,
@@ -81,7 +80,6 @@ export function calcGeometryOfPageItemInTable(item: PageItem, blockSizePx: Dimen
     item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
-    level
   };
 }
 
@@ -90,7 +88,6 @@ export function calcCurrentPageItemGeometry(item: PageItem, desktopBoundsPx: Bou
     item,
     boundsPx: desktopBoundsPx,
     hitboxes: [],
-    level: 0,
   };
 }
 

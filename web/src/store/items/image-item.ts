@@ -49,7 +49,7 @@ export function calcImageSizeForSpatialBl(item: ImageItem): Dimensions {
   return { w: item.spatialWidthGr / GRID_SIZE, h: heightBl };
 }
 
-export function calcGeometryOfImageItem(item: ImageItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfImageItem(item: ImageItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, _emitHitboxes: boolean): ItemGeometry {
   const boundsPx = {
     x: (item.spatialPositionGr.x / (containerInnerSizeBl.w * GRID_SIZE)) * containerBoundsPx.w + containerBoundsPx.x,
     y: (item.spatialPositionGr.y / (containerInnerSizeBl.h * GRID_SIZE)) * containerBoundsPx.h + containerBoundsPx.y,
@@ -60,11 +60,10 @@ export function calcGeometryOfImageItem(item: ImageItem, containerBoundsPx: Boun
     item,
     boundsPx,
     hitboxes: [],
-    level,
   }
 }
 
-export function calcGeometryOfImageItemInTable(item: ImageItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
+export function calcGeometryOfImageItemInTable(item: ImageItem, blockSizePx: Dimensions, rowWidthBl: number, index: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
     y: blockSizePx.h * index,
@@ -75,7 +74,6 @@ export function calcGeometryOfImageItemInTable(item: ImageItem, blockSizePx: Dim
     item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
-    level
   };
 }
 

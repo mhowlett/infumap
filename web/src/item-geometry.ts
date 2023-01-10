@@ -23,7 +23,6 @@ import { BoundingBox } from "./util/geometry";
 
 export interface ItemGeometry {
   item: Item,
-  boundsPx: BoundingBox,
+  boundsPx: BoundingBox, // relative to containing render area.
   hitboxes: Array<Hitbox>, // higher index => takes precedence.
-  level: number,
 }

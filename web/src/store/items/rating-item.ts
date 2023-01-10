@@ -32,7 +32,7 @@ export function calcRatingSizeForSpatialBl(_item: RatingItem): Dimensions {
   return { w: 1.0, h: 1.0 };
 }
 
-export function calcGeometryOfRatingItem(item: RatingItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, level: number): ItemGeometry {
+export function calcGeometryOfRatingItem(item: RatingItem, containerBoundsPx: BoundingBox, containerInnerSizeBl: Dimensions, _emitHitboxes: boolean): ItemGeometry {
   const boundsPx = {
     x: (item.spatialPositionGr.x / (containerInnerSizeBl.w * GRID_SIZE)) * containerBoundsPx.w + containerBoundsPx.x,
     y: (item.spatialPositionGr.y / (containerInnerSizeBl.h * GRID_SIZE)) * containerBoundsPx.h + containerBoundsPx.y,
@@ -43,11 +43,10 @@ export function calcGeometryOfRatingItem(item: RatingItem, containerBoundsPx: Bo
     item,
     boundsPx,
     hitboxes: [],
-    level,
   }
 }
 
-export function calcGeometryOfRatingItemInTable(item: RatingItem, blockSizePx: Dimensions, rowWidthBl: number, index: number, level: number): ItemGeometry {
+export function calcGeometryOfRatingItemInTable(item: RatingItem, blockSizePx: Dimensions, rowWidthBl: number, index: number): ItemGeometry {
   const boundsPx = {
     x: 0.0,
     y: blockSizePx.h * index,
@@ -58,7 +57,6 @@ export function calcGeometryOfRatingItemInTable(item: RatingItem, blockSizePx: D
     item,
     boundsPx,
     hitboxes: [ { type: HitboxType.Move, boundsPx } ],
-    level
   };
 }
 
