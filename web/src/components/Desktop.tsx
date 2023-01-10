@@ -63,20 +63,15 @@ export const Desktop: Component = () => {
   function calcTableItemGeometry(tableId: Uid, tableBoundsPx: BoundingBox): RenderArea {
     let table = asTableItem(itemStore.getItem(tableId)!);
 
-    let result: Array<ItemGeometry> = [];
-
-    const rowWidthBl = table.spatialWidthGr / GRID_SIZE;
-    const colHeightBl = table.spatialHeightGr / GRID_SIZE;
-    const blockSizePx = {
-      w: tableBoundsPx.w / rowWidthBl,
-      h: tableBoundsPx.h / colHeightBl,
-    };
+    const sizeBl = { w: table.spatialWidthGr / GRID_SIZE, h: table.spatialHeightGr / GRID_SIZE };
+    const blockSizePx = { w: tableBoundsPx.w / sizeBl.w, h: tableBoundsPx.h / sizeBl.h };
     const headerHeightPx = blockSizePx.h * 1.5;
 
+    let result: Array<ItemGeometry> = [];
     for (let idx=0; idx<table.computed_children.length; ++idx) {
       const childId = table.computed_children[idx];
       const childItem = itemStore.getFixedItem(childId)!;
-      const itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, rowWidthBl, idx);
+      const itemGeometry = calcGeometryOfItemInTable(childItem, blockSizePx, sizeBl.w, idx);
       result.push(itemGeometry);
     }
 
