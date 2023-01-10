@@ -23,7 +23,7 @@ import { calcGeometryOfItemInPage, calcGeometryOfItemInTable } from "../store/it
 import { asPageItem, calcCurrentPageItemGeometry, calcPageInnerSpatialDimensionsBl, isPageItem } from "../store/items/page-item";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, TOOLBAR_WIDTH } from "../constants";
 import { ContextMenu } from "./context/ContextMenu";
-import { BoundingBox, clientPxFromMouseEvent, desktopPxFromMouseEvent } from "../util/geometry";
+import { BoundingBox, clientPxFromMouseEvent, cloneBoundingBox, desktopPxFromMouseEvent } from "../util/geometry";
 import { useUserStore } from "../store/UserStoreProvider";
 import { server } from "../server";
 import { Uid } from "../util/uid";
@@ -121,12 +121,22 @@ export const Desktop: Component = () => {
               if (!layoutStore.childrenLoadedInitiated[page.id]) {
                 loadChildItems(childPage.id);
               } else {
-                let childPageBoundsPx = itemGeometry.boundsPx;
+                let childRenderArea: RenderArea = {
+                  itemId: childPage.id,
+                  boundsPx: itemGeometry.boundsPx,
+                  itemGeometry: [],
+                  areaType: "page",
+                }
+                let childPageBoundsPx = cloneBoundingBox(itemGeometry.boundsPx)!;
+                childPageBoundsPx.x = 0.0;
+                childPageBoundsPx.y = 0.0;
                 let childPageInnerDimensionsBl = calcPageInnerSpatialDimensionsBl(childPage);
                 childPage.computed_children.map(childId => itemStore.getFixedItem(childId)!).forEach(childChildItem => {
-                  let childItemGeometry = calcGeometryOfItemInPage(childChildItem, childPageBoundsPx, childPageInnerDimensionsBl, 2);
-                  renderArea.itemGeometry.push(childItemGeometry);
+                  childRenderArea.itemGeometry.push(
+                    calcGeometryOfItemInPage(childChildItem, childPageBoundsPx, childPageInnerDimensionsBl, 2)
+                  );
                 });
+                result.push(childRenderArea);
               }
             }
           } else {
@@ -150,11 +160,9 @@ export const Desktop: Component = () => {
 
 
   const calcFixedGeometryMemoized = createMemo((): Array<RenderArea> | null => {
-    console.log("calculating..");
     const currentPageId = layoutStore.currentPageId();
     if (currentPageId == null) { return null; }
-    const currentPageBoundsPx: BoundingBox = layoutStore.desktopBoundsPx();
-    return calcPageNestedGeometry(currentPageId!, currentPageBoundsPx, true);
+    return calcPageNestedGeometry(currentPageId!, layoutStore.desktopBoundsPx(), true);
   });
 
 
@@ -270,16 +278,24 @@ export const Desktop: Component = () => {
     <>
     <For each={renderAreas}>{renderArea => (() => {
       if (renderArea.areaType == "page") {
-        return drawItems(renderArea.itemGeometry);
+        return (
+          <div class="absolute"
+               style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; ` +
+                      `width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px;`}>
+            { drawItems(renderArea.itemGeometry) }
+          </div>
+        );
       } else if (renderArea.areaType == "table") {
         let tableItem = asTableItem(itemStore.getItem(renderArea.itemId)!);
         let heightBr = tableItem.spatialHeightGr / GRID_SIZE;
         let heightPx = renderArea.boundsPx.h;
         let blockHeightPx = heightPx / heightBr;
-        let totalItemHeightPx = tableItem.computed_children.length * blockHeightPx;
+        let scrollableHeightPx = tableItem.computed_children.length * blockHeightPx;
         return (
-          <div class="absolute" style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px; overflow-y: auto;`}>
-            <div class="absolute" style={`width: ${renderArea.boundsPx.w}px; height: ${totalItemHeightPx}px;`}>
+          <div class="absolute"
+               style={`left: ${renderArea.boundsPx.x}px; top: ${renderArea.boundsPx.y}px; ` +
+                      `width: ${renderArea.boundsPx.w}px; height: ${renderArea.boundsPx.h}px; overflow-y: auto;`}>
+            <div class="absolute" style={`width: ${renderArea.boundsPx.w}px; height: ${scrollableHeightPx}px;`}>
               { drawTableItems(renderArea.itemGeometry, tableItem) }
             </div>
           </div>)
@@ -295,7 +311,7 @@ export const Desktop: Component = () => {
 
 
   return (
-    <div class="fixed top-0 bottom-0 right-0 select-none outline-none"
+    <div class="absolute top-0 bottom-0 right-0 select-none outline-none"
          style={`left: ${TOOLBAR_WIDTH}px`}>
       { draw() }
       <ContextMenu />

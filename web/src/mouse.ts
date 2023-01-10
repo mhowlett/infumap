@@ -52,10 +52,12 @@ function getHitInfo(renderAreas: Array<RenderArea>, desktopPx: Vector): HitInfo 
 
   for (let i=1; i<renderAreas.length; ++i) {
     let childRenderArea = renderAreas[i];
-    if (isInside(desktopPx, childRenderArea.boundsPx)) {
-      renderArea = childRenderArea;
-      hitPointPx = subtract(desktopPx, { x: childRenderArea.boundsPx.x, y: childRenderArea.boundsPx.y });
-      break;
+    if (childRenderArea.areaType == "table") { // hittin inner page items is not allowed.
+      if (isInside(desktopPx, childRenderArea.boundsPx)) {
+        renderArea = childRenderArea;
+        hitPointPx = subtract(desktopPx, { x: childRenderArea.boundsPx.x, y: childRenderArea.boundsPx.y });
+        break;
+      }
     }
   }
 
