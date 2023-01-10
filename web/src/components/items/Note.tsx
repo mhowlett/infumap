@@ -18,33 +18,34 @@
 
 import { Component, Show } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
-import { calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
+import { asNoteItem, calcNoteSizeForSpatialBl, NoteItem } from "../../store/items/note-item";
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
+import { ItemGeometry } from "../../item-geometry";
 
 
-export const Note: Component<{ item: NoteItem, boundsPx: BoundingBox }> = (props: { item: NoteItem, boundsPx: BoundingBox }) => {
-  let outerDiv: HTMLDivElement | undefined;
+export const Note: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx, hitboxes } = props.itemGeometry;
+  let noteItem = asNoteItem(item);
 
-  let naturalWidthPx = calcNoteSizeForSpatialBl(props.item).w * LINE_HEIGHT_PX;
-  let widthScale = props.boundsPx.w / naturalWidthPx;
+  let naturalWidthPx = calcNoteSizeForSpatialBl(noteItem).w * LINE_HEIGHT_PX;
+  let widthScale = boundsPx.w / naturalWidthPx;
 
-  let naturalHeightPx = calcNoteSizeForSpatialBl(props.item).h * LINE_HEIGHT_PX;
-  let heightScale = props.boundsPx.h / naturalHeightPx
+  let naturalHeightPx = calcNoteSizeForSpatialBl(noteItem).h * LINE_HEIGHT_PX;
+  let heightScale = boundsPx.h / naturalHeightPx
 
   let scale = Math.min(heightScale, widthScale);
 
   return (
-    <div ref={outerDiv}
-         id={props.item.id}
+    <div id={item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
       <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
                   `line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left; ` +
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
-        <Show when={props.item.url != null}
-              fallback={<span>{props.item.title}</span>}>
-          <a href={props.item.url} draggable={false} target="_blank">{props.item.title}</a>
+        <Show when={noteItem.url != null && hitboxes.length > 0}
+              fallback={<span>{noteItem.title}</span>}>
+          <a href={noteItem.url} draggable={false} target="_blank">{noteItem.title}</a>
         </Show>
       </div>
     </div>

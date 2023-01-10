@@ -18,33 +18,34 @@
 
 import { Component } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
-import { calcFileSizeForSpatialBl, FileItem } from "../../store/items/file-item";
+import { asFileItem, calcFileSizeForSpatialBl, FileItem } from "../../store/items/file-item";
 import { GRID_SIZE, LINE_HEIGHT_PX, NOTE_PADDING_PX } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
+import { ItemGeometry } from "../../item-geometry";
 
 
-export const File: Component<{ item: FileItem, boundsPx: BoundingBox }> = (props: { item: FileItem, boundsPx: BoundingBox }) => {
-  let outerDiv: HTMLDivElement | undefined;
+export const File: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
+  let fileItem = asFileItem(item);
 
-  let naturalWidthPx = props.item.spatialWidthGr / GRID_SIZE * LINE_HEIGHT_PX;
-  let widthScale = props.boundsPx.w / naturalWidthPx;
+  let naturalWidthPx = fileItem.spatialWidthGr / GRID_SIZE * LINE_HEIGHT_PX;
+  let widthScale = boundsPx.w / naturalWidthPx;
 
-  let naturalHeightPx = calcFileSizeForSpatialBl(props.item).h * LINE_HEIGHT_PX;
-  let heightScale = props.boundsPx.h / naturalHeightPx
+  let naturalHeightPx = calcFileSizeForSpatialBl(fileItem).h * LINE_HEIGHT_PX;
+  let heightScale = boundsPx.h / naturalHeightPx
 
   let scale = Math.min(heightScale, widthScale);
 
-  const clickHandler = () => { window.location.href = "/files/" + props.item.id }
+  const clickHandler = () => { window.location.href = "/files/" + item.id }
 
   return (
-    <div ref={outerDiv}
-         id={props.item.id}
+    <div id={item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
       <div style={`position: absolute; left: 0px; top: ${-LINE_HEIGHT_PX/5}px; width: ${naturalWidthPx}px; ` +
                   `line-height: ${LINE_HEIGHT_PX}px; transform: scale(${scale}); transform-origin: top left; ` +
                   `overflow-wrap: break-word; padding: ${NOTE_PADDING_PX}px;`}>
-        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{props.item.title}</span>
+        <span class="text-green-800 cursor-pointer" onclick={clickHandler}>{fileItem.title}</span>
       </div>
     </div>
   );

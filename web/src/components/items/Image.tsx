@@ -18,18 +18,21 @@
 
 import { Component } from "solid-js";
 import { GRID_SIZE, LINE_HEIGHT_PX } from "../../constants";
+import { ItemGeometry } from "../../item-geometry";
 import { ImageItem } from "../../store/items/image-item";
 import { TableItem } from "../../store/items/table-item";
 import { BoundingBox } from "../../util/geometry";
 
 
-export const Image: Component<{ item: ImageItem, boundsPx: BoundingBox }> = (props: { item: ImageItem, boundsPx: BoundingBox }) => {
+export const Image: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
+
   return (
-    <div id={props.item.id}
+    <div id={item.id}
          class="absolute border border-slate-700 rounded-sm shadow-lg"
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
-      <img style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}
-           src={"/files/" + props.item.id} />
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
+      <img style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}
+           src={"/files/" + item.id} />
     </div>
   );
 }

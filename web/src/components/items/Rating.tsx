@@ -21,16 +21,16 @@ import { BoundingBox } from "../../util/geometry";
 import { RatingItem } from "../../store/items/rating-item";
 import { GRID_SIZE } from "../../constants";
 import { TableItem } from "../../store/items/table-item";
+import { ItemGeometry } from "../../item-geometry";
 
 
-export const Rating: Component<{ item: RatingItem, boundsPx: BoundingBox }> = (props: { item: RatingItem, boundsPx: BoundingBox }) => {
-  let outerDiv: HTMLDivElement | undefined;
+export const Rating: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
 
   return (
-    <div ref={outerDiv}
-         id={props.item.id}
+    <div id={item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
       <i class={`fas fa-star text-yellow-400`} />
     </div>
   );

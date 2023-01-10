@@ -24,7 +24,8 @@ import { Uid } from "./util/uid";
 export interface RenderArea {
   itemId: Uid,
   boundsPx: BoundingBox,
-  itemGeometry: Array<ItemGeometry>,
+  containerGeometry: ItemGeometry,
+  childGeometry: Array<ItemGeometry>,
   areaType: string,
   // scrollXPx,
   // scrollYPx,

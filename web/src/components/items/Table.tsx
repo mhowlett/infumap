@@ -18,25 +18,29 @@
 
 import { Component } from "solid-js";
 import { GRID_SIZE, LINE_HEIGHT_PX } from "../../constants";
-import { TableItem } from "../../store/items/table-item";
+import { ItemGeometry } from "../../item-geometry";
+import { asTableItem, TableItem } from "../../store/items/table-item";
 import { BoundingBox } from "../../util/geometry";
 
 
-export const Table: Component<{ item: TableItem, boundsPx: BoundingBox }> = (props: { item: TableItem, boundsPx: BoundingBox }) => {
-  let sizeBl = { x: props.item.spatialWidthGr / GRID_SIZE, y: props.item.spatialHeightGr / GRID_SIZE };
-  let blockSizePx = { x: props.boundsPx.w / sizeBl.x, y: props.boundsPx.h / sizeBl.y };
+export const Table: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
+  let tableItem = asTableItem(item);
+
+  let sizeBl = { x: tableItem.spatialWidthGr / GRID_SIZE, y: tableItem.spatialHeightGr / GRID_SIZE };
+  let blockSizePx = { x: boundsPx.w / sizeBl.x, y: boundsPx.h / sizeBl.y };
   let headerHeightPx = blockSizePx.y * 1.5;
 
   return (
-    <div id={props.item.id}
+    <div id={item.id}
          class="absolute"
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
       <div class="absolute"
-           style={`left: 0px; top: 0px; width: ${props.boundsPx.w}px; height: ${headerHeightPx}px;`}>
-        {props.item.title}
+           style={`left: 0px; top: 0px; width: ${boundsPx.w}px; height: ${headerHeightPx}px;`}>
+        {tableItem.title}
       </div>
       <div class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-           style={`left: 0px; top: ${headerHeightPx}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h - headerHeightPx}px;`}>
+           style={`left: 0px; top: ${headerHeightPx}px; width: ${boundsPx.w}px; height: ${boundsPx.h - headerHeightPx}px;`}>
       </div>
     </div>
   );

@@ -19,40 +19,40 @@
 import { Component } from "solid-js";
 import { BoundingBox } from "../../util/geometry";
 import { useLayoutStore } from "../../store/LayoutStoreProvider";
-import { PageItem } from "../../store/items/page-item";
+import { asPageItem, PageItem } from "../../store/items/page-item";
 import { CHILD_ITEMS_VISIBLE_WIDTH_BL, GRID_SIZE, LINE_HEIGHT_PX } from "../../constants";
 import { hexToRGBA } from "../../util/color";
 import { Colors } from "../../style";
 import { TableItem } from "../../store/items/table-item";
+import { ItemGeometry } from "../../item-geometry";
 
 
-export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props: { item: PageItem, boundsPx: BoundingBox }) => {
+export const Page: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
+  let { item, boundsPx } = props.itemGeometry;
+  let pageItem = asPageItem(item);
+
   const layoutStore = useLayoutStore();
 
-  let outerDiv: HTMLDivElement | undefined;
-
   // Current top page.
-  if (props.item.id == layoutStore.currentPageId()) {
+  if (item.id == layoutStore.currentPageId()) {
     return (
-      <div ref={outerDiv}
-           id={props.item.id}
+      <div id={item.id}
            class={`absolute`}
-           style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+           style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
       </div>
     );
   }
 
   // Too small for inside items to be visible. Opaque.
-  if (props.item.spatialWidthGr / GRID_SIZE < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
+  if (pageItem.spatialWidthGr / GRID_SIZE < CHILD_ITEMS_VISIBLE_WIDTH_BL) {
     return (
-      <div ref={outerDiv}
-           id={props.item.id}
+      <div id={item.id}
            class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-           style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; ` +
-                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.986)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 1.0)});`}>
-        <div class="flex items-center justify-center" style={`width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+           style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px; ` +
+                  `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[pageItem.backgroundColorIndex], 0.986)}, ${hexToRGBA(Colors[pageItem.backgroundColorIndex], 1.0)});`}>
+        <div class="flex items-center justify-center" style={`width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
           <div class="flex items-center text-center text-xs font-bold text-white">
-            {props.item.title}
+            {pageItem.title}
           </div>
         </div>
       </div>
@@ -61,14 +61,13 @@ export const Page: Component<{ item: PageItem, boundsPx: BoundingBox }> = (props
 
   // Show child items. Translucent.
   return (
-    <div ref={outerDiv}
-         id={props.item.id}
+    <div id={item.id}
          class={`absolute border border-slate-700 rounded-sm shadow-lg`}
-         style={`left: ${props.boundsPx.x}px; top: ${props.boundsPx.y}px; width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px; ` +
-                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[props.item.backgroundColorIndex], 0.364)});`}>
-      <div class="flex items-center justify-center" style={`width: ${props.boundsPx.w}px; height: ${props.boundsPx.h}px;`}>
+         style={`left: ${boundsPx.x}px; top: ${boundsPx.y}px; width: ${boundsPx.w}px; height: ${boundsPx.h}px; ` +
+                `background-image: linear-gradient(270deg, ${hexToRGBA(Colors[pageItem.backgroundColorIndex], 0.386)}, ${hexToRGBA(Colors[pageItem.backgroundColorIndex], 0.364)});`}>
+      <div class="flex items-center justify-center" style={`width: ${boundsPx.w}px; height: ${boundsPx.h}px;`}>
         <div class="flex items-center text-center text-xl text-white">
-          {props.item.title}
+          {pageItem.title}
         </div>
       </div>
     </div>

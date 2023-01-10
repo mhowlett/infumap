@@ -52,16 +52,31 @@ function getHitInfo(renderAreas: Array<RenderArea>, desktopPx: Vector): HitInfo 
 
   for (let i=1; i<renderAreas.length; ++i) {
     let childRenderArea = renderAreas[i];
-    if (childRenderArea.areaType == "table") { // hittin inner page items is not allowed.
+    if (childRenderArea.areaType == "table") {
       if (isInside(desktopPx, childRenderArea.boundsPx)) {
         renderArea = childRenderArea;
         hitPointPx = subtract(desktopPx, { x: childRenderArea.boundsPx.x, y: childRenderArea.boundsPx.y });
         break;
       }
+    } else if (childRenderArea.areaType == "page") {
+      if (isInside(desktopPx, childRenderArea.containerGeometry.boundsPx)) {
+        for (let j=childRenderArea.containerGeometry.hitboxes.length-1; j>=0; --j) {
+          if (isInside(hitPointPx, childRenderArea.containerGeometry.hitboxes[j].boundsPx)) {
+            return {
+              item: childRenderArea.containerGeometry.item,
+              hitbox: childRenderArea.containerGeometry.hitboxes[j],
+              itemBoundsPx: childRenderArea.containerGeometry.boundsPx
+            };
+          }
+        }
+      }
+    } else {
+      panic();
     }
   }
 
-  let itemGeometry = renderArea.itemGeometry;
+  // top level page.
+  let itemGeometry = renderArea.childGeometry;
   let geom = itemGeometry.filter(g => isInside(hitPointPx, g.boundsPx))
   for (let i=geom.length-1; i>=0; --i) {
     for (let j=geom[i].hitboxes.length-1; j>=0; --j) {

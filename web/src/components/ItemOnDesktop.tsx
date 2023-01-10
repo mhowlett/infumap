@@ -17,12 +17,12 @@
 */
 
 import { Component, Match, Switch } from "solid-js";
-import { FileItem, isFileItem } from "../store/items/file-item";
-import { ImageItem, isImageItem } from "../store/items/image-item";
-import { isNoteItem, NoteItem } from "../store/items/note-item";
-import { isPageItem, PageItem } from "../store/items/page-item";
-import { isRatingItem, RatingItem } from "../store/items/rating-item";
-import { isTableItem, TableItem } from "../store/items/table-item";
+import { isFileItem } from "../store/items/file-item";
+import { isImageItem } from "../store/items/image-item";
+import { isNoteItem } from "../store/items/note-item";
+import { isPageItem } from "../store/items/page-item";
+import { isRatingItem } from "../store/items/rating-item";
+import { isTableItem } from "../store/items/table-item";
 import { Note } from "./items/Note";
 import { Page } from "./items/Page";
 import { Rating } from "./items/Rating";
@@ -33,27 +33,28 @@ import { ItemGeometry } from "../item-geometry";
 
 
 export const ItemOnDesktop: Component<{itemGeometry: ItemGeometry}> = (props: {itemGeometry: ItemGeometry}) => {
-  let { item, boundsPx } = props.itemGeometry;
+  let itemGeometry = props.itemGeometry;
+  let item = itemGeometry.item;
 
   return (
     <Switch fallback={<div>unkown item type '{item.itemType}'</div>}>
       <Match when={isPageItem(item)}>
-        <Page item={item as PageItem} boundsPx={boundsPx} />
+        <Page itemGeometry={itemGeometry} />
       </Match>
       <Match when={isTableItem(item)}>
-        <Table item={item as TableItem} boundsPx={boundsPx} />
+        <Table itemGeometry={itemGeometry} />
       </Match>
       <Match when={isNoteItem(item)}>
-        <Note item={item as NoteItem} boundsPx={boundsPx} />
+        <Note itemGeometry={itemGeometry} />
       </Match>
       <Match when={isImageItem(item)}>
-        <Image item={item as ImageItem} boundsPx={boundsPx} />
+        <Image itemGeometry={itemGeometry} />
       </Match>
       <Match when={isFileItem(item)}>
-        <File item={item as FileItem} boundsPx={boundsPx} />
+        <File itemGeometry={itemGeometry} />
       </Match>
       <Match when={isRatingItem(item)}>
-        <Rating item={item as RatingItem} boundsPx={boundsPx} />
+        <Rating itemGeometry={itemGeometry} />
       </Match>
     </Switch>
   );
